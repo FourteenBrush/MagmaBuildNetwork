@@ -3,6 +3,7 @@ package io.github.FourteenBrush.MagmaBuildNetwork.listeners;
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
 import io.github.FourteenBrush.MagmaBuildNetwork.NPC;
 import io.github.FourteenBrush.MagmaBuildNetwork.PacketReader;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandHandler;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Effects;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.GUI;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.ParticleData;
@@ -62,7 +63,7 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
         Player p = event.getPlayer();
-        if (Main.getFrozenPlayerList().contains(p.getUniqueId())) {
+        if (CommandHandler.getFrozenPlayers().contains(p.getUniqueId())) {
             if (event.getTo().getBlockX() != event.getFrom().getBlockX() || event.getTo().getBlockY() != event.getFrom().getBlockY() || event.getTo().getBlockZ() != event.getFrom().getBlockZ()) {
                 event.setCancelled(true);
             }

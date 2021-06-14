@@ -1,6 +1,7 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.listeners;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandHandler;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -40,12 +41,12 @@ public class LockListener implements Listener {
         Location location = block.getLocation();
         PersistentDataContainer container = location.getChunk().getPersistentDataContainer();
 
-        if (container.has(keyOwner, PersistentDataType.STRING) && Main.getPlayersWantingLock()
+        if (container.has(keyOwner, PersistentDataType.STRING) && CommandHandler.getPlayersWantingLock()
                 .contains(p.getUniqueId())) {
             p.sendMessage(ChatColor.RED + "This block is already locked!");
-            Main.getPlayersWantingLock().remove(p.getUniqueId());
+            CommandHandler.getPlayersWantingLock().remove(p.getUniqueId());
         }
-        if (Main.getPlayersWantingLock().remove(p.getUniqueId())) {
+        if (CommandHandler.getPlayersWantingLock().remove(p.getUniqueId())) {
             event.setCancelled(true);
             container.set(keyOwner, PersistentDataType.STRING, p.getUniqueId().toString());
             blockState.update(); // apply the lock!

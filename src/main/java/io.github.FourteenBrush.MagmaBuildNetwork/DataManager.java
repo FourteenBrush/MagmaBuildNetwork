@@ -38,7 +38,7 @@ public class DataManager {
         return this.dataConfig;
     }
     public void saveConfig() {
-        if (this.dataConfig == null || this.configFile == null) {
+        if (dataConfig == null || this.configFile == null) {
             return;
         }
         try {

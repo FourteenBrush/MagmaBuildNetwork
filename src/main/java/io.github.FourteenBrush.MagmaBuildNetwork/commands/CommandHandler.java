@@ -13,9 +13,12 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.EnumSet;
+import java.util.*;
 
-public class PluginCommandExecutor implements CommandExecutor {
+public class CommandHandler implements CommandExecutor {
+
+    private static final Set<UUID> frozenPlayers = new HashSet<>();
+    private static  final Set<UUID> peopleWantingLock = new HashSet<>();
 
     EnumSet<Material> materials = EnumSet.of(
             Material.STONE,
@@ -24,14 +27,6 @@ public class PluginCommandExecutor implements CommandExecutor {
             Material.DIORITE,
             Material.GRANITE
     );
-
-    public int getTotalMinedBlocks(Player p){
-        int total = 0;
-        for (Material m : materials) {
-            total += p.getStatistic(Statistic.MINE_BLOCK, m);
-        }
-        return total;
-    }
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -90,11 +85,11 @@ public class PluginCommandExecutor implements CommandExecutor {
                     return true;
                 }
 
-                if (Main.getFrozenPlayerList().contains(target.getUniqueId())) {
-                    Main.getFrozenPlayerList().remove(target.getUniqueId());
+                if (CommandHandler.getFrozenPlayers().contains(target.getUniqueId())) {
+                    CommandHandler.getFrozenPlayers().remove(target.getUniqueId());
                     p.sendMessage(ChatColor.DARK_GREEN + "Player " + args[0] + " unfrozen!");
                 } else {
-                    Main.getFrozenPlayerList().add(target.getUniqueId());
+                    CommandHandler.getFrozenPlayers().add(target.getUniqueId());
                     p.sendMessage(ChatColor.DARK_GREEN + "Player " + args[0] + " frozen!");
                 }
                 return true;
@@ -133,12 +128,12 @@ public class PluginCommandExecutor implements CommandExecutor {
             if (Utils.hasPermission(p, "basic")) {
 
                 if (args.length == 1 && args[0].equalsIgnoreCase("set")) {
-                    Main.getPlayersWantingLock().add(p.getUniqueId());
+                    getPlayersWantingLock().add(p.getUniqueId());
                     p.sendMessage(ChatColor.DARK_GREEN + "Right click a block to lock it!\nOr type /lock cancel to cancel");
 
                 } else if (args.length == 1 && args[0].equalsIgnoreCase("cancel")) {
-                    if (Main.getPlayersWantingLock().contains(p.getUniqueId())) {
-                        Main.getPlayersWantingLock().remove(p.getUniqueId());
+                    if (getPlayersWantingLock().contains(p.getUniqueId())) {
+                        getPlayersWantingLock().remove(p.getUniqueId());
                         p.sendMessage(ChatColor.DARK_GREEN + "Cancelled!");
                     }
                 } else if (args.length == 1 && args[0].equalsIgnoreCase("remove")) {
@@ -188,7 +183,7 @@ public class PluginCommandExecutor implements CommandExecutor {
             Player p = (Player) sender;
             if (Utils.hasPermission(p, "admin")) {
                 if (args.length == 1 && args[0].equalsIgnoreCase("playersWantingLock")) {
-                    p.sendMessage("list of uuid's of " + Main.getPlayersWantingLock().toString());
+                    p.sendMessage("list of uuid's of " + getPlayersWantingLock().toString());
                     return true;
                 }
             }
@@ -225,5 +220,21 @@ public class PluginCommandExecutor implements CommandExecutor {
             }
 
         return true;
+    }
+
+    public int getTotalMinedBlocks(Player p){
+        int total = 0;
+        for (Material m : materials) {
+            total += p.getStatistic(Statistic.MINE_BLOCK, m);
+        }
+        return total;
+    }
+
+    public static Set<UUID> getFrozenPlayers() {
+        return frozenPlayers;
+    }
+
+    public static Set<UUID> getPlayersWantingLock() {
+        return peopleWantingLock;
     }
 }

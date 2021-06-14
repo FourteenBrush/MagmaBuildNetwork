@@ -5,7 +5,7 @@ import com.mojang.authlib.properties.Property;
 import io.github.FourteenBrush.MagmaBuildNetwork.listeners.EconomyListener;
 import io.github.FourteenBrush.MagmaBuildNetwork.listeners.LockListener;
 import io.github.FourteenBrush.MagmaBuildNetwork.listeners.TradeListener;
-import io.github.FourteenBrush.MagmaBuildNetwork.commands.PluginCommandExecutor;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandHandler;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.StorageCommand;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.TradeCommand;
 import io.github.FourteenBrush.MagmaBuildNetwork.listeners.PlayerListener;
@@ -35,8 +35,6 @@ public class Main extends JavaPlugin {
     public Economy eco;
     private static Main instance;
     private static DataManager data;
-    private static final Set<UUID> frozenPlayerList = new HashSet<>();
-    private static final Set<UUID> playersWantingLock = new HashSet<>();
 
     @Override
     public void onEnable() {
@@ -71,8 +69,6 @@ public class Main extends JavaPlugin {
         Bukkit.getConsoleSender().sendMessage("[" + ChatColor.RED + "MagmaBuildNetwork" + ChatColor.WHITE + "]" + ChatColor.RED + " Stopping...");
         Bukkit.getConsoleSender().sendMessage("[" + ChatColor.RED + "MagmaBuildNetwork" + ChatColor.WHITE + "]" + ChatColor.RED + " Goodbye....");
         instance = null;
-        frozenPlayerList.clear();
-        playersWantingLock.clear();
 
         for (Player p : Bukkit.getOnlinePlayers()) {
             PacketReader reader = new PacketReader();
@@ -84,18 +80,18 @@ public class Main extends JavaPlugin {
     }
 
     private void registerCommands() {
-        this.getCommand("reload").setExecutor(new PluginCommandExecutor());
-        this.getCommand("ignite").setExecutor(new PluginCommandExecutor());
-        this.getCommand("lock").setExecutor(new PluginCommandExecutor());
+        this.getCommand("reload").setExecutor(new CommandHandler());
+        this.getCommand("ignite").setExecutor(new CommandHandler());
+        this.getCommand("lock").setExecutor(new CommandHandler());
         this.getCommand("lock").setTabCompleter(new StatTab());
-        this.getCommand("freeze").setExecutor(new PluginCommandExecutor());
-        this.getCommand("heal").setExecutor(new PluginCommandExecutor());
+        this.getCommand("freeze").setExecutor(new CommandHandler());
+        this.getCommand("heal").setExecutor(new CommandHandler());
         this.getCommand("store").setExecutor(new StorageCommand());
-        this.getCommand("stats").setExecutor(new PluginCommandExecutor());
-        this.getCommand("MagmaBuildNetwork").setExecutor(new PluginCommandExecutor());
+        this.getCommand("stats").setExecutor(new CommandHandler());
+        this.getCommand("MagmaBuildNetwork").setExecutor(new CommandHandler());
         this.getCommand("trade").setExecutor(new TradeCommand(new TradeListener()));
-        this.getCommand("spawnnpc").setExecutor(new PluginCommandExecutor());
-        this.getCommand("trails").setExecutor(new PluginCommandExecutor());
+        this.getCommand("spawnnpc").setExecutor(new CommandHandler());
+        this.getCommand("trails").setExecutor(new CommandHandler());
     }
 
     private void registerEvents() {
@@ -139,14 +135,6 @@ public class Main extends JavaPlugin {
                     file.getString("npc_data." + npc + ".signature")));
             NPC.loadNPC(location, gameProfile);
         });
-    }
-
-    public static Set<UUID> getFrozenPlayerList() {
-        return frozenPlayerList;
-    }
-
-    public static Set<UUID> getPlayersWantingLock() {
-        return playersWantingLock;
     }
 
     private boolean setupEconomy() {
