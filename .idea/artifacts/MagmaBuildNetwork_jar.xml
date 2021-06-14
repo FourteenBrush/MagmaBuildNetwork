@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="MagmaBuildNetwork:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/MagmaBuildNetwork_jar</output-path>
+    <root id="archive" name="MagmaBuildNetwork.jar">
+      <element id="module-output" name="MagmaBuildNetwork" />
+    </root>
+  </artifact>
+</component>

@@ -1,0 +1,74 @@
+name: MagmaBuildNetwork
+version: 1.0
+author: FourteenBrush
+main: io.github.FourteenBrush.MagmaBuildNetwork.Main
+api-version: 1.13
+soft-depend: [LuckPerms, PlaceHolderAPI]
+depend: [Vault]
+
+commands:
+  magmabuildnetwork:
+    description: Main command
+  reload:
+    description: Reloads the plugin
+    usage: §2/<command>
+    permission: <plugin name>.reload
+    permission-message: You don't have <permission>
+  ignite:
+    description: Sets a player on fire
+    usage: §2/<command> [player]
+    permission: <plugin name>.ignite
+    permission-message: You don't have <permission>
+  freeze:
+    description: Freezes a player
+    usage: §2/<command> [player]
+    permission: <plugin name>.freeze
+    permission-message: You don't have <permission>
+  heal:
+    description: Heals a player
+    usage: §2/<command> [player]
+    permission: <plugin name>.heal
+    permission-message: You don't have <permission>
+  lock:
+    description: Allows you to protect a container
+    usage: §2/<command>
+    permission: <plugin name>.basic
+    permission-message: You don't have <permission>
+  store:
+    description: Stores a message inside the NBT tags of an item
+    usage: §2/<command> [message]
+    permission: <plugin name>.store
+    permission-message: You don't have <permission>
+  stats:
+    description: Shows player stats
+    usage: §2/<command>
+    permission: <plugin name>.basic
+    permission-message: You don't have <permission>
+  debug:
+    description: Shows debug info
+    usage: §2/<command>
+  trade:
+    description: Sends a trade request to a player
+    usage: §2/<command> <request:accept> <player>
+  spawnnpc:
+    description: Spawns an NPC
+  trails:
+    description: Shows all available trails
+    usage: §2/<command>
+
+permissions:
+ magmabuildnetwork.*:
+    description: Gives access to all MagmaBuildNetwork commands
+    children:
+     magmabuildnetwork.reload: true
+     magmabuildnetwork.ignite: true
+     magmabuildnetwork.freeze: true
+     magmabuildnetwork.heal: true
+     magmabuildnetwork.store: true
+     magmabuildnetwork.basic: false
+magmabuildnetwork.admin:
+    description: Gives access to all admin commands
+    default: op
+magmabuildnetwork.basic:
+    description: Gives access to all player commands
+    default: true
