@@ -1,9 +1,9 @@
 name: MagmaBuildNetwork
 version: 1.0
-api-version: 1.13
-main: io.github.FourteenBrush.MagmaBuildNetwork.Main
 author: FourteenBrush
-soft-depend: [LuckPerms]
+main: io.github.FourteenBrush.MagmaBuildNetwork.Main
+api-version: 1.13
+soft-depend: [LuckPerms, PlaceHolderAPI]
 depend: [Vault]
 
 commands:

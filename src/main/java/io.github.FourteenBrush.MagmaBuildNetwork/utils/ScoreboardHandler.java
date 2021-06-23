@@ -7,12 +7,13 @@ import org.bukkit.scoreboard.*;
 
 public class ScoreboardHandler {
 
-    public void createScoreboard(Player player) {
+    public static void createScoreboard(Player player) {
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         Scoreboard board = manager.getNewScoreboard();
         Objective obj = board.registerNewObjective("MagmaBuildNetwork", "dummy", ChatColor.GOLD + "Magma Build Network");
         obj.setDisplaySlot(DisplaySlot.SIDEBAR);
-        Score score = obj.getScore("=-=-=-=-=-=-=-=-=-=");
+
+        Score score = obj.getScore(ChatColor.BLUE + "Level");
         score.setScore(3);
         Score score2 = obj.getScore(ChatColor.AQUA + "Online players:" + ChatColor.WHITE + Bukkit.getOnlinePlayers().size());
         score.setScore(2);

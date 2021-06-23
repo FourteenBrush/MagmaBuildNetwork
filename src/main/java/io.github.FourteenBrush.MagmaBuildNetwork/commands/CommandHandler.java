@@ -35,7 +35,7 @@ public class CommandHandler implements CommandExecutor {
             if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
                 //TODO main command info
             }
-            if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
+            if (args.length == 1 && args[0].equalsIgnoreCase("admin")) {
                 if (Utils.hasPermission(sender, "reload")) {
                     Main.getInstance().reloadConfig();
                     sender.sendMessage(ChatColor.DARK_GREEN + "Successfully reloaded MagmaBuildNetwork ");

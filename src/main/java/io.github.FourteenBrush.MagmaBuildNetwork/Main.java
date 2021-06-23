@@ -10,11 +10,13 @@ import io.github.FourteenBrush.MagmaBuildNetwork.commands.StorageCommand;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.TradeCommand;
 import io.github.FourteenBrush.MagmaBuildNetwork.listeners.PlayerListener;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.GUI;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.ScoreboardHandler;
 import net.luckperms.api.LuckPerms;
 import net.minecraft.server.v1_16_R3.EntityPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
@@ -25,8 +27,6 @@ import net.milkbowl.vault.economy.Economy;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 
@@ -35,6 +35,7 @@ public class Main extends JavaPlugin {
     public Economy eco;
     private static Main instance;
     private static DataManager data;
+    private ConsoleCommandSender cmdSender;
 
     @Override
     public void onEnable() {
@@ -59,6 +60,7 @@ public class Main extends JavaPlugin {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 PacketReader reader = new PacketReader();
                 reader.inject(p);
+                ScoreboardHandler.createScoreboard(p);
             }
         }
         Bukkit.getConsoleSender().sendMessage("[" + ChatColor.RED + "MagmaBuildNetwork" + ChatColor.WHITE + "]" + ChatColor.RED + " Finished loading.");
@@ -100,7 +102,6 @@ public class Main extends JavaPlugin {
         pm.registerEvents(new TradeListener(), this);
         pm.registerEvents(new LockListener(), this);
         pm.registerEvents(new EconomyListener(), this);
-        // registers events that maintain on another plugin
     }
 
     public void checkVersion() throws IOException {

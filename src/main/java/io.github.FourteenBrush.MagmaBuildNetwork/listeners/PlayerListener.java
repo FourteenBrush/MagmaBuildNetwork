@@ -32,6 +32,7 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player p = event.getPlayer();
+        event.setJoinMessage(Utils.color("&7[&a&l+&7] &b" + p.getName() + " &7joined the server."));
         PacketReader reader = new PacketReader();
         reader.inject(p);
         if (NPC.getNPCs() == null || NPC.getNPCs().isEmpty()) {
@@ -45,8 +46,7 @@ public class PlayerListener implements Listener {
         TextComponent message = new TextComponent("Discord");
         message.setColor(ChatColor.DARK_PURPLE);
         message.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://discord.gg/KWNYMDGX7H"));
-        message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click HERE to get a link to ")));
-        event.setJoinMessage(Utils.color("&7[&a&l+&7] &b" + p.getName() + " &7joined the server."));
+        message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click HERE to get a link to the Discord server.")));
     }
 
     @EventHandler

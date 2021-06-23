@@ -30,7 +30,7 @@ public class GUI {
         meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.RED + "Disable Trails");
         item.setItemMeta(meta);
-        inv.setItem(9, item);
+        inv.setItem(8, item);
         setInventory(inv);
     }
 
