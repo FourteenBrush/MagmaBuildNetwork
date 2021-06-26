@@ -11,12 +11,12 @@ import io.github.FourteenBrush.MagmaBuildNetwork.commands.TradeCommand;
 import io.github.FourteenBrush.MagmaBuildNetwork.listeners.PlayerListener;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.GUI;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.ScoreboardHandler;
+import jdk.internal.instrumentation.Logger;
 import net.luckperms.api.LuckPerms;
 import net.minecraft.server.v1_16_R3.EntityPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
@@ -25,8 +25,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import net.milkbowl.vault.economy.Economy;
 
-import java.io.IOException;
-import java.net.URL;
 import java.util.UUID;
 
 
@@ -35,7 +33,7 @@ public class Main extends JavaPlugin {
     public Economy eco;
     private static Main instance;
     private static DataManager data;
-    private ConsoleCommandSender cmdSender;
+    private static Logger log;
 
     @Override
     public void onEnable() {
@@ -45,12 +43,12 @@ public class Main extends JavaPlugin {
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
-        setupLP();
         instance = this;
         data = new DataManager();
         GUI gui = new GUI();
         gui.register();
 
+        setupLP();
         registerCommands();
         registerEvents();
         if (data.getConfig().contains("npc_data"))
@@ -104,8 +102,14 @@ public class Main extends JavaPlugin {
         pm.registerEvents(new EconomyListener(), this);
     }
 
-    public void checkVersion() throws IOException {
-        URL url = new URL("https://github.com/FourteenBrush/FourteenBrush.github.io");
+    private void startUpdateCheck(Main plugin) {
+        new UpdateChecker(1000).getLatestVersion(version -> {
+            if (this.getDescription().getVersion().equalsIgnoreCase(version)) {
+                log.info("Plugin is up to date");
+            } else {
+                log.info("There is an update available");
+            }
+        });
     }
 
     public static Main getInstance() {

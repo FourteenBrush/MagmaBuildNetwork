@@ -37,8 +37,11 @@ public class LockListener implements Listener {
         PersistentDataContainer container = location.getChunk().getPersistentDataContainer();
 
         String[] data = keyOwner.getKey().split("_");
+        String owner = container.get(keyOwner, PersistentDataType.STRING);
 
-        if (container.has(keyOwner, PersistentDataType.STRING) ) {
+        if (owner != null && container.has(keyOwner, PersistentDataType.STRING) &&
+                CommandHandler.getPlayersWantingLock().contains(p.getUniqueId())) {
+            event.setCancelled(true);
             p.sendMessage(ChatColor.RED + "This block is already locked!");
             CommandHandler.getPlayersWantingLock().remove(p.getUniqueId());
         }
@@ -48,7 +51,6 @@ public class LockListener implements Listener {
             container.set(keyOwner, PersistentDataType.STRING, p.getUniqueId().toString()); // apply the lock
             p.sendMessage(ChatColor.DARK_GREEN + "Locked!");
         } else {
-            String owner = container.get(keyOwner, PersistentDataType.STRING);
             if (owner != null && !owner.equalsIgnoreCase(p.getUniqueId().toString())) {
                 event.setCancelled(true);
                 event.getPlayer().sendMessage(ChatColor.RED + "You cannot open th1s!");
@@ -68,7 +70,7 @@ public class LockListener implements Listener {
                 String[] data = key.getKey().split("_");
                 if (data.length != 3) continue;
 
-                blockState = event.getChunk().getBlock(Integer.valueOf(data[0]), Integer.valueOf(data[1]), Integer.valueOf(data[2])).getState();
+                blockState = event.getChunk().getBlock(Integer.parseInt(data[0]) & 0b1111, Integer.parseInt(data[1]), Integer.parseInt(data[2]) & 0b1111).getState();
 
                 if (!canLock(blockState)) {
                     Main.getInstance().getLogger().warning(String.format("Unknown Lock removed! %s.", key.getKey()));

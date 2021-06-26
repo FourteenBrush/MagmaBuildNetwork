@@ -219,11 +219,10 @@ public class CommandHandler implements CommandExecutor {
             menu.openInventory(p);
             return true;
             }
-
         return true;
     }
 
-    public int getTotalMinedBlocks(Player p){
+    private int getTotalMinedBlocks(Player p){
         int total = 0;
         for (Material m : materials) {
             total += p.getStatistic(Statistic.MINE_BLOCK, m);
