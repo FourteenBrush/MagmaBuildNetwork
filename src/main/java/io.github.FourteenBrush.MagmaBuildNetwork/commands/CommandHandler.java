@@ -115,6 +115,7 @@ public class CommandHandler implements CommandExecutor {
 
                 // Heal the player
                 target.setHealth(20.0);
+                target.setFoodLevel(20);
                 target.sendMessage(ChatColor.DARK_GREEN + "Healed by " + sender.getName());
                 sender.sendMessage(ChatColor.DARK_GREEN + "Healed " + args[0]);
             }

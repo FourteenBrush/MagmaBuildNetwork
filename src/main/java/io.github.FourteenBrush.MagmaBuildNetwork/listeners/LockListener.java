@@ -14,54 +14,71 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.material.Openable;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.HashMap;
-import java.util.UUID;
-
 public class LockListener implements Listener {
-
-    private final HashMap<UUID, Location> locks = new HashMap<>();
-    private final NamespacedKey keyOwner = new NamespacedKey(Main.getInstance(), "Owner");
-    private final NamespacedKey keyMember = new NamespacedKey(Main.getInstance(), "Member");
 
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
-
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 
         Block block = event.getClickedBlock();
-        Player p = event.getPlayer();
         BlockState blockState = block.getState();
 
-        if (!(blockState instanceof TileState) || (!(blockState instanceof Lockable) || (!(blockState instanceof Openable)))) return;
+        if (!canLock(blockState)) return;
 
+        Player p = event.getPlayer();
+        String s = block.getX() + "_" + block.getY() + "_" + block.getZ();
+        NamespacedKey keyOwner = new NamespacedKey(Main.getInstance(), s);
         Location location = block.getLocation();
         PersistentDataContainer container = location.getChunk().getPersistentDataContainer();
 
-        if (container.has(keyOwner, PersistentDataType.STRING) && CommandHandler.getPlayersWantingLock()
-                .contains(p.getUniqueId())) {
+        String[] data = keyOwner.getKey().split("_");
+
+        if (container.has(keyOwner, PersistentDataType.STRING) ) {
             p.sendMessage(ChatColor.RED + "This block is already locked!");
             CommandHandler.getPlayersWantingLock().remove(p.getUniqueId());
         }
+
         if (CommandHandler.getPlayersWantingLock().remove(p.getUniqueId())) {
             event.setCancelled(true);
-            container.set(keyOwner, PersistentDataType.STRING, p.getUniqueId().toString());
-            blockState.update(); // apply the lock!
+            container.set(keyOwner, PersistentDataType.STRING, p.getUniqueId().toString()); // apply the lock
             p.sendMessage(ChatColor.DARK_GREEN + "Locked!");
         } else {
             String owner = container.get(keyOwner, PersistentDataType.STRING);
             if (owner != null && !owner.equalsIgnoreCase(p.getUniqueId().toString())) {
                 event.setCancelled(true);
-                event.getPlayer().sendMessage(ChatColor.RED + "You cannot open this!");
+                event.getPlayer().sendMessage(ChatColor.RED + "You cannot open th1s!");
             }
         }
+    }
 
-        if (!(locks.containsKey(p.getUniqueId()) && locks.containsValue(location))) {
-            event.setCancelled(true);
-            p.sendMessage(ChatColor.RED + "You cannot open this!");
+    @EventHandler
+    public void onChunkUnload(ChunkUnloadEvent event){
+
+        PersistentDataContainer container = event.getChunk().getPersistentDataContainer();
+        BlockState blockState;
+
+        for (NamespacedKey key : container.getKeys()) {
+            if (key.getNamespace().equalsIgnoreCase(Main.getInstance().getName())) {
+
+                String[] data = key.getKey().split("_");
+                if (data.length != 3) continue;
+
+                blockState = event.getChunk().getBlock(Integer.valueOf(data[0]), Integer.valueOf(data[1]), Integer.valueOf(data[2])).getState();
+
+                if (!canLock(blockState)) {
+                    Main.getInstance().getLogger().warning(String.format("Unknown Lock removed! %s.", key.getKey()));
+                    container.remove(key);
+                }
+            }
         }
+    }
+
+    private boolean canLock(BlockState state) {
+        return (state instanceof TileState || state instanceof Lockable || state.getBlockData() instanceof Openable);
     }
 }

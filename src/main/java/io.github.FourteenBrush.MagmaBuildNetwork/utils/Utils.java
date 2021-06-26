@@ -11,11 +11,11 @@ public class Utils {
     }
 
     public static boolean hasPermission(Player p, String permission) {
-        return !(!p.hasPermission("magmabuildnetwork." + permission) && !p.hasPermission("MagmaBuildNetwork.*"));
+        return !(!p.hasPermission("magmabuildnetwork." + permission.toLowerCase()) && !p.hasPermission("MagmaBuildNetwork.*"));
     }
 
     public static boolean hasPermission(CommandSender sender, String permission) {
-        return !(!sender.hasPermission("MagmaBuildNetwork." + permission) && !sender.hasPermission("MagmaBuildNetwork.*"));
+        return !(!sender.hasPermission("MagmaBuildNetwork." + permission.toLowerCase()) && !sender.hasPermission("MagmaBuildNetwork.*"));
     }
 
     public static boolean verifyIfIsAPlayer(CommandSender sender) {

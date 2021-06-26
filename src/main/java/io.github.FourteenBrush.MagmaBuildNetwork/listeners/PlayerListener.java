@@ -120,7 +120,8 @@ public class PlayerListener implements Listener {
                 p.closeInventory();
                 p.updateInventory();
                 break;
-            case 9:
+            case 8:
+                p.closeInventory();
                 break;
             default:
                 break;
