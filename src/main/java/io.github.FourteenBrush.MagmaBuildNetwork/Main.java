@@ -9,9 +9,9 @@ import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandHandler;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.StorageCommand;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.TradeCommand;
 import io.github.FourteenBrush.MagmaBuildNetwork.listeners.PlayerListener;
+import io.github.FourteenBrush.MagmaBuildNetwork.updatechecker.UpdateChecker;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.GUI;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.ScoreboardHandler;
-import jdk.internal.instrumentation.Logger;
 import net.luckperms.api.LuckPerms;
 import net.minecraft.server.v1_16_R3.EntityPlayer;
 import org.bukkit.Bukkit;
@@ -26,6 +26,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import net.milkbowl.vault.economy.Economy;
 
 import java.util.UUID;
+import java.util.logging.Logger;
 
 
 public class Main extends JavaPlugin {
@@ -33,7 +34,7 @@ public class Main extends JavaPlugin {
     public Economy eco;
     private static Main instance;
     private static DataManager data;
-    private static Logger log;
+    private Logger log;
 
     @Override
     public void onEnable() {
@@ -100,16 +101,7 @@ public class Main extends JavaPlugin {
         pm.registerEvents(new TradeListener(), this);
         pm.registerEvents(new LockListener(), this);
         pm.registerEvents(new EconomyListener(), this);
-    }
-
-    private void startUpdateCheck(Main plugin) {
-        new UpdateChecker(1000).getLatestVersion(version -> {
-            if (this.getDescription().getVersion().equalsIgnoreCase(version)) {
-                log.info("Plugin is up to date");
-            } else {
-                log.info("There is an update available");
-            }
-        });
+        pm.registerEvents(new UpdateChecker(), this);
     }
 
     public static Main getInstance() {

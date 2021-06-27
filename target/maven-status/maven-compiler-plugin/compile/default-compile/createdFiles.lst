@@ -4,6 +4,7 @@ io\github\FourteenBrush\MagmaBuildNetwork\PacketReader$2.class
 io\github\FourteenBrush\MagmaBuildNetwork\PacketReader.class
 io\github\FourteenBrush\MagmaBuildNetwork\utils\Effects.class
 io\github\FourteenBrush\MagmaBuildNetwork\listeners\LockListener.class
+io\github\FourteenBrush\MagmaBuildNetwork\updatechecker\UpdateChecker.class
 io\github\FourteenBrush\MagmaBuildNetwork\utils\GUI.class
 io\github\FourteenBrush\MagmaBuildNetwork\utils\ParticleData.class
 io\github\FourteenBrush\MagmaBuildNetwork\PacketReader$1.class
