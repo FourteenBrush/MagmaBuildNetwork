@@ -1,4 +1,4 @@
-package io.github.FourteenBrush.MagmaBuildNetwork.utils;
+package io.github.FourteenBrush.MagmaBuildNetwork.util;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;

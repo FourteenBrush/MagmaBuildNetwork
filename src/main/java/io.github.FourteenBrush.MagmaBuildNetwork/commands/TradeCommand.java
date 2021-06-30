@@ -1,83 +1,135 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.commands;
 
-import io.github.FourteenBrush.MagmaBuildNetwork.listeners.TradeListener;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
+import io.github.FourteenBrush.MagmaBuildNetwork.Main;
+import io.github.FourteenBrush.MagmaBuildNetwork.inventory.GUI;
+import io.github.FourteenBrush.MagmaBuildNetwork.util.Utils;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.List;
 
 public class TradeCommand implements CommandExecutor {
 
-    private final HashMap<Player, Player> requestTrade = new HashMap<Player, Player>();
-
-    TradeListener tradeList;
-
-    public TradeCommand(TradeListener listener) {
-        tradeList = listener;
-    }
+    private final Main plugin = Main.getInstance();
+    private boolean tradeAccepted = false;
+    private HashMap<Player, Player> traders = new HashMap<>();
+    List<ItemStack> senderInventory;
+    List<ItemStack> targetInventory;
 
     @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
 
-        if (Utils.verifyIfIsAPlayer(sender)) {
+        if (!Utils.verifyIfIsAPlayer(sender)) {
+            Utils.message(sender, "§cThis command must be executed by a player!");
             return true;
         }
         final Player p = (Player) sender;
+        if (!Utils.hasPermission(p, "basic")) {
+            Utils.messageNoPermission(p);
+            return true;
+        }
 
         if (cmd.getName().equalsIgnoreCase("trade")) {
-
+            if (!Utils.hasPermission(p, "basic")) {
+                Utils.messageNoPermission(p);
+                return true;
+            }
             if (args.length == 2 && args[0].equalsIgnoreCase("request")) {
-                Player target = Bukkit.getPlayer(args[1]);
-                if (Bukkit.getOnlinePlayers().contains(target)) {
-                    p.sendMessage("You sent a trade request to " + args[1]);
-                    requestTrade.put(target, p);
-                    target.sendMessage(p.getName() + " wants to trade with you!");
-                } else {
-                    p.sendMessage(args[1] + " is not currently online.");
-                    return true;
-                }
+                GUI gui = new GUI();
+                gui.registerTrade();
+                gui.openInventory(p);
+                // request(p, args);
+                return true;
             }
             else if (args.length == 2 && args[0].equalsIgnoreCase("accept")) {
-                if (!(Bukkit.getOnlinePlayers().contains(Bukkit.getPlayer(args[1])))) {
-                    p.sendMessage("There is no incoming trade with " + args[1]);
-                }
-                if (requestTrade.containsKey(p))  { //accepted trade request
-                    Player tradeWith = requestTrade.get(p);
-                    if (Bukkit.getOnlinePlayers().contains(tradeWith)) {
-                        Inventory tradeInv = Bukkit.createInventory(null, 54, "Trade");
-
-                        ItemStack glass = new ItemStack(Material.GLASS);
-                        ItemStack buttom = new ItemStack(Material.REDSTONE_BLOCK);
-                        tradeInv.setItem(9, glass);
-                        tradeInv.setItem(10, glass);
-                        tradeInv.setItem(11, glass);
-                        tradeInv.setItem(12, glass);
-                        tradeInv.setItem(13, glass);
-                        tradeInv.setItem(14, glass);
-                        tradeInv.setItem(15, glass);
-                        tradeInv.setItem(16, glass);
-                        tradeInv.setItem(17, glass);
-
-                        p.openInventory(tradeInv);
-                        tradeWith.openInventory(tradeInv);
-                        requestTrade.remove(p);
-                        tradeList.addPlayersToTradeList(p, tradeWith);
-                    } else {
-                        p.sendMessage("Player is not online anymore");
-                        requestTrade.remove(p);
-                    }
-                } else {
-                    //do nothing?
-                }
+                accept(p, args);
+                return true;
+            }
+            else if (args.length == 2 && args[0].equalsIgnoreCase("decline")) {
+                decline(p, args);
+                return true;
             }
         }
-        return false;
+        return true;
+    }
+
+    private void request(Player sender, String[] args) {
+        List<Player> matches = plugin.getServer().matchPlayer(args[0]);
+        if (matches.isEmpty()) {
+            Utils.message(sender, "§c" + args[0] + " §cis not currently online!");
+            return;
+        }
+        Player playerTarget = matches.get(0);
+        if (sender == playerTarget) {
+            Utils.message(sender, "§cYou cannot trade with yourself!");
+            return;
+        }
+        sendRequest(sender, playerTarget);
+    }
+
+    private void sendRequest(Player sender, Player playerTarget) {
+        traders.put(sender, playerTarget);
+    }
+
+    private boolean distanceCheck(Player playerSender, Player playerTarget) {
+        int maxDistance = plugin.getConfig().getInt("max_trade_distance");
+        if (!plugin.getConfig().getBoolean("trade_from_different_world")) {
+            // If you need to trade in the same world
+            if (!playerSender.getWorld().getName().equalsIgnoreCase(playerTarget.getWorld().getName())) {
+                Utils.message(playerSender, "§cBoth players needs to be in the same world!");
+                return false;
+            }
+            double realDistance = playerSender.getLocation().distance(playerTarget.getLocation());
+            if (realDistance > maxDistance) {
+                Utils.message(playerSender, new String[] {"§cYou are too far away from the player you want to trade with!",
+                "You need to be within " +  "§c" + Integer.toString(maxDistance) + " §cfrom each other!"});
+                return false;
+            }
+        }
+        if (!playerSender.getWorld().getName().equalsIgnoreCase(playerTarget.getWorld().getName())) {
+            if (maxDistance != 0) {
+                Utils.message(playerSender, "§cYou and " + playerTarget.getName() + " §care inside different world and " +
+                        "§cthe maximum distance between each other is not equal to 0!");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void accept(Player sender, String[] args) {
+        Player target = Bukkit.getPlayer(args[0]);
+        if (!Bukkit.getOnlinePlayers().contains(target)) {
+            Utils.message(sender, "§c" + target + " §cis not currently online!");
+            return;
+        }
+        tradeAccepted = true;
+        startTrade(sender, target);
+    }
+
+    private void decline(Player player, String[] args) {
+
+        return;
+    }
+
+    private void startTrade(Player sender, Player target) {
+        GUI gui = new GUI();
+        gui.registerTrade();
+        gui.openInventory(sender);
+        gui.openInventory(target);
+    }
+
+    private void acceptTrade(Player playerSender, Player playerTarget) {
+        tradeAccepted = true;
+        startTrade(playerSender, playerTarget);
+    }
+
+    private HashMap<Player, Player> getTraders() {
+        return traders;
     }
 }

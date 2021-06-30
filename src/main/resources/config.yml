@@ -6,4 +6,18 @@
 # <                  or Discord https://discord.gg/KWNYMDGX7H                > #
 # +--------------------------------------------------------------------------+ #
 
+
+
+# +--------------------------------------------------------------------------+ #
+# NPC DATA
+# This section stores data about NPCs
 npc_data:
+
+# +--------------------------------------------------------------------------+ #
+# TRADE DATA
+# This section stores data about the /trade command
+
+# Max distance between two players to make them able to accept the trade (in blocks)
+max_trade_distance: 20
+# Make players able to trade in different worlds (for example the nether and the overworld)
+trade_from_different_worlds: false

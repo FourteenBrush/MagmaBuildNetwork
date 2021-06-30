@@ -1,4 +1,4 @@
-package io.github.FourteenBrush.MagmaBuildNetwork.utils;
+package io.github.FourteenBrush.MagmaBuildNetwork.util;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
 import org.bukkit.Bukkit;

@@ -1,9 +1,11 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.commands;
 
+import io.github.FourteenBrush.MagmaBuildNetwork.data.ImageManager;
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
 import io.github.FourteenBrush.MagmaBuildNetwork.NPC;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.GUI;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
+import io.github.FourteenBrush.MagmaBuildNetwork.inventory.GUI;
+import io.github.FourteenBrush.MagmaBuildNetwork.util.Renderer;
+import io.github.FourteenBrush.MagmaBuildNetwork.util.Utils;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -12,11 +14,17 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.MapMeta;
+import org.bukkit.map.MapView;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class CommandHandler implements CommandExecutor {
+public class PlayerCommand implements CommandExecutor {
 
+    private final Main plugin = Main.getInstance();
     private static final Set<UUID> frozenPlayers = new HashSet<>();
     private static  final Set<UUID> peopleWantingLock = new HashSet<>();
 
@@ -29,81 +37,81 @@ public class CommandHandler implements CommandExecutor {
     );
 
     @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, String[] args) {
+
+        if (!Utils.verifyIfIsAPlayer(sender)) {
+            Utils.message(sender, "§cThis command must be executed by a player!");
+            return true;
+        }
+        final Player p = (Player) sender;
 
         if (cmd.getName().equalsIgnoreCase("MagmaBuildNetwork")) {
             if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
-                //TODO main command info
+                // TODO main command info
             }
-            if (args.length == 1 && args[0].equalsIgnoreCase("admin")) {
-                if (Utils.hasPermission(sender, "reload")) {
-                    Main.getInstance().reloadConfig();
-                    sender.sendMessage(ChatColor.DARK_GREEN + "Successfully reloaded MagmaBuildNetwork ");
+            else if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
+                if (!Utils.hasPermission(sender, "reload")) {
+                    Utils.messageNoPermission(sender);
                     return true;
                 }
+                plugin.reloadConfig();
+                Utils.message(sender, "§2Successfully reloaded " + plugin.getName());
             }
         }
 
         else if (cmd.getName().equalsIgnoreCase("ignite")) {
-            if (Utils.verifyIfIsAPlayer(sender)) {
-                return true;
-            }
-            final Player p = (Player) sender;
-            if (Utils.hasPermission(p, "ignite")) {
-                if (args.length != 1) {
-                    return false;
+            if (!Utils.hasPermission(p, "ignite")) {
+                Utils.messageNoPermission(p);
                 }
-
+                if (args.length != 1) {
+                    Utils.message(p, "§cYou need to specify exactly one player!");
+                    return true;
+                }
                 Player target = Bukkit.getPlayer(args[0]);
                 // Make sure the player is online.
                 if (!Bukkit.getOnlinePlayers().contains(target)) {
-                    sender.sendMessage(ChatColor.DARK_RED + args[0] + " is not currently online.");
+                    Utils.message(p, "§c" + args[0] + " §cis not currently online!");
                     return true;
                 }
-
-                // Sets the player on fire for 1,000 ticks (there are ~20 ticks in second, so 50 seconds total).
+                // Sets the player on fire for 1,000 ticks (there are ~20 ticks in second, so 50 seconds total - that will kill him).
                 target.setFireTicks(1000);
                 return true;
             }
-        }
 
         else if (cmd.getName().equalsIgnoreCase("freeze")) {
-            if (Utils.verifyIfIsAPlayer(sender)) {
+            if (!Utils.hasPermission(p, "freeze")) {
+                Utils.messageNoPermission(sender);
                 return true;
             }
-            final Player p = (Player) sender;
-            if (Utils.hasPermission(p, "freeze")) {
-
                 if (args.length != 1) {
                     return false;
                 }
                 Player target = Bukkit.getPlayer(args[0]);
-
                 // Make sure the player is online.
                 if (!(Bukkit.getOnlinePlayers().contains(target))) {
                     sender.sendMessage(ChatColor.DARK_RED + args[0] + " is not currently online.");
                     return true;
                 }
-
-                if (CommandHandler.getFrozenPlayers().contains(target.getUniqueId())) {
-                    CommandHandler.getFrozenPlayers().remove(target.getUniqueId());
+                if (PlayerCommand.getFrozenPlayers().contains(target.getUniqueId())) {
+                    PlayerCommand.getFrozenPlayers().remove(target.getUniqueId());
                     p.sendMessage(ChatColor.DARK_GREEN + "Player " + args[0] + " unfrozen!");
                 } else {
-                    CommandHandler.getFrozenPlayers().add(target.getUniqueId());
+                    PlayerCommand.getFrozenPlayers().add(target.getUniqueId());
                     p.sendMessage(ChatColor.DARK_GREEN + "Player " + args[0] + " frozen!");
                 }
                 return true;
             }
-        }
 
         else if (cmd.getName().equalsIgnoreCase("heal")) {
+            if (!Utils.hasPermission(p, "heal")) {
+                Utils.messageNoPermission(p);
+                return true;
+            }
             // Make sure that the player specified exactly one argument (the name of the player to ignite).
             if (args.length != 1) {
                 // When onCommand() returns false, the help message associated with that command is displayed.
                 return false;
             }
-            if (Utils.hasPermission(sender, "heal")) {
-
                 // Get the player who should be healed. Remember that indices start with 0, not 1.
                 Player target = Bukkit.getPlayer(args[0]);
 
@@ -119,15 +127,12 @@ public class CommandHandler implements CommandExecutor {
                 target.sendMessage(ChatColor.DARK_GREEN + "Healed by " + sender.getName());
                 sender.sendMessage(ChatColor.DARK_GREEN + "Healed " + args[0]);
             }
-        }
 
         else if (cmd.getName().equalsIgnoreCase("lock")) {
-            if (Utils.verifyIfIsAPlayer(sender)) {
+            if (!Utils.hasPermission(p, "basic")) {
+                Utils.messageNoPermission(p);
                 return true;
             }
-            final Player p = (Player) sender;
-            if (Utils.hasPermission(p, "basic")) {
-
                 if (args.length == 1 && args[0].equalsIgnoreCase("set")) {
                     getPlayersWantingLock().add(p.getUniqueId());
                     p.sendMessage(ChatColor.DARK_GREEN + "Right click a block to lock it!\nOr type /lock cancel to cancel");
@@ -141,14 +146,44 @@ public class CommandHandler implements CommandExecutor {
                     // TODO add method to make container public (lock.remove)
                 }
             }
+
+        else if (cmd.getName().equalsIgnoreCase("store")) {
+            if (Utils.hasPermission(p, "admin")) {
+                Utils.messageNoPermission(p);
+                return true;
+            }
+            if(args.length > 0) {
+
+                StringBuilder message = new StringBuilder();
+                for(String arg : args) {
+                    message.append(arg).append(" ");
+                }
+
+                ItemStack itemStack = p.getInventory().getItemInMainHand();
+                ItemMeta itemMeta = itemStack.getItemMeta();
+                PersistentDataContainer container = itemMeta.getPersistentDataContainer();
+                if(container.has(new NamespacedKey(Main.getInstance(), "MBN"), PersistentDataType.STRING)) {
+                    p.sendMessage(ChatColor.GREEN + "There is already a message stored inside this item!");
+                    p.sendMessage(ChatColor.GREEN + "Message: " + ChatColor.GREEN + container.get(new NamespacedKey(Main.getInstance(), "MBN"), PersistentDataType.STRING));
+                }
+                else {
+                    container.set(new NamespacedKey(Main.getInstance(), "MBN"), PersistentDataType.STRING, message.toString());
+
+                    itemStack.setItemMeta(itemMeta);
+
+                    p.sendMessage(ChatColor.GREEN + "Message stored!");
+                }
+            }
+            else {
+                Utils.message(p,"§cYou need to provide a message to store!");
+            }
         }
 
         else if (cmd.getName().equalsIgnoreCase("stats")) {
-            if (Utils.verifyIfIsAPlayer(sender)) {
+            if (!Utils.hasPermission(p, "basic")) {
+                Utils.messageNoPermission(p);
                 return true;
             }
-            final Player p = (Player) sender;
-            if (Utils.hasPermission(p, "basic")) {
                 Inventory gui = Bukkit.createInventory(null, 6 * 9, ChatColor.RED + "Stats");
 
                 //This is where you create the item
@@ -175,27 +210,24 @@ public class CommandHandler implements CommandExecutor {
                 gui.setContents(menuItems);
                 p.openInventory(gui);
             }
-        }
 
         else if (cmd.getName().equalsIgnoreCase("debug")) {
-            if (Utils.verifyIfIsAPlayer(sender)) {
+            if (!Utils.hasPermission(p, "admin")) {
+                Utils.messageNoPermission(p);
                 return true;
             }
-            Player p = (Player) sender;
-            if (Utils.hasPermission(p, "admin")) {
                 if (args.length == 1 && args[0].equalsIgnoreCase("playersWantingLock")) {
-                    p.sendMessage("list of uuid's of " + getPlayersWantingLock().toString());
+                    System.out.println("this works (debug)");
+                    Utils.message(p, "list of uuid's of " + getPlayersWantingLock().toString());
                     return true;
                 }
             }
-        }
 
         else if (cmd.getName().equalsIgnoreCase("spawnnpc")) {
-            if (Utils.verifyIfIsAPlayer(sender)) {
+            if (!Utils.hasPermission(p, "admin")) {
+                Utils.messageNoPermission(p);
                 return true;
             }
-            final Player p = (Player) sender;
-            if (Utils.hasPermission(sender, "admin")) {
                 if (args.length == 0) {
                     NPC.createNPC(p, "NPC");
                     p.sendMessage(ChatColor.DARK_GREEN + "DEFAULT NPC CREATED!");
@@ -205,20 +237,44 @@ public class CommandHandler implements CommandExecutor {
                 p.sendMessage(ChatColor.DARK_GREEN + "NPC CREATED!");
                 return true;
             }
-        }
 
         else if (cmd.getName().equalsIgnoreCase("trails")) {
-            if (Utils.verifyIfIsAPlayer(sender)) {
+            if (!Utils.hasPermission(sender, "basic")) {
+                Utils.messageNoPermission(p);
                 return true;
             }
-            final Player p = (Player) sender;
-            if (!Utils.hasPermission(sender, "basic")) {
-                p.sendMessage(ChatColor.RED + "You don't have permission to do this!");
-            }
-            GUI menu = new GUI();
-            menu.openInventory(p);
+            new GUI().openInventory(p);
             return true;
             }
+
+        else if (cmd.getName().equalsIgnoreCase("createmap")) {
+            if (!Utils.hasPermission(p, "admin")) {
+                Utils.messageNoPermission(p);
+                return true;
+            }
+            MapView view = Bukkit.createMap(p.getWorld());
+            view.getRenderers().clear();
+
+            Renderer renderer = new Renderer();
+            if (!renderer.load(args[0])) {
+                Utils.message(p, "§cImage could not be loaded!");
+                return true;
+            }
+            view.addRenderer(renderer);
+            ItemStack map = new ItemStack(Material.FILLED_MAP);
+            MapMeta meta = (MapMeta) map.getItemMeta();
+
+            meta.setMapView(view);
+            map.setItemMeta(meta);
+
+            p.getInventory().addItem(map);
+            Utils.message(p,"§aImage created!");
+
+            ImageManager manager = ImageManager.getInstance();
+            manager.saveImage(view.getId(), args[0]); // args[0] is the url
+            return true;
+        }
+
         return true;
     }
 

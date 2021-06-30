@@ -1,5 +1,6 @@
-package io.github.FourteenBrush.MagmaBuildNetwork;
+package io.github.FourteenBrush.MagmaBuildNetwork.data;
 
+import io.github.FourteenBrush.MagmaBuildNetwork.Main;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 

@@ -1,5 +1,7 @@
-package io.github.FourteenBrush.MagmaBuildNetwork;
+package io.github.FourteenBrush.MagmaBuildNetwork.data;
 
+import io.github.FourteenBrush.MagmaBuildNetwork.Main;
+import io.github.FourteenBrush.MagmaBuildNetwork.NPC;
 import io.github.FourteenBrush.MagmaBuildNetwork.events.RightClickNPCEvent;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;

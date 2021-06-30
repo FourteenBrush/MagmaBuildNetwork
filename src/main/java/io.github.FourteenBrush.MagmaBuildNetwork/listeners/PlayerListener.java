@@ -2,12 +2,12 @@ package io.github.FourteenBrush.MagmaBuildNetwork.listeners;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
 import io.github.FourteenBrush.MagmaBuildNetwork.NPC;
-import io.github.FourteenBrush.MagmaBuildNetwork.PacketReader;
-import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandHandler;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Effects;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.GUI;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.ParticleData;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
+import io.github.FourteenBrush.MagmaBuildNetwork.data.PacketReader;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.PlayerCommand;
+import io.github.FourteenBrush.MagmaBuildNetwork.util.Effects;
+import io.github.FourteenBrush.MagmaBuildNetwork.inventory.GUI;
+import io.github.FourteenBrush.MagmaBuildNetwork.util.ParticleData;
+import io.github.FourteenBrush.MagmaBuildNetwork.util.Utils;
 import io.github.FourteenBrush.MagmaBuildNetwork.events.RightClickNPCEvent;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -17,9 +17,11 @@ import net.md_5.bungee.api.chat.hover.content.Text;
 import org.bukkit.*;
 import org.bukkit.block.*;
 import org.bukkit.block.data.Openable;
+import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.*;
@@ -27,12 +29,13 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.Random;
 
+@SuppressWarnings("unused")
 public class PlayerListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player p = event.getPlayer();
-        event.setJoinMessage(Utils.color("&7[&a&l+&7] &b" + p.getName() + " &7joined the server."));
+        event.setJoinMessage(Utils.colorize("&7[&a&l+&7] &b" + p.getName() + " &7joined the server."));
         PacketReader reader = new PacketReader();
         reader.inject(p);
         if (NPC.getNPCs() == null || NPC.getNPCs().isEmpty()) {
@@ -54,7 +57,7 @@ public class PlayerListener implements Listener {
         Player p = event.getPlayer();
         PacketReader reader = new PacketReader();
         reader.unInject(p);
-        event.setQuitMessage(Utils.color("&7[&c&l-&7] &b" + p.getName() + " &7left the server."));
+        event.setQuitMessage(Utils.colorize("&7[&c&l-&7] &b" + p.getName() + " &7left the server."));
         ParticleData d = new ParticleData(p.getUniqueId());
         if (d.hasID())
             d.endTask();
@@ -63,7 +66,7 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
         Player p = event.getPlayer();
-        if (CommandHandler.getFrozenPlayers().contains(p.getUniqueId())) {
+        if (PlayerCommand.getFrozenPlayers().contains(p.getUniqueId())) {
             if (event.getTo().getBlockX() != event.getFrom().getBlockX() || event.getTo().getBlockY() != event.getFrom().getBlockY() || event.getTo().getBlockZ() != event.getFrom().getBlockZ()) {
                 event.setCancelled(true);
             }
@@ -89,42 +92,63 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
-        GUI menu = new GUI();
-        if (!event.getInventory().equals(menu.getInventory())) {
-            return;
-        }
         Player p = (Player) event.getWhoClicked();
-        event.setCancelled(true);
+        GUI trailsMenu = new GUI();
+        GUI tradeMenu = new GUI();
 
-        if (event.getView().getType() == InventoryType.PLAYER) {
+        if (!(event.getInventory().getHolder() instanceof GUI)) {
             return;
         }
-        ParticleData particle = new ParticleData(p.getUniqueId());
+        if (event.getInventory().equals(trailsMenu)/*trails*/) {
+            event.setCancelled(true);
 
-        // trail activated
-        if (particle.hasID()) {
-            particle.endTask();
-            particle.removeID();
+            if (event.getView().getType() == InventoryType.PLAYER) {
+                return;
+            }
+            ParticleData particle = new ParticleData(p.getUniqueId());
+
+            // trail activated
+            if (particle.hasID()) {
+                particle.endTask();
+                particle.removeID();
+            }
+
+            Effects effect = new Effects(p);
+
+            switch(event.getSlot()) {
+                case 3:
+                    effect.startTotem();
+                    p.closeInventory();
+                    p.updateInventory();
+                    break;
+                case 5:
+                    particle.setID(1);
+                    p.closeInventory();
+                    p.updateInventory();
+                    break;
+                case 8:
+                    p.closeInventory();
+                    break;
+                default:
+                    break;
+            }
+
+        } else if (event.getInventory().equals(tradeMenu)/*trade menu*/) {
+            tradeMenu.registerTrade();
         }
 
-        Effects trails = new Effects(p);
+    }
 
-        switch(event.getSlot()) {
-            case 3:
-                trails.startTotem();
-                p.closeInventory();
-                p.updateInventory();
-                break;
-            case 5:
-                particle.setID(1);
-                p.closeInventory();
-                p.updateInventory();
-                break;
-            case 8:
-                p.closeInventory();
-                break;
-            default:
-                break;
+    @EventHandler
+    public void onKill(EntityDeathEvent event) {
+        if (event.getEntity() instanceof Monster) {
+            Player player = event.getEntity().getKiller();
+            if (player == null) // if mobs died of a natural dead return
+                return;
+            Random r = new Random();
+            int amount = r.nextInt(10) + 10;
+            Main.getInstance().eco.depositPlayer(player, amount);
+            player.sendMessage(org.bukkit.ChatColor.DARK_GREEN + "" + org.bukkit.ChatColor.BOLD + "+ $" + amount);
         }
     }
 

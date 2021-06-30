@@ -1,4 +1,4 @@
-package io.github.FourteenBrush.MagmaBuildNetwork;
+package io.github.FourteenBrush.MagmaBuildNetwork.data;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
