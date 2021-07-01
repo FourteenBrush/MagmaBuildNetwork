@@ -1,9 +1,10 @@
-package io.github.FourteenBrush.MagmaBuildNetwork;
+package io.github.FourteenBrush.MagmaBuildNetwork.utils;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import io.github.FourteenBrush.MagmaBuildNetwork.Main;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -38,20 +39,20 @@ public class NPC {
 
         // saves the players position
         int var = 1;
-        if (Main.getData().contains("data")) {
-            var = Main.getData().getConfigurationSection("npc_data").getKeys(false).size() + 1;
+        if (io.github.FourteenBrush.MagmaBuildNetwork.Main.getData().contains("data")) {
+            var = io.github.FourteenBrush.MagmaBuildNetwork.Main.getData().getConfigurationSection("npc_data").getKeys(false).size() + 1;
         }
-        Main.getData().set("npc_data." + var + ".x", (int) p.getLocation().getX());
-        Main.getData().set("npc_data." + var + ".y", (int) p.getLocation().getY());
-        Main.getData().set("npc_data." + var + ".z", (int) p.getLocation().getZ());
-        Main.getData().set("npc_data." + var + ".p", p.getLocation().getPitch());
-        Main.getData().set("npc_data." + var + ".yaw", p.getLocation().getYaw());
-        Main.getData().set("npc_data." + var + ".world", p.getLocation().getWorld().getName());
-        Main.getData().set("npc_data." + var + ".name", skin);
-        Main.getData().set("npc_data." + var + ".text", name[0]);
-        Main.getData().set("npc_data." + var + ".signature", name[1]);
+        io.github.FourteenBrush.MagmaBuildNetwork.Main.getData().set("npc_data." + var + ".x", (int) p.getLocation().getX());
+        io.github.FourteenBrush.MagmaBuildNetwork.Main.getData().set("npc_data." + var + ".y", (int) p.getLocation().getY());
+        io.github.FourteenBrush.MagmaBuildNetwork.Main.getData().set("npc_data." + var + ".z", (int) p.getLocation().getZ());
+        io.github.FourteenBrush.MagmaBuildNetwork.Main.getData().set("npc_data." + var + ".p", p.getLocation().getPitch());
+        io.github.FourteenBrush.MagmaBuildNetwork.Main.getData().set("npc_data." + var + ".yaw", p.getLocation().getYaw());
+        io.github.FourteenBrush.MagmaBuildNetwork.Main.getData().set("npc_data." + var + ".world", p.getLocation().getWorld().getName());
+        io.github.FourteenBrush.MagmaBuildNetwork.Main.getData().set("npc_data." + var + ".name", skin);
+        io.github.FourteenBrush.MagmaBuildNetwork.Main.getData().set("npc_data." + var + ".text", name[0]);
+        io.github.FourteenBrush.MagmaBuildNetwork.Main.getData().set("npc_data." + var + ".signature", name[1]);
         // recently added
-        Main.getData().set("npc_data" + var + ".uuid", gameProfile.getId().toString());
+        io.github.FourteenBrush.MagmaBuildNetwork.Main.getData().set("npc_data" + var + ".uuid", gameProfile.getId().toString());
         Main.saveData();
 
     }

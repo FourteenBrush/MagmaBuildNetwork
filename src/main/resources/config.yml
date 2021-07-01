@@ -21,3 +21,14 @@ npc_data:
 max_trade_distance: 20
 # Make players able to trade in different worlds (for example the nether and the overworld)
 trade_from_different_worlds: false
+
+# +--------------------------------------------------------------------------+ #
+# DEPENDENCIES
+# This section stores data about dependencies like Vault and PlaceholderAPI
+
+# Does this plugin requires this plugins in order to function
+# Note: only change this to true when you want to use one of their features
+#       if this is set to true and that plugin is not installed, this plugin will be disabled
+requires_vault: false
+requires_placeholderAPI: false
+requires_luckperms: false

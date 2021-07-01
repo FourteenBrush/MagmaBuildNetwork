@@ -1,13 +1,15 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.listeners;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
-import io.github.FourteenBrush.MagmaBuildNetwork.NPC;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.NPC;
 import io.github.FourteenBrush.MagmaBuildNetwork.data.PacketReader;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.PlayerCommand;
-import io.github.FourteenBrush.MagmaBuildNetwork.util.Effects;
+import io.github.FourteenBrush.MagmaBuildNetwork.inventory.TradeGui;
+import io.github.FourteenBrush.MagmaBuildNetwork.inventory.TrailsGui;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.Effects;
 import io.github.FourteenBrush.MagmaBuildNetwork.inventory.GUI;
-import io.github.FourteenBrush.MagmaBuildNetwork.util.ParticleData;
-import io.github.FourteenBrush.MagmaBuildNetwork.util.Utils;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.ParticleData;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import io.github.FourteenBrush.MagmaBuildNetwork.events.RightClickNPCEvent;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -43,8 +45,8 @@ public class PlayerListener implements Listener {
         }
         NPC.addJoinPacket(p);
         if (!p.hasPlayedBefore()) {
-            p.getInventory().addItem(new ItemStack(Material.APPLE, 16));
-            p.getInventory().addItem(new ItemStack(Material.WOODEN_AXE));
+            p.getInventory().setItem(0, new ItemStack(Material.WOODEN_AXE));
+            p.getInventory().setItem(1, new ItemStack(Material.APPLE, 16));
         }
         TextComponent message = new TextComponent("Discord");
         message.setColor(ChatColor.DARK_PURPLE);
@@ -93,18 +95,19 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         Player p = (Player) event.getWhoClicked();
-        GUI trailsMenu = new GUI();
-        GUI tradeMenu = new GUI();
+        TrailsGui trailsMenu = new TrailsGui();
+        TradeGui tradeMenu = new TradeGui();
 
         if (!(event.getInventory().getHolder() instanceof GUI)) {
             return;
         }
-        if (event.getInventory().equals(trailsMenu)/*trails*/) {
+
+        if (event.getView().getType() == InventoryType.PLAYER) {
+            return;
+        }
+        if (event.getInventory().getHolder() instanceof TrailsGui/*trails*/) {
             event.setCancelled(true);
 
-            if (event.getView().getType() == InventoryType.PLAYER) {
-                return;
-            }
             ParticleData particle = new ParticleData(p.getUniqueId());
 
             // trail activated
@@ -133,8 +136,14 @@ public class PlayerListener implements Listener {
                     break;
             }
 
-        } else if (event.getInventory().equals(tradeMenu)/*trade menu*/) {
-            tradeMenu.registerTrade();
+        } else if (event.getInventory().getHolder() instanceof TradeGui/*trade menu*/) {
+            event.setCancelled(true);
+
+            switch(event.getSlot()) {
+                case 1:
+                    break;
+                    // TODO
+            }
         }
 
     }
@@ -147,7 +156,7 @@ public class PlayerListener implements Listener {
                 return;
             Random r = new Random();
             int amount = r.nextInt(10) + 10;
-            Main.getInstance().eco.depositPlayer(player, amount);
+            Main.getEco().depositPlayer(player, amount);
             player.sendMessage(org.bukkit.ChatColor.DARK_GREEN + "" + org.bukkit.ChatColor.BOLD + "+ $" + amount);
         }
     }

@@ -6,7 +6,7 @@ import java.net.URL;
 import javax.net.ssl.HttpsURLConnection;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
-import io.github.FourteenBrush.MagmaBuildNetwork.util.Utils;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;

@@ -2,10 +2,10 @@ package io.github.FourteenBrush.MagmaBuildNetwork.commands;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.data.ImageManager;
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
-import io.github.FourteenBrush.MagmaBuildNetwork.NPC;
-import io.github.FourteenBrush.MagmaBuildNetwork.inventory.GUI;
-import io.github.FourteenBrush.MagmaBuildNetwork.util.Renderer;
-import io.github.FourteenBrush.MagmaBuildNetwork.util.Utils;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.NPC;
+import io.github.FourteenBrush.MagmaBuildNetwork.inventory.TrailsGui;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.Renderer;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -28,13 +28,7 @@ public class PlayerCommand implements CommandExecutor {
     private static final Set<UUID> frozenPlayers = new HashSet<>();
     private static  final Set<UUID> peopleWantingLock = new HashSet<>();
 
-    EnumSet<Material> materials = EnumSet.of(
-            Material.STONE,
-            Material.ANDESITE,
-            Material.COBBLESTONE,
-            Material.DIORITE,
-            Material.GRANITE
-    );
+
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, String[] args) {
@@ -44,22 +38,9 @@ public class PlayerCommand implements CommandExecutor {
             return true;
         }
         final Player p = (Player) sender;
+        if (p.hasPermission(cmd.getPermission()))
 
-        if (cmd.getName().equalsIgnoreCase("MagmaBuildNetwork")) {
-            if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
-                // TODO main command info
-            }
-            else if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
-                if (!Utils.hasPermission(sender, "reload")) {
-                    Utils.messageNoPermission(sender);
-                    return true;
-                }
-                plugin.reloadConfig();
-                Utils.message(sender, "§2Successfully reloaded " + plugin.getName());
-            }
-        }
-
-        else if (cmd.getName().equalsIgnoreCase("ignite")) {
+        if (cmd.getName().equalsIgnoreCase("ignite")) {
             if (!Utils.hasPermission(p, "ignite")) {
                 Utils.messageNoPermission(p);
                 }
@@ -75,6 +56,7 @@ public class PlayerCommand implements CommandExecutor {
                 }
                 // Sets the player on fire for 1,000 ticks (there are ~20 ticks in second, so 50 seconds total - that will kill him).
                 target.setFireTicks(1000);
+                // TODO message that says succeed
                 return true;
             }
 
@@ -89,15 +71,15 @@ public class PlayerCommand implements CommandExecutor {
                 Player target = Bukkit.getPlayer(args[0]);
                 // Make sure the player is online.
                 if (!(Bukkit.getOnlinePlayers().contains(target))) {
-                    sender.sendMessage(ChatColor.DARK_RED + args[0] + " is not currently online.");
+                    Utils.message(p, "§c" + target + " is not currently online!");
                     return true;
                 }
                 if (PlayerCommand.getFrozenPlayers().contains(target.getUniqueId())) {
                     PlayerCommand.getFrozenPlayers().remove(target.getUniqueId());
-                    p.sendMessage(ChatColor.DARK_GREEN + "Player " + args[0] + " unfrozen!");
+                    Utils.message(p, "§2Player " + target + "§cunfrozen!");
                 } else {
                     PlayerCommand.getFrozenPlayers().add(target.getUniqueId());
-                    p.sendMessage(ChatColor.DARK_GREEN + "Player " + args[0] + " frozen!");
+                    Utils.message(p, "§2Player " + target + " §cfrozen!");
                 }
                 return true;
             }
@@ -107,25 +89,22 @@ public class PlayerCommand implements CommandExecutor {
                 Utils.messageNoPermission(p);
                 return true;
             }
-            // Make sure that the player specified exactly one argument (the name of the player to ignite).
             if (args.length != 1) {
-                // When onCommand() returns false, the help message associated with that command is displayed.
                 return false;
             }
-                // Get the player who should be healed. Remember that indices start with 0, not 1.
                 Player target = Bukkit.getPlayer(args[0]);
 
-                // Make sure the player is online.
                 if (!(Bukkit.getOnlinePlayers().contains(target))) {
-                    sender.sendMessage(args[0] + " is not currently online.");
+                    Utils.message(p, "§c" + target + " §cis not currently online!");
                     return true;
                 }
 
                 // Heal the player
                 target.setHealth(20.0);
                 target.setFoodLevel(20);
-                target.sendMessage(ChatColor.DARK_GREEN + "Healed by " + sender.getName());
-                sender.sendMessage(ChatColor.DARK_GREEN + "Healed " + args[0]);
+                target.setFireTicks(0);
+                Utils.message(target, "§2Healed by " + p.getName());
+                Utils.message(p, "§2Healed " + target.getName());
             }
 
         else if (cmd.getName().equalsIgnoreCase("lock")) {
@@ -135,15 +114,16 @@ public class PlayerCommand implements CommandExecutor {
             }
                 if (args.length == 1 && args[0].equalsIgnoreCase("set")) {
                     getPlayersWantingLock().add(p.getUniqueId());
-                    p.sendMessage(ChatColor.DARK_GREEN + "Right click a block to lock it!\nOr type /lock cancel to cancel");
+                    Utils.message(p, "§2Right click a block to lock it!\nOr type /lock cancel to cancel");
 
                 } else if (args.length == 1 && args[0].equalsIgnoreCase("cancel")) {
                     if (getPlayersWantingLock().contains(p.getUniqueId())) {
                         getPlayersWantingLock().remove(p.getUniqueId());
-                        p.sendMessage(ChatColor.DARK_GREEN + "Cancelled!");
+                        Utils.message(p, "§2Cancelled!");
                     }
                 } else if (args.length == 1 && args[0].equalsIgnoreCase("remove")) {
                     // TODO add method to make container public (lock.remove)
+                    Utils.message(p, "§2Right click a block to remove the lock!\nOr type /lock cancel to cancel");
                 }
             }
 
@@ -171,7 +151,7 @@ public class PlayerCommand implements CommandExecutor {
 
                     itemStack.setItemMeta(itemMeta);
 
-                    p.sendMessage(ChatColor.GREEN + "Message stored!");
+                    Utils.message(p, "§2Message stored!");
                 }
             }
             else {
@@ -243,7 +223,7 @@ public class PlayerCommand implements CommandExecutor {
                 Utils.messageNoPermission(p);
                 return true;
             }
-            new GUI().openInventory(p);
+            p.openInventory(new TrailsGui().createInv());
             return true;
             }
 
@@ -257,7 +237,8 @@ public class PlayerCommand implements CommandExecutor {
 
             Renderer renderer = new Renderer();
             if (!renderer.load(args[0])) {
-                Utils.message(p, "§cImage could not be loaded!");
+                Utils.message(p, "§cImage could not be loaded!\n" +
+                        "§cThe best images are from imgur");
                 return true;
             }
             view.addRenderer(renderer);
@@ -293,4 +274,12 @@ public class PlayerCommand implements CommandExecutor {
     public static Set<UUID> getPlayersWantingLock() {
         return peopleWantingLock;
     }
+
+    EnumSet<Material> materials = EnumSet.of(
+            Material.STONE,
+            Material.ANDESITE,
+            Material.COBBLESTONE,
+            Material.DIORITE,
+            Material.GRANITE
+    );
 }

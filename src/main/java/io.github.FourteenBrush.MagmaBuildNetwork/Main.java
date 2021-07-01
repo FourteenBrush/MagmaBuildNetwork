@@ -12,9 +12,9 @@ import io.github.FourteenBrush.MagmaBuildNetwork.listeners.LockListener;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.PlayerCommand;
 import io.github.FourteenBrush.MagmaBuildNetwork.listeners.PlayerListener;
 import io.github.FourteenBrush.MagmaBuildNetwork.updatechecker.UpdateChecker;
-import io.github.FourteenBrush.MagmaBuildNetwork.inventory.GUI;
-import io.github.FourteenBrush.MagmaBuildNetwork.util.ScoreboardHandler;
-import io.github.FourteenBrush.MagmaBuildNetwork.util.Utils;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.NPC;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.ScoreboardHandler;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import net.luckperms.api.LuckPerms;
 import net.minecraft.server.v1_16_R3.EntityPlayer;
 import org.bukkit.Bukkit;
@@ -32,10 +32,10 @@ import java.util.UUID;
 
 public class Main extends JavaPlugin {
 
-    public Economy eco;
     public LuckPerms api;
     private static Main instance;
     private static DataManager data;
+    private static Economy eco = null;
 
     @Override
     public void onEnable() {
@@ -43,8 +43,7 @@ public class Main extends JavaPlugin {
         initialSetup();
         commandsSetup();
         eventsSetup();
-        dependenciesSetup();
-        Utils.logInfo("Done!");
+        Utils.logInfo(new String[] {"Version " + getDescription().getVersion() + " is activated!", "Done!"});
     }
 
     @Override
@@ -52,30 +51,14 @@ public class Main extends JavaPlugin {
         Utils.logInfo(new String[] {"Stopping...", "Goodbye!"});
         instance = null;
         stopNPC();
-        super.onDisable();
-    }
-
-    private void commandsSetup() {
-        this.getCommand("reload").setExecutor(new PlayerCommand());
-        this.getCommand("ignite").setExecutor(new PlayerCommand());
-        this.getCommand("lock").setExecutor(new PlayerCommand());
-        this.getCommand("lock").setTabCompleter(new StatTab());
-        this.getCommand("freeze").setExecutor(new PlayerCommand());
-        this.getCommand("heal").setExecutor(new PlayerCommand());
-        this.getCommand("store").setExecutor(new PlayerCommand());
-        this.getCommand("stats").setExecutor(new PlayerCommand());
-        this.getCommand("MagmaBuildNetwork").setExecutor(new PlayerCommand());
-        this.getCommand("spawnnpc").setExecutor(new PlayerCommand());
-        this.getCommand("trails").setExecutor(new PlayerCommand());
-        this.getCommand("trade").setExecutor(new TradeCommand());
-        this.getCommand("createmap").setExecutor(new PlayerCommand());
-        this.getCommand("console").setExecutor(new ConsoleCommand());
     }
 
     private void initialSetup() {
-        Utils.logInfo(new String[] {"Initializing...", "Version " + instance.getDescription().getVersion() + " is activated"});
+        Utils.logInfo("Initializing...");
+        if (!setupEconomy()) {
+            Utils.logWarning("No Vault dependency or Economy found!");
+        }
         data = new DataManager();
-        new GUI().registerTrails();
         new ImageManager().init();
         if (data.getConfig().contains("npc_data"))
             loadNPC();
@@ -88,22 +71,21 @@ public class Main extends JavaPlugin {
         }
     }
 
-    private void dependenciesSetup() {
-      // Setup Economy
-        RegisteredServiceProvider<Economy> economy = getServer().getServicesManager()
-                .getRegistration(net.milkbowl.vault.economy.Economy.class);
-        if (economy != null)
-            eco = economy.getProvider();
-        if (eco == null) {
-            Utils.logInfo("You must have Vault installed and an Economy plugin!");
-            getServer().getPluginManager().disablePlugin(this);
-        }
-       // Setup Luckperms
-        RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager()
-                .getRegistration(LuckPerms.class);
-        if (provider != null) {
-            api = provider.getProvider();
-        }
+    private void commandsSetup() {
+        getCommand("reload").setExecutor(new PlayerCommand());
+        getCommand("ignite").setExecutor(new PlayerCommand());
+        getCommand("lock").setExecutor(new PlayerCommand());
+        getCommand("lock").setTabCompleter(new StatTab());
+        getCommand("freeze").setExecutor(new PlayerCommand());
+        getCommand("heal").setExecutor(new PlayerCommand());
+        getCommand("store").setExecutor(new PlayerCommand());
+        getCommand("stats").setExecutor(new PlayerCommand());
+        getCommand("magmabuildnetwork").setExecutor(new PlayerCommand());
+        getCommand("spawnnpc").setExecutor(new PlayerCommand());
+        getCommand("trails").setExecutor(new PlayerCommand());
+        getCommand("trade").setExecutor(new TradeCommand());
+        getCommand("createmap").setExecutor(new PlayerCommand());
+        getCommand("console").setExecutor(new ConsoleCommand());
     }
 
     private void eventsSetup() {
@@ -111,6 +93,37 @@ public class Main extends JavaPlugin {
         pm.registerEvents(new PlayerListener(), this);
         pm.registerEvents(new LockListener(), this);
         pm.registerEvents(new UpdateChecker(), this);
+    }
+
+    private boolean setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            return false;
+        }
+        eco = rsp.getProvider();
+        return eco != null;
+    }
+
+    // TODO
+    private void dependenciesSetup() {
+       // Setup Luckperms
+        if (getConfig().getBoolean("requires_luckperms") &&
+        Bukkit.getPluginManager().getPlugin("LuckPerms") == null) {
+            getServer().getPluginManager().disablePlugin(this);
+        }
+        else if (getConfig().getBoolean("requires_luckperms") &&
+        Bukkit.getPluginManager().getPlugin("LuckPerms") != null) {
+            if (Bukkit.getPluginManager().getPlugin("LuckPerms") != null) {
+                RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager()
+                        .getRegistration(LuckPerms.class);
+                if (provider != null) {
+                    api = provider.getProvider();
+                }
+            }
+        }
     }
 
     private void loadNPC() {
@@ -143,6 +156,10 @@ public class Main extends JavaPlugin {
 
     public static Main getInstance() {
         return instance;
+    }
+
+    public static Economy getEco() {
+        return eco;
     }
 
     public static FileConfiguration getData() {

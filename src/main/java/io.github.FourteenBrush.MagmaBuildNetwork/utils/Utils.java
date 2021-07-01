@@ -1,4 +1,4 @@
-package io.github.FourteenBrush.MagmaBuildNetwork.util;
+package io.github.FourteenBrush.MagmaBuildNetwork.utils;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
 import org.bukkit.Bukkit;
@@ -27,8 +27,8 @@ public class Utils {
         return ChatColor.translateAlternateColorCodes('&', ChatColor.GRAY + args);
     }
 
-    public static void log(LogLevel level, String message) {
-            Bukkit.getConsoleSender().sendMessage(colorize("&7[&c" + name + "&f] " + level.getColor() + "[" + level.name() + "] " + message));
+    private static void log(LogLevel level, String message) {
+            Bukkit.getConsoleSender().sendMessage(colorize("&7[&c" + name + "&7] " + "[" + level.name() + "] " + level.getColor() + message));
     }
 
     public static void logInfo(String message) {
@@ -48,6 +48,16 @@ public class Utils {
     public static void logWarning(String[] messages) {
         for (String message : messages) {
             logWarning(message);
+        }
+    }
+
+    public static void logDebug(String message) {
+        log(LogLevel.DEBUG, message);
+    }
+
+    public static void logDebug(String[] messages) {
+        for (String message : messages) {
+            logDebug(message);
         }
     }
 

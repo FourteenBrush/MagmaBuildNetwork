@@ -2,7 +2,8 @@ package io.github.FourteenBrush.MagmaBuildNetwork.commands;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
 import io.github.FourteenBrush.MagmaBuildNetwork.inventory.GUI;
-import io.github.FourteenBrush.MagmaBuildNetwork.util.Utils;
+import io.github.FourteenBrush.MagmaBuildNetwork.inventory.TradeGui;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -41,9 +42,8 @@ public class TradeCommand implements CommandExecutor {
                 return true;
             }
             if (args.length == 2 && args[0].equalsIgnoreCase("request")) {
-                GUI gui = new GUI();
-                gui.registerTrade();
-                gui.openInventory(p);
+                p.openInventory(new TradeGui().createInv());
+                Utils.message(p, "This is for debug purposes only!");
                 // request(p, args);
                 return true;
             }
@@ -119,9 +119,8 @@ public class TradeCommand implements CommandExecutor {
 
     private void startTrade(Player sender, Player target) {
         GUI gui = new GUI();
-        gui.registerTrade();
-        gui.openInventory(sender);
-        gui.openInventory(target);
+        sender.openInventory(new TradeGui().createInv());
+        target.openInventory(new TradeGui().createInv());
     }
 
     private void acceptTrade(Player playerSender, Player playerTarget) {

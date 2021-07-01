@@ -3,40 +3,33 @@ version: 1.0
 author: FourteenBrush
 main: io.github.FourteenBrush.MagmaBuildNetwork.Main
 api-version: 1.13
-soft-depend: [LuckPerms, PlaceHolderAPI]
-depend: [Vault]
+softdepend: [LuckPerms, PlaceHolderAPI, Vault]
 
 commands:
   magmabuildnetwork:
     description: Main command
+    aliases: [mbn]
   reload:
     description: Reloads the plugin
     permission: <plugin name>.reload
-    permission-message: You don't have <permission>
   ignite:
     description: Sets a player on fire
     permission: <plugin name>.ignite
-    permission-message: You don't have <permission>
   freeze:
     description: Freezes a player
     permission: <plugin name>.freeze
-    permission-message: You don't have <permission>
   heal:
     description: Heals a player
     permission: <plugin name>.heal
-    permission-message: You don't have <permission>
   lock:
     description: Allows you to protect a container
     permission: <plugin name>.basic
-    permission-message: You don't have <permission>
   store:
     description: Stores a message inside the NBT tags of an item
     permission: <plugin name>.store
-    permission-message: You don't have <permission>
   stats:
     description: Shows player stats
     permission: <plugin name>.basic
-    permission-message: You don't have <permission>
   debug:
     description: Shows debug info
   trade:
@@ -52,7 +45,7 @@ commands:
 
 permissions:
  magmabuildnetwork.admin:
-    description: Grants permission to all the commands
+    description: Grants access to all the commands
     default: false
     children:
      - magmabuildnetwork.reload

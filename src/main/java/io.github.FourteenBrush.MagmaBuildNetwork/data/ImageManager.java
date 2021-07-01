@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
-import io.github.FourteenBrush.MagmaBuildNetwork.util.Renderer;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.Renderer;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
