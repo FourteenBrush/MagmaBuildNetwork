@@ -35,6 +35,7 @@ public class StatTab implements TabCompleter {
         else if (cmd.getName().equalsIgnoreCase("debug")) {
             if (arguments.isEmpty()) {
                 arguments.add("playersWantingLock");
+                arguments.add("tradegui");
             }
 
             List<String> result = new ArrayList<String>();

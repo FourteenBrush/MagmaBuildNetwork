@@ -7,13 +7,20 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
 
-public class TrailsGui extends GUI implements InventoryHolder {
+public class TrailsGui implements GUI, InventoryHolder {
 
-    private Inventory inv;
+    private final Inventory inv;
 
     public TrailsGui() {
         inv = Bukkit.createInventory(this, 9, ChatColor.GOLD + "" + ChatColor.BOLD +"Trails");
+    }
+
+    @NotNull
+    @Override
+    public Inventory getInventory() {
+        return inv;
     }
 
     public Inventory createInv() {

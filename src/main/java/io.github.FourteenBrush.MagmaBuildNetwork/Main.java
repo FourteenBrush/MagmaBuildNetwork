@@ -3,6 +3,7 @@ package io.github.FourteenBrush.MagmaBuildNetwork;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.ConsoleCommand;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.GlobalCommand;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.TradeCommand;
 import io.github.FourteenBrush.MagmaBuildNetwork.data.DataManager;
 import io.github.FourteenBrush.MagmaBuildNetwork.data.ImageManager;
@@ -32,7 +33,7 @@ import java.util.UUID;
 
 public class Main extends JavaPlugin {
 
-    public LuckPerms api;
+    private static LuckPerms api;
     private static Main instance;
     private static DataManager data;
     private static Economy eco = null;
@@ -56,7 +57,8 @@ public class Main extends JavaPlugin {
     private void initialSetup() {
         Utils.logInfo("Initializing...");
         if (!setupEconomy()) {
-            Utils.logWarning("No Vault dependency or Economy found!");
+            Utils.logWarning(new String[] {"Now Vault or economy plugin found!",
+            "This is fine if that's not installed"});
         }
         data = new DataManager();
         new ImageManager().init();
@@ -66,7 +68,6 @@ public class Main extends JavaPlugin {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 PacketReader reader = new PacketReader();
                 reader.inject(p);
-                ScoreboardHandler.createScoreboard(p);
             }
         }
     }
@@ -80,12 +81,18 @@ public class Main extends JavaPlugin {
         getCommand("heal").setExecutor(new PlayerCommand());
         getCommand("store").setExecutor(new PlayerCommand());
         getCommand("stats").setExecutor(new PlayerCommand());
-        getCommand("magmabuildnetwork").setExecutor(new PlayerCommand());
+        getCommand("magmabuildnetwork").setExecutor(new GlobalCommand());
         getCommand("spawnnpc").setExecutor(new PlayerCommand());
         getCommand("trails").setExecutor(new PlayerCommand());
         getCommand("trade").setExecutor(new TradeCommand());
+        getCommand("trade").setTabCompleter(new StatTab());
         getCommand("createmap").setExecutor(new PlayerCommand());
         getCommand("console").setExecutor(new ConsoleCommand());
+        getCommand("debug").setExecutor(new PlayerCommand());
+        getCommand("debug").setTabCompleter(new StatTab());
+        getCommand("invsee").setExecutor(new PlayerCommand());
+        getCommand("ally").setExecutor(new PlayerCommand());
+        getCommand("vanish").setExecutor(new PlayerCommand());
     }
 
     private void eventsSetup() {
@@ -108,8 +115,7 @@ public class Main extends JavaPlugin {
     }
 
     // TODO
-    private void dependenciesSetup() {
-       // Setup Luckperms
+    private void setupLuckPerms() {
         if (getConfig().getBoolean("requires_luckperms") &&
         Bukkit.getPluginManager().getPlugin("LuckPerms") == null) {
             getServer().getPluginManager().disablePlugin(this);
@@ -162,9 +168,6 @@ public class Main extends JavaPlugin {
         return eco;
     }
 
-    public static FileConfiguration getData() {
-        return data.getConfig();
-    }
 
     public static void saveData() {
         data.saveConfig();

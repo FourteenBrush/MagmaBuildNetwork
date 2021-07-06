@@ -51,8 +51,6 @@ public class PacketReader {
 
     public void readPacket(Player player, Packet<?> packet) {
 
-        //System.out.println("PACKET >> " + packet);
-
         // click on entity
         if (packet.getClass().getSimpleName().equalsIgnoreCase("PacketPlayInUseEntity")) {
             if (getValue(packet, "action").toString().equalsIgnoreCase("ATTACK")) return;

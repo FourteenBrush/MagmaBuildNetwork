@@ -63,7 +63,9 @@ public class UpdateChecker implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent event) {
-        if (Utils.hasPermission(event.getPlayer(), "notifyupdate"))
-            plugin.getLogger().info("A new version of " + plugin.getDescription().getName() + "is available");
+        if (spigotIsNewer()) {
+            if (Utils.hasPermission(event.getPlayer(), "notifyupdate"))
+                Utils.logInfo(new String[] {"A new version is available", "Download it now at spigot.mc"});
+        }
     }
 }

@@ -22,6 +22,7 @@ import java.util.UUID;
 
 public class NPC {
 
+    private final static Main plugin = Main.getInstance();
     private static List<EntityPlayer> NPC = new ArrayList<EntityPlayer>();
 
     public static void createNPC(Player p, String skin) {
@@ -39,20 +40,20 @@ public class NPC {
 
         // saves the players position
         int var = 1;
-        if (io.github.FourteenBrush.MagmaBuildNetwork.Main.getData().contains("data")) {
-            var = io.github.FourteenBrush.MagmaBuildNetwork.Main.getData().getConfigurationSection("npc_data").getKeys(false).size() + 1;
+        if (plugin.getConfig().contains("data")) {
+            var = plugin.getConfig().getConfigurationSection("npc_data").getKeys(false).size() + 1;
         }
-        io.github.FourteenBrush.MagmaBuildNetwork.Main.getData().set("npc_data." + var + ".x", (int) p.getLocation().getX());
-        io.github.FourteenBrush.MagmaBuildNetwork.Main.getData().set("npc_data." + var + ".y", (int) p.getLocation().getY());
-        io.github.FourteenBrush.MagmaBuildNetwork.Main.getData().set("npc_data." + var + ".z", (int) p.getLocation().getZ());
-        io.github.FourteenBrush.MagmaBuildNetwork.Main.getData().set("npc_data." + var + ".p", p.getLocation().getPitch());
-        io.github.FourteenBrush.MagmaBuildNetwork.Main.getData().set("npc_data." + var + ".yaw", p.getLocation().getYaw());
-        io.github.FourteenBrush.MagmaBuildNetwork.Main.getData().set("npc_data." + var + ".world", p.getLocation().getWorld().getName());
-        io.github.FourteenBrush.MagmaBuildNetwork.Main.getData().set("npc_data." + var + ".name", skin);
-        io.github.FourteenBrush.MagmaBuildNetwork.Main.getData().set("npc_data." + var + ".text", name[0]);
-        io.github.FourteenBrush.MagmaBuildNetwork.Main.getData().set("npc_data." + var + ".signature", name[1]);
+        plugin.getConfig().set("npc_data." + var + ".x", (int) p.getLocation().getX());
+        plugin.getConfig().set("npc_data." + var + ".y", (int) p.getLocation().getY());
+        plugin.getConfig().set("npc_data." + var + ".z", (int) p.getLocation().getZ());
+        plugin.getConfig().set("npc_data." + var + ".p", p.getLocation().getPitch());
+        plugin.getConfig().set("npc_data." + var + ".yaw", p.getLocation().getYaw());
+        plugin.getConfig().set("npc_data." + var + ".world", p.getLocation().getWorld().getName());
+        plugin.getConfig().set("npc_data." + var + ".name", skin);
+        plugin.getConfig().set("npc_data." + var + ".text", name[0]);
+        plugin.getConfig().set("npc_data." + var + ".signature", name[1]);
         // recently added
-        io.github.FourteenBrush.MagmaBuildNetwork.Main.getData().set("npc_data" + var + ".uuid", gameProfile.getId().toString());
+        plugin.getConfig().set("npc_data" + var + ".uuid", gameProfile.getId().toString());
         Main.saveData();
 
     }

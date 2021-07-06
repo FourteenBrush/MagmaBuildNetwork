@@ -1,55 +1,73 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.listeners;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.NPC;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.TradeCommand;
+import io.github.FourteenBrush.MagmaBuildNetwork.inventory.StatsGui;
 import io.github.FourteenBrush.MagmaBuildNetwork.data.PacketReader;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.PlayerCommand;
 import io.github.FourteenBrush.MagmaBuildNetwork.inventory.TradeGui;
 import io.github.FourteenBrush.MagmaBuildNetwork.inventory.TrailsGui;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Effects;
 import io.github.FourteenBrush.MagmaBuildNetwork.inventory.GUI;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.ParticleData;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import io.github.FourteenBrush.MagmaBuildNetwork.events.RightClickNPCEvent;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.Effects;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.NPC;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.ParticleData;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.ScoreboardHandler;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Text;
+import net.minecraft.server.v1_16_R3.DamageSource;
+import net.minecraft.server.v1_16_R3.EntityBoat;
 import org.bukkit.*;
-import org.bukkit.block.*;
-import org.bukkit.block.data.Openable;
-import org.bukkit.entity.Monster;
-import org.bukkit.entity.Player;
+import org.bukkit.craftbukkit.v1_16_R3.entity.CraftBoat;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.*;
+import org.bukkit.event.vehicle.VehicleExitEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 @SuppressWarnings("unused")
 public class PlayerListener implements Listener {
 
+    private final Main plugin = Main.getInstance();
+
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player p = event.getPlayer();
+        for (Player e : Bukkit.getOnlinePlayers()) {
+            if (plugin.getConfig().getBoolean("use_scoreboard")) {
+                e.setScoreboard(ScoreboardHandler.createScoreboard(e));
+            }
+        }
+        for (Player e : PlayerCommand.getVanishedPlayers()) {
+            p.hidePlayer(plugin, e);
+        }
         event.setJoinMessage(Utils.colorize("&7[&a&l+&7] &b" + p.getName() + " &7joined the server."));
         PacketReader reader = new PacketReader();
         reader.inject(p);
-        if (NPC.getNPCs() == null || NPC.getNPCs().isEmpty()) {
-            return;
+        if (!(NPC.getNPCs() == null || NPC.getNPCs().isEmpty())) {
+            NPC.addJoinPacket(p);
         }
-        NPC.addJoinPacket(p);
         if (!p.hasPlayedBefore()) {
             p.getInventory().setItem(0, new ItemStack(Material.WOODEN_AXE));
             p.getInventory().setItem(1, new ItemStack(Material.APPLE, 16));
         }
         TextComponent message = new TextComponent("Discord");
-        message.setColor(ChatColor.DARK_PURPLE);
+        message.setColor(ChatColor.AQUA);
         message.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://discord.gg/KWNYMDGX7H"));
         message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click HERE to get a link to the Discord server.")));
     }
@@ -88,36 +106,28 @@ public class PlayerListener implements Listener {
     public void onClick(RightClickNPCEvent event) {
         Player p = event.getPlayer();
         if (event.getNPC().getId() == 1) {
-            p.sendMessage(ChatColor.DARK_PURPLE + "Hello! I'm " + event.getNPC().getName() + " :)");
+            Utils.message(p, "§2Hello I'm " + event.getNPC().getName() + "§2!");
         }
     }
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         Player p = (Player) event.getWhoClicked();
-        TrailsGui trailsMenu = new TrailsGui();
-        TradeGui tradeMenu = new TradeGui();
-
         if (!(event.getInventory().getHolder() instanceof GUI)) {
             return;
         }
-
         if (event.getView().getType() == InventoryType.PLAYER) {
             return;
         }
-        if (event.getInventory().getHolder() instanceof TrailsGui/*trails*/) {
+        if (event.getInventory().getHolder() instanceof TrailsGui) {
             event.setCancelled(true);
-
             ParticleData particle = new ParticleData(p.getUniqueId());
-
             // trail activated
             if (particle.hasID()) {
                 particle.endTask();
                 particle.removeID();
             }
-
             Effects effect = new Effects(p);
-
             switch(event.getSlot()) {
                 case 3:
                     effect.startTotem();
@@ -136,14 +146,34 @@ public class PlayerListener implements Listener {
                     break;
             }
 
-        } else if (event.getInventory().getHolder() instanceof TradeGui/*trade menu*/) {
-            event.setCancelled(true);
-
-            switch(event.getSlot()) {
-                case 1:
-                    break;
-                    // TODO
+        } else if (event.getInventory().getHolder() instanceof TradeGui) {
+            List<Integer> placeableSlots = Arrays.asList(10, 11, 12, 19, 20, 21, 28, 29, 30);
+            Inventory inv = event.getInventory();
+            int slot = event.getSlot();
+            TradeGui senderGui = TradeCommand.getSenderGui();
+            TradeGui targetGui = TradeCommand.getTargetGui();
+            if (!(event.getRawSlot() > 53 || placeableSlots.contains(slot))) {
+                event.setCancelled(true);
             }
+            if (inv == senderGui) {
+                if (placeableSlots.contains(slot)) {
+                    // if clicking on a placeable slot -> place the same item by the other player
+                    TradeCommand.setItemInGui(targetGui, slot, inv.getItem(slot));
+                } else {
+                    TradeCommand.changeClickedSlots(slot, event);
+                }
+            } else if (inv == targetGui) {
+                if (placeableSlots.contains(slot)) {
+                    // if clicking on a placeable slot -> place the same item by the other player
+                    TradeCommand.setItemInGui(senderGui, slot, inv.getItem(slot));
+                } else {
+                    TradeCommand.changeClickedSlots(slot, event);
+                }
+            }
+
+        } else if (event.getInventory().getHolder() instanceof StatsGui) {
+            event.setCancelled(true);
+            // TODO extra menus
         }
 
     }
@@ -157,13 +187,17 @@ public class PlayerListener implements Listener {
             Random r = new Random();
             int amount = r.nextInt(10) + 10;
             Main.getEco().depositPlayer(player, amount);
-            player.sendMessage(org.bukkit.ChatColor.DARK_GREEN + "" + org.bukkit.ChatColor.BOLD + "+ $" + amount);
+            Utils.message(player, "§2§l+ $" + amount);
         }
     }
 
-    private boolean canLock(BlockState state) {
-
-        return (state instanceof TileState || state instanceof Lockable || state.getBlockData() instanceof Openable);
+    @EventHandler
+    public void onVehicleExit(VehicleExitEvent event) {
+        if (!(event.getVehicle().getType() == EntityType.BOAT)) {
+            return;
+        }
+        EntityBoat boat = ((CraftBoat) event.getVehicle()).getHandle();
+        boat.damageEntity(DamageSource.LAVA, 10000f);
     }
 
     /*@EventHandler

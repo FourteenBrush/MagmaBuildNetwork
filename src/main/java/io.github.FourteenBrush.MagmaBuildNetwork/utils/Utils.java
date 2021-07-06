@@ -3,8 +3,11 @@ package io.github.FourteenBrush.MagmaBuildNetwork.utils;
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import java.util.UUID;
 
 public class Utils {
 
@@ -85,6 +88,57 @@ public class Utils {
         message(sender, "§cSorry, you do not have permission");
     }
 
+    public static void messageSucceed(CommandSender sender, boolean useYellowColor ,String message) {
+        if (useYellowColor) {
+            message(sender, "§e" + message);
+        } else {
+            message(sender, message);
+        }
+    }
+
+    public static boolean isPlayerOnline(CommandSender sender, String playerToCheck) {
+        if (!Bukkit.getOnlinePlayers().contains(Bukkit.getPlayer(playerToCheck))) {
+            message(sender, "§c" + playerToCheck + " §cis currently not online!");
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean checkNotEnoughArgs(CommandSender sender, int arguments, int expectedArguments) {
+        if (expectedArguments > arguments) {
+            message(sender, "§cPlease specify " + (expectedArguments - arguments) + " §cmore arguments!");
+            return true;
+        }
+        return false;
+    }
+
+    public static String getFinalArg(String[] args, int start) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = start; i < args.length; i++) {
+            if (i != start)
+                builder.append(" ");
+            builder.append(args[i]);
+        }
+        return builder.toString();
+    }
+
+    public static Player getPlayer(String searchItem, boolean getHidden, boolean getOffline) {
+        Player target;
+        try {
+            target = Main.getInstance().getServer().getPlayer(UUID.fromString(searchItem));
+        } catch (IllegalArgumentException ex) {
+            if (getOffline) {
+                target = Main.getInstance().getServer().getPlayerExact(searchItem);
+            } else {
+                target = Main.getInstance().getServer().getPlayer(searchItem);
+            }
+        }
+        if (target != null) {
+            return target;
+        }
+        return null;
+    }
+
     public enum LogLevel {
         INFO, WARNING, ERROR, DEBUG;
 
@@ -93,6 +147,8 @@ public class Utils {
                 case WARNING:
                 case ERROR:
                     return ChatColor.RED;
+                case DEBUG:
+                    return ChatColor.BLUE;
                 default:
                     return ChatColor.GRAY;
             }

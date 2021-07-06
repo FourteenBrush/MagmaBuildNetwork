@@ -12,49 +12,49 @@ import java.util.logging.Level;
 
 public class DataManager {
 
+    private final Main plugin = Main.getInstance();
     private FileConfiguration dataConfig = null;
     private File configFile = null;
 
     public DataManager() {
-        //saves/initializes config
         saveDefaultConfig();
     }
 
     public void reloadConfig() {
-        if (this.configFile == null) {
-            this.configFile = new File(Main.getInstance().getDataFolder(), "config.yml");
+        if (configFile == null) {
+            configFile = new File(plugin.getDataFolder(), "config.yml");
         }
-        this.dataConfig = YamlConfiguration.loadConfiguration(this.configFile);
+        dataConfig = YamlConfiguration.loadConfiguration(configFile);
 
-        InputStream defaultStream = Main.getInstance().getResource("config.yml");
+        InputStream defaultStream = plugin.getResource("config.yml");
         if (defaultStream != null) {
             YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(defaultStream));
-            this.dataConfig.setDefaults(defaultConfig);
+            dataConfig.setDefaults(defaultConfig);
         }
     }
     public FileConfiguration getConfig() {
-        if (this.dataConfig == null) {
+        if (dataConfig == null) {
             reloadConfig();
         }
-        return this.dataConfig;
+        return dataConfig;
     }
     public void saveConfig() {
-        if (dataConfig == null || this.configFile == null) {
+        if (dataConfig == null || configFile == null) {
             return;
         }
         try {
-            this.getConfig().save(this.configFile);
+            getConfig().save(configFile);
         }
         catch (IOException e) {
-            Main.getInstance().getLogger().log(Level.SEVERE, "Could not save config file to " + this.configFile, e);
+            plugin.getLogger().log(Level.SEVERE, "Could not save config file to " + this.configFile, e);
         }
     }
     public void saveDefaultConfig() {
-        if (this.configFile == null) {
-            this.configFile = new File(Main.getInstance().getDataFolder(), "config.yml");
+        if (configFile == null) {
+            configFile = new File(plugin.getDataFolder(), "config.yml");
         }
         if (!this.configFile.exists()) {
-            Main.getInstance().saveResource("config.yml", false);
+            plugin.saveResource("config.yml", false);
         }
     }
 }

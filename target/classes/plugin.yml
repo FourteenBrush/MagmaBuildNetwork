@@ -42,6 +42,10 @@ commands:
     description: Creates a custom Minecraft Map from an image
   console:
     description: Console command
+  invsee:
+    description: Shows the target's inventory
+  ally:
+    description: Shows up ally menu
 
 permissions:
  magmabuildnetwork.admin:
@@ -54,6 +58,8 @@ permissions:
      - magmabuildnetwork.heal
      - magmabuildnetwork.store
      - magmabuildnetwork.basic
-magmabuildnetwork.basic:
+ magmabuildnetwork.notify:
+   default: op
+ magmabuildnetwork.basic:
     description: Grants access to all player commands
     default: true

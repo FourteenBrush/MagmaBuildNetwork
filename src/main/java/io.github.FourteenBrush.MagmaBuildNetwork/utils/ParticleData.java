@@ -24,9 +24,7 @@ public class ParticleData {
     }
 
     public boolean hasID() {
-        if (TRAILS.containsKey(uuid))
-            return true;
-    return false;
+        return TRAILS.containsKey(uuid);
     }
 
     public void removeID() {

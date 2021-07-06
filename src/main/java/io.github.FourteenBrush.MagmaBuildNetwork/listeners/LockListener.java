@@ -2,7 +2,7 @@ package io.github.FourteenBrush.MagmaBuildNetwork.listeners;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.PlayerCommand;
-import org.bukkit.ChatColor;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
@@ -26,9 +26,8 @@ public class LockListener implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 
         Block block = event.getClickedBlock();
-        BlockState blockState = block.getState();
 
-        if (!canLock(blockState)) return;
+        if (!canLock(block)) return;
 
         Player p = event.getPlayer();
         String s = block.getX() + "_" + block.getY() + "_" + block.getZ();
@@ -36,24 +35,24 @@ public class LockListener implements Listener {
         Location location = block.getLocation();
         PersistentDataContainer container = location.getChunk().getPersistentDataContainer();
 
-        String[] data = keyOwner.getKey().split("_");
+        final String[] data = keyOwner.getKey().split("_");
         String owner = container.get(keyOwner, PersistentDataType.STRING);
 
         if (owner != null && container.has(keyOwner, PersistentDataType.STRING) &&
                 PlayerCommand.getPlayersWantingLock().contains(p.getUniqueId())) {
             event.setCancelled(true);
-            p.sendMessage(ChatColor.RED + "This block is already locked!");
+            Utils.message(p, "§cThis block is already locked!");
             PlayerCommand.getPlayersWantingLock().remove(p.getUniqueId());
         }
 
         if (PlayerCommand.getPlayersWantingLock().remove(p.getUniqueId())) {
             event.setCancelled(true);
             container.set(keyOwner, PersistentDataType.STRING, p.getUniqueId().toString()); // apply the lock
-            p.sendMessage(ChatColor.DARK_GREEN + "Locked!");
+            Utils.message(p, "§2Locked!");
         } else {
             if (owner != null && !owner.equalsIgnoreCase(p.getUniqueId().toString())) {
                 event.setCancelled(true);
-                event.getPlayer().sendMessage(ChatColor.RED + "You cannot open th1s!");
+                Utils.message(p, "§cYou cannot open th1s!");
             }
         }
     }
@@ -62,7 +61,7 @@ public class LockListener implements Listener {
     public void onChunkUnload(ChunkUnloadEvent event){
 
         PersistentDataContainer container = event.getChunk().getPersistentDataContainer();
-        BlockState blockState;
+        Block block;
 
         for (NamespacedKey key : container.getKeys()) {
             if (key.getNamespace().equalsIgnoreCase(Main.getInstance().getName())) {
@@ -70,17 +69,18 @@ public class LockListener implements Listener {
                 String[] data = key.getKey().split("_");
                 if (data.length != 3) continue;
 
-                blockState = event.getChunk().getBlock(Integer.parseInt(data[0]) & 0b1111, Integer.parseInt(data[1]), Integer.parseInt(data[2]) & 0b1111).getState();
+                block = event.getChunk().getBlock(Integer.parseInt(data[0]) & 0b1111, Integer.parseInt(data[1]), Integer.parseInt(data[2]) & 0b1111);
 
-                if (!canLock(blockState)) {
-                    Main.getInstance().getLogger().warning(String.format("Unknown Lock removed! %s.", key.getKey()));
+                if (!canLock(block)) {
+                    Utils.logWarning(String.format("Unknown lock removed! %s", key.getKey()));
                     container.remove(key);
                 }
             }
         }
     }
 
-    private boolean canLock(BlockState state) {
-        return (state instanceof TileState || state instanceof Lockable || state.getBlockData() instanceof Openable);
+    private boolean canLock(Block b) {
+        BlockState state = b.getState();
+        return (state instanceof TileState || state instanceof Lockable || b.getBlockData() instanceof Openable);
     }
 }

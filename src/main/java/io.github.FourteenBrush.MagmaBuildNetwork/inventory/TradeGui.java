@@ -12,12 +12,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.List;
 
-public class TradeGui extends GUI implements InventoryHolder {
+public class TradeGui implements GUI, InventoryHolder {
 
-    private Inventory inv;
+    private final Inventory inv;
 
     public TradeGui() {
-        inv = Bukkit.createInventory(this, 54, ChatColor.DARK_GREEN + "Trade");
+        inv = Bukkit.createInventory(this, 54, "Trade");
     }
 
     @NotNull
@@ -37,12 +37,12 @@ public class TradeGui extends GUI implements InventoryHolder {
         // RED DYE
         item = new ItemStack(Material.RED_DYE);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.DARK_RED + "Your opponent is NOT ready");
+        meta.setDisplayName("§cYour opponent is not ready");
         item.setItemMeta(meta);
         inv.setItem(41, item);
-        // LIME WOOL
-        item = new ItemStack(Material.LIME_WOOL);
-        meta.setDisplayName(ChatColor.DARK_GREEN + "Change to ready");
+        // RED WOOL
+        item = new ItemStack(Material.RED_WOOL);
+        meta.setDisplayName("§cClick to change to ready");
         List<String> lore = Arrays.asList("Click here to change your status", "to ready. When both players have done this",
                 "the trade will be accepted");
         meta.setLore(lore);
@@ -51,16 +51,15 @@ public class TradeGui extends GUI implements InventoryHolder {
         // BARRIER
         item = new ItemStack(Material.BARRIER);
         meta.setDisplayName(ChatColor.RED + "Click here to exit the trade");
+        meta.setLore(null);
         item.setItemMeta(meta);
         inv.setItem(38, item);
         // GRAY DYE
         item = new ItemStack(Material.GRAY_DYE);
-        meta.setDisplayName("Status: §cnot ready");
+        meta.setDisplayName("§fStatus: §cnot ready");
         item.setItemMeta(meta);
         inv.setItem(39, item);
 
         return inv;
     }
-
-
 }
