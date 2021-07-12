@@ -6,26 +6,34 @@ import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Player;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 public class Effects {
 
+    private static final Main plugin = Main.getInstance();
     private int taskID;
     private final Player player;
 
-    public Effects(Player player) {
+    private static Map<UUID, Integer> TRAILS = new HashMap<UUID, Integer>();
+    private final UUID uuid;
+
+    public Effects(Player player, UUID uuid) {
         this.player = player;
+        this.uuid = uuid;
     }
 
     public void startTotem() {
-        taskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(Main.getInstance(), new Runnable() {
+        taskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 
             double var = 0;
             Location loc, first, second;
-            ParticleData particle = new ParticleData(player.getUniqueId());
 
             @Override
             public void run() {
-                if (!particle.hasID()) {
-                    particle.setID(taskID);
+                if (!hasID()) {
+                    setID(taskID);
                 }
 
                 var += Math.PI / 16;
@@ -38,5 +46,32 @@ public class Effects {
                 player.getWorld().spawnParticle(Particle.TOTEM, second, 0);
             }
         }, 0, 1);
+    }
+
+    public void setID(int id) {
+        TRAILS.put(uuid, id);
+    }
+
+    public int getID() {
+        return TRAILS.get(uuid);
+    }
+
+    public boolean hasID() {
+        return TRAILS.containsKey(uuid);
+    }
+
+    public void removeID() {
+        TRAILS.remove(uuid);
+    }
+
+    public void endTask() {
+        if (getID() == 1)
+            return;
+        Bukkit.getScheduler().cancelTask(getID());
+    }
+
+    public static boolean hasWalkTrail(UUID uuid) {
+        return TRAILS.containsKey(uuid) && TRAILS.get(uuid) == 1;
+        // ID 1 = walk trail
     }
 }

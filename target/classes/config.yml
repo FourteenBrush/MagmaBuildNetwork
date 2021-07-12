@@ -13,12 +13,38 @@
 
 # Max distance between two players to make them able to accept the trade (in blocks)
 max_trade_distance: 20
-# Make players able to trade in different worlds (for example the nether and the overworld)
+# Are players able to trade in different worlds (for example the nether and the overworld)
 trade_from_different_worlds: false
 
 # +--------------------------------------------------------------------------+ #
+# VANISH
+# This section stores config options about about the vanish command
+
+# Are players in vanish able to pickup items
+pickup_items_during_vanish: false
+# Do players in vanish get the nightvision effect
+nightvision_during_vanish: true
+
+# +--------------------------------------------------------------------------+ #
+# SPAWN
+# This section stores config options for the spawn command
+
+teleport_to_spawn_on:
+  first_join: true
+  join: false
+  respawn: true
+disable-spawn-command-in-pvp: true
+spawn:
+  world:
+  x:
+  y:
+  z:
+  yaw:
+  pitch:
+
+# +--------------------------------------------------------------------------+ #
 # DEPENDENCIES
-# This section stores data about dependencies like Vault and PlaceholderAPI
+# This section stores config options about dependencies like Vault and PlaceholderAPI
 
 # Does this plugin requires this plugins in order to function
 # Note: only change this to true when you want to use one of their features

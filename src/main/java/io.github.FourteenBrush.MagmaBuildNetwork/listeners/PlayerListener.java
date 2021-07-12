@@ -1,7 +1,10 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.listeners;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
-import io.github.FourteenBrush.MagmaBuildNetwork.commands.TradeCommand;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandLock;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandTrade;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandVanish;
+import io.github.FourteenBrush.MagmaBuildNetwork.data.ConfigManager;
 import io.github.FourteenBrush.MagmaBuildNetwork.inventory.StatsGui;
 import io.github.FourteenBrush.MagmaBuildNetwork.data.PacketReader;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.PlayerCommand;
@@ -9,9 +12,9 @@ import io.github.FourteenBrush.MagmaBuildNetwork.inventory.TradeGui;
 import io.github.FourteenBrush.MagmaBuildNetwork.inventory.TrailsGui;
 import io.github.FourteenBrush.MagmaBuildNetwork.inventory.GUI;
 import io.github.FourteenBrush.MagmaBuildNetwork.events.RightClickNPCEvent;
+import io.github.FourteenBrush.MagmaBuildNetwork.spawn.Spawn;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Effects;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.NPC;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.ParticleData;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.ScoreboardHandler;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import net.md_5.bungee.api.ChatColor;
@@ -19,22 +22,21 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Text;
-import net.minecraft.server.v1_16_R3.DamageSource;
-import net.minecraft.server.v1_16_R3.EntityBoat;
+import net.minecraft.server.v1_16_R3.Tags;
 import org.bukkit.*;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftBoat;
+import org.bukkit.block.Block;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.*;
 import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.Arrays;
 import java.util.List;
@@ -49,14 +51,19 @@ public class PlayerListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player p = event.getPlayer();
         for (Player e : Bukkit.getOnlinePlayers()) {
-            if (plugin.getConfig().getBoolean("use_scoreboard")) {
+            if (plugin.getConfig().getBoolean("use_scoreboard") && !p.isOnline()) {
                 e.setScoreboard(ScoreboardHandler.createScoreboard(e));
             }
         }
-        for (Player e : PlayerCommand.getVanishedPlayers()) {
-            p.hidePlayer(plugin, e);
+        for (Player e : CommandVanish.getVanishedPlayers()) {
+            if (!CommandVanish.getVanishedPlayers().contains(e))
+                p.hidePlayer(plugin, e);
         }
-        event.setJoinMessage(Utils.colorize("&7[&a&l+&7] &b" + p.getName() + " &7joined the server."));
+        if (!(CommandVanish.getVanishedPlayers().contains(p))) {
+            event.setJoinMessage(Utils.colorize("&7[&a&l+&7] &b" + p.getName() + " &7joined the server."));
+        } else {
+            Utils.message(p, "§aNo join message sent because you joined vanished");
+        }
         PacketReader reader = new PacketReader();
         reader.inject(p);
         if (!(NPC.getNPCs() == null || NPC.getNPCs().isEmpty())) {
@@ -78,7 +85,7 @@ public class PlayerListener implements Listener {
         PacketReader reader = new PacketReader();
         reader.unInject(p);
         event.setQuitMessage(Utils.colorize("&7[&c&l-&7] &b" + p.getName() + " &7left the server."));
-        ParticleData d = new ParticleData(p.getUniqueId());
+        Effects d = new Effects(p, p.getUniqueId());
         if (d.hasID())
             d.endTask();
     }
@@ -91,7 +98,7 @@ public class PlayerListener implements Listener {
                 event.setCancelled(true);
             }
         }
-        if (!ParticleData.hasWalkTrail(p.getUniqueId()))
+        if (!Effects.hasWalkTrail(p.getUniqueId()))
             return;
         Random r = new Random();
         for (int i = 0; i < 5; i++)
@@ -111,8 +118,29 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler
+    public void onItemPickup(EntityPickupItemEvent event) {
+        if (!(event.getEntity() instanceof Player)) {
+            return;
+        }
+        if (CommandVanish.getVanishedPlayers().contains((Player) event.getEntity()) &&
+        !plugin.getConfig().getBoolean("pickup_items_during_vanish")) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onPlayerRespawn(PlayerRespawnEvent event) {
+        if (ConfigManager.getConfigConfig().getBoolean("teleport_to_spawn_on.respawn")) {
+            event.setRespawnLocation(Spawn.getLocation());
+        }
+        event.getPlayer().getInventory().setItem(0, new ItemStack(Material.WOODEN_AXE));
+        event.getPlayer().getInventory().setItem(1, new ItemStack(Material.APPLE, 16));
+    }
+
+    @EventHandler
     public void onClick(InventoryClickEvent event) {
         Player p = (Player) event.getWhoClicked();
+        int slot = event.getSlot();
         if (!(event.getInventory().getHolder() instanceof GUI)) {
             return;
         }
@@ -121,23 +149,19 @@ public class PlayerListener implements Listener {
         }
         if (event.getInventory().getHolder() instanceof TrailsGui) {
             event.setCancelled(true);
-            ParticleData particle = new ParticleData(p.getUniqueId());
-            // trail activated
-            if (particle.hasID()) {
-                particle.endTask();
-                particle.removeID();
+            Effects effect = new Effects(p, p.getUniqueId());
+            if (effect.hasID()) {
+                effect.endTask();
+                effect.removeID();
             }
-            Effects effect = new Effects(p);
-            switch(event.getSlot()) {
+            switch (slot) {
                 case 3:
                     effect.startTotem();
                     p.closeInventory();
-                    p.updateInventory();
                     break;
                 case 5:
-                    particle.setID(1);
+                    effect.setID(1);
                     p.closeInventory();
-                    p.updateInventory();
                     break;
                 case 8:
                     p.closeInventory();
@@ -145,41 +169,40 @@ public class PlayerListener implements Listener {
                 default:
                     break;
             }
-
         } else if (event.getInventory().getHolder() instanceof TradeGui) {
             List<Integer> placeableSlots = Arrays.asList(10, 11, 12, 19, 20, 21, 28, 29, 30);
+            List<Integer> functionSlots = Arrays.asList(37, 38, 39, 41);
             Inventory inv = event.getInventory();
-            int slot = event.getSlot();
-            TradeGui senderGui = TradeCommand.getSenderGui();
-            TradeGui targetGui = TradeCommand.getTargetGui();
+            TradeGui senderGui = CommandTrade.getSenderGui();
+            TradeGui targetGui = CommandTrade.getTargetGui();
             if (!(event.getRawSlot() > 53 || placeableSlots.contains(slot))) {
                 event.setCancelled(true);
             }
             if (inv == senderGui) {
                 if (placeableSlots.contains(slot)) {
                     // if clicking on a placeable slot -> place the same item by the other player
-                    TradeCommand.setItemInGui(targetGui, slot, inv.getItem(slot));
-                } else {
-                    TradeCommand.changeClickedSlots(slot, event);
+                    CommandTrade.setItemInGui(targetGui, slot, inv.getItem(slot));
+                } else if (functionSlots.contains(slot)) {
+                    CommandTrade.changeClickedSlots(slot, event, p);
                 }
             } else if (inv == targetGui) {
                 if (placeableSlots.contains(slot)) {
                     // if clicking on a placeable slot -> place the same item by the other player
-                    TradeCommand.setItemInGui(senderGui, slot, inv.getItem(slot));
-                } else {
-                    TradeCommand.changeClickedSlots(slot, event);
+                    CommandTrade.setItemInGui(senderGui, slot, inv.getItem(slot));
+                } else if (functionSlots.contains(slot)) {
+                    CommandTrade.changeClickedSlots(slot, event, p);
                 }
             }
 
         } else if (event.getInventory().getHolder() instanceof StatsGui) {
             event.setCancelled(true);
-            // TODO extra menus
         }
 
     }
 
     @EventHandler
     public void onKill(EntityDeathEvent event) {
+        if (!Main.getVaultActivated()) return;
         if (event.getEntity() instanceof Monster) {
             Player player = event.getEntity().getKiller();
             if (player == null) // if mobs died of a natural dead return
@@ -196,8 +219,28 @@ public class PlayerListener implements Listener {
         if (!(event.getVehicle().getType() == EntityType.BOAT)) {
             return;
         }
-        EntityBoat boat = ((CraftBoat) event.getVehicle()).getHandle();
-        boat.damageEntity(DamageSource.LAVA, 10000f);
+        event.getVehicle().remove();
+    }
+
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent event) {
+        Block b = event.getBlock();
+        if (LockListener.canLock(b)) {
+            LockListener.checkLockStillValid(b);
+        }
+        LockListener.checkLockStillValid(b);
+        if (Tag.LOGS.isTagged(b.getType()) &&
+                Tag.LOGS.isTagged(b.getLocation().subtract(0, -1, 0).getBlock().getType())) {
+            Block below = b.getLocation().subtract(0, 1, 0).getBlock();
+            if (below.getType() == Material.GRASS_BLOCK || below.getType() == Material.DIRT) {
+                event.setCancelled(true);
+                b.setType(Material.OAK_SAPLING);
+            }
+        } else if (LockListener.cannotOpen(LockListener.getOwner(), event.getPlayer()) &&
+            !CommandLock.getBypassingLock().contains(event.getPlayer().getUniqueId())) {
+            event.setCancelled(true);
+            Utils.message(event.getPlayer(), "§cYou cannot break this");
+        }
     }
 
     /*@EventHandler

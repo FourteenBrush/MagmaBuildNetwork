@@ -40,14 +40,19 @@ public class StatsGui  implements GUI, InventoryHolder {
         inv.setItem(13, item);
 
         item = new ItemStack(Material.WITHER_SKELETON_SKULL);
-        meta.setDisplayName(p.getStatistic(Statistic.DEATHS) + " deaths");
+        meta.setDisplayName("§f" + p.getStatistic(Statistic.DEATHS) + " deaths");
         item.setItemMeta(meta);
         inv.setItem(16, item);
 
         item = new ItemStack(Material.OAK_BOAT);
-        meta.setDisplayName((p.getStatistic(Statistic.BOAT_ONE_CM) / 5000) + " blocks travelled with boat");
+        meta.setDisplayName((p.getStatistic(Statistic.BOAT_ONE_CM) / 1000) + " blocks travelled with boat");
         item.setItemMeta(meta);
         inv.setItem(28, item);
+
+        item = new ItemStack(Material.IRON_AXE);
+        meta.setDisplayName(PlayerCommand.getTotalChoppedTrees(p) + " logs chopped");
+        item.setItemMeta(meta);
+        inv.setItem(31, item);
 
         return inv;
     }

@@ -5,6 +5,7 @@ import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
+import io.github.FourteenBrush.MagmaBuildNetwork.data.ConfigManager;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -22,13 +23,13 @@ import java.util.UUID;
 
 public class NPC {
 
-    private final static Main plugin = Main.getInstance();
-    private static List<EntityPlayer> NPC = new ArrayList<EntityPlayer>();
+    private static final Main plugin = Main.getInstance();
+    private static final List<EntityPlayer> NPC = new ArrayList<EntityPlayer>();
 
     public static void createNPC(Player p, String skin) {
         MinecraftServer server = ((CraftServer) Bukkit.getServer()).getServer();
         WorldServer world = ((CraftWorld) Bukkit.getWorld(p.getWorld().getName())).getHandle();
-        GameProfile gameProfile = new GameProfile(UUID.randomUUID(), ChatColor.DARK_AQUA + "" + ChatColor.BOLD + skin);
+        GameProfile gameProfile = new GameProfile(UUID.randomUUID(), "§3§l" + skin);
         EntityPlayer npc = new EntityPlayer(server, world, gameProfile, new PlayerInteractManager(world));
         npc.setLocation(p.getLocation().getX(), p.getLocation().getY(), p.getLocation().getZ(), p.getLocation().getYaw(), p.getLocation().getPitch());
 
@@ -54,15 +55,14 @@ public class NPC {
         plugin.getConfig().set("npc_data." + var + ".signature", name[1]);
         // recently added
         plugin.getConfig().set("npc_data" + var + ".uuid", gameProfile.getId().toString());
-        Main.saveData();
+        ConfigManager.saveConfig();
 
     }
 
     public static void loadNPC(Location location, GameProfile profile) {
         MinecraftServer server = ((CraftServer) Bukkit.getServer()).getServer();
         WorldServer world = ((CraftWorld) location.getWorld()).getHandle();
-        GameProfile gameProfile = profile;
-        EntityPlayer npc = new EntityPlayer(server, world, gameProfile, new PlayerInteractManager(world));
+        EntityPlayer npc = new EntityPlayer(server, world, profile, new PlayerInteractManager(world));
         npc.setLocation(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
 
         addNPCPacket(npc);

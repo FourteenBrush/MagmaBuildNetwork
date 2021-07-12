@@ -1,0 +1,11 @@
+# +--------------------------------------------------------------------------+ #
+# <                    MagmaBuildNetwork Configuration File                  > #
+# <--------------------------------------------------------------------------> #
+# <               For help understanding a config option go to               > #
+# <          https://github.com/FourteenBrush/FourteenBrush.github.io        > #
+# <                  or Discord https://discord.gg/KWNYMDGX7H                > #
+# +--------------------------------------------------------------------------+ #
+
+messages:
+  spawn:
+    teleported_other_player: "§aYou have been teleported to spawn by %player%"

@@ -2,19 +2,24 @@ package io.github.FourteenBrush.MagmaBuildNetwork;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import io.github.FourteenBrush.MagmaBuildNetwork.commands.ConsoleCommand;
-import io.github.FourteenBrush.MagmaBuildNetwork.commands.GlobalCommand;
-import io.github.FourteenBrush.MagmaBuildNetwork.commands.TradeCommand;
-import io.github.FourteenBrush.MagmaBuildNetwork.data.DataManager;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandBan;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandCreatemap;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandDebug;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandLock;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandMagmabuildnetwork;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandSpawn;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandStore;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandTrade;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandVanish;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.PlayerCommand;
+import io.github.FourteenBrush.MagmaBuildNetwork.data.ConfigManager;
 import io.github.FourteenBrush.MagmaBuildNetwork.data.ImageManager;
 import io.github.FourteenBrush.MagmaBuildNetwork.data.PacketReader;
-import io.github.FourteenBrush.MagmaBuildNetwork.data.StatTab;
 import io.github.FourteenBrush.MagmaBuildNetwork.listeners.LockListener;
-import io.github.FourteenBrush.MagmaBuildNetwork.commands.PlayerCommand;
 import io.github.FourteenBrush.MagmaBuildNetwork.listeners.PlayerListener;
+import io.github.FourteenBrush.MagmaBuildNetwork.spawn.Spawn;
 import io.github.FourteenBrush.MagmaBuildNetwork.updatechecker.UpdateChecker;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.NPC;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.ScoreboardHandler;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import net.luckperms.api.LuckPerms;
 import net.minecraft.server.v1_16_R3.EntityPlayer;
@@ -33,10 +38,10 @@ import java.util.UUID;
 
 public class Main extends JavaPlugin {
 
-    private static LuckPerms api;
     private static Main instance;
-    private static DataManager data;
+    private static LuckPerms api;
     private static Economy eco = null;
+    private static boolean vaultActivated = false;
 
     @Override
     public void onEnable() {
@@ -57,42 +62,57 @@ public class Main extends JavaPlugin {
     private void initialSetup() {
         Utils.logInfo("Initializing...");
         if (!setupEconomy()) {
-            Utils.logWarning(new String[] {"Now Vault or economy plugin found!",
+            Utils.logWarning(new String[] {"No Vault or economy plugin found!",
             "This is fine if that's not installed"});
         }
-        data = new DataManager();
-        new ImageManager().init();
-        if (data.getConfig().contains("npc_data"))
+        if (!setupLuckPerms()) {
+            Utils.logWarning(new String[] {"No LuckPerms dependency found!",
+            "This is fine if that's not installed"});
+        }
+        if (Spawn.getLocation() == null) {
+            Spawn.setLocation(getServer().getWorlds().get(0).getSpawnLocation());
+        }
+        if (ConfigManager.getConfigConfig().contains("npc_data")) {
             loadNPC();
+        }
+        new ImageManager().init();
         if (!Bukkit.getOnlinePlayers().isEmpty()) {
             for (Player p : Bukkit.getOnlinePlayers()) {
-                PacketReader reader = new PacketReader();
-                reader.inject(p);
+                new PacketReader().inject(p);
             }
         }
     }
 
     private void commandsSetup() {
-        getCommand("reload").setExecutor(new PlayerCommand());
-        getCommand("ignite").setExecutor(new PlayerCommand());
-        getCommand("lock").setExecutor(new PlayerCommand());
-        getCommand("lock").setTabCompleter(new StatTab());
+        // admin commands
+        getCommand("magmabuildnetwork").setExecutor(new CommandMagmabuildnetwork());
+
+        getCommand("magmabuildnetwork").setTabCompleter(new CommandMagmabuildnetwork());
+        getCommand("debug").setExecutor(new CommandDebug());
+
+        getCommand("debug").setTabCompleter(new CommandDebug());
         getCommand("freeze").setExecutor(new PlayerCommand());
         getCommand("heal").setExecutor(new PlayerCommand());
-        getCommand("store").setExecutor(new PlayerCommand());
-        getCommand("stats").setExecutor(new PlayerCommand());
-        getCommand("magmabuildnetwork").setExecutor(new GlobalCommand());
+        getCommand("ignite").setExecutor(new PlayerCommand());
+        getCommand("store").setExecutor(new CommandStore());
         getCommand("spawnnpc").setExecutor(new PlayerCommand());
-        getCommand("trails").setExecutor(new PlayerCommand());
-        getCommand("trade").setExecutor(new TradeCommand());
-        getCommand("trade").setTabCompleter(new StatTab());
-        getCommand("createmap").setExecutor(new PlayerCommand());
-        getCommand("console").setExecutor(new ConsoleCommand());
-        getCommand("debug").setExecutor(new PlayerCommand());
-        getCommand("debug").setTabCompleter(new StatTab());
+        getCommand("createmap").setExecutor(new CommandCreatemap());
+        getCommand("vanish").setExecutor(new CommandVanish());
         getCommand("invsee").setExecutor(new PlayerCommand());
+        getCommand("ban").setExecutor(new CommandBan());
+        // basic commands
+        getCommand("lock").setExecutor(new CommandLock());
+
+        getCommand("lock").setTabCompleter(new CommandLock());
+        getCommand("stats").setExecutor(new PlayerCommand());
+        getCommand("trade").setExecutor(new CommandTrade());
+
+        getCommand("trade").setTabCompleter(new CommandTrade());
+        getCommand("trails").setExecutor(new PlayerCommand());
         getCommand("ally").setExecutor(new PlayerCommand());
-        getCommand("vanish").setExecutor(new PlayerCommand());
+        getCommand("spawn").setExecutor(new CommandSpawn());
+
+        getCommand("spawn").setTabCompleter(new CommandSpawn());
     }
 
     private void eventsSetup() {
@@ -111,29 +131,24 @@ public class Main extends JavaPlugin {
             return false;
         }
         eco = rsp.getProvider();
+        vaultActivated = true;
         return eco != null;
     }
 
-    // TODO
-    private void setupLuckPerms() {
-        if (getConfig().getBoolean("requires_luckperms") &&
-        Bukkit.getPluginManager().getPlugin("LuckPerms") == null) {
-            getServer().getPluginManager().disablePlugin(this);
-        }
-        else if (getConfig().getBoolean("requires_luckperms") &&
-        Bukkit.getPluginManager().getPlugin("LuckPerms") != null) {
-            if (Bukkit.getPluginManager().getPlugin("LuckPerms") != null) {
-                RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager()
-                        .getRegistration(LuckPerms.class);
-                if (provider != null) {
-                    api = provider.getProvider();
-                }
-            }
-        }
+    private boolean setupLuckPerms() {
+       if (getServer().getPluginManager().getPlugin("LuckPerms") == null) {
+           return false;
+       }
+       RegisteredServiceProvider<LuckPerms> rsp = getServer().getServicesManager().getRegistration(LuckPerms.class);
+       if (rsp == null) {
+           return false;
+       }
+       api = rsp.getProvider();
+       return api != null;
     }
 
     private void loadNPC() {
-        FileConfiguration file = data.getConfig();
+        FileConfiguration file = ConfigManager.getConfigConfig();
         file.getConfigurationSection("npc_data").getKeys(false).forEach(npc -> {
             Location location = new Location(Bukkit.getWorld(
                     file.getString("npc_data." + npc + ".world")),
@@ -168,8 +183,9 @@ public class Main extends JavaPlugin {
         return eco;
     }
 
-
-    public static void saveData() {
-        data.saveConfig();
+    public static LuckPerms getApi() {
+        return api;
     }
+
+    public static boolean getVaultActivated() {return vaultActivated; }
 }

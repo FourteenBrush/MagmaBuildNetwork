@@ -20,7 +20,16 @@ public class DataManager {
         saveDefaultConfig();
     }
 
-    public void reloadConfig() {
+    private void saveDefaultConfig() {
+        if (configFile == null) {
+            configFile = new File(plugin.getDataFolder(), "config.yml");
+        }
+        if (!this.configFile.exists()) {
+            plugin.saveResource("config.yml", false);
+        }
+    }
+
+    private void reloadConfig() {
         if (configFile == null) {
             configFile = new File(plugin.getDataFolder(), "config.yml");
         }
@@ -32,12 +41,14 @@ public class DataManager {
             dataConfig.setDefaults(defaultConfig);
         }
     }
-    public FileConfiguration getConfig() {
+
+    private FileConfiguration getConfig() {
         if (dataConfig == null) {
             reloadConfig();
         }
         return dataConfig;
     }
+
     public void saveConfig() {
         if (dataConfig == null || configFile == null) {
             return;
@@ -47,14 +58,6 @@ public class DataManager {
         }
         catch (IOException e) {
             plugin.getLogger().log(Level.SEVERE, "Could not save config file to " + this.configFile, e);
-        }
-    }
-    public void saveDefaultConfig() {
-        if (configFile == null) {
-            configFile = new File(plugin.getDataFolder(), "config.yml");
-        }
-        if (!this.configFile.exists()) {
-            plugin.saveResource("config.yml", false);
         }
     }
 }

@@ -3,7 +3,6 @@ package io.github.FourteenBrush.MagmaBuildNetwork.utils;
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -11,6 +10,7 @@ import java.util.UUID;
 
 public class Utils {
 
+    private static final Main plugin = Main.getInstance();
     private static final String name = Main.getInstance().getDescription().getName();
 
     public static boolean verifyIfIsAPlayer(CommandSender sender) {
@@ -22,8 +22,16 @@ public class Utils {
     }
 
     public static boolean hasPermission(CommandSender sender, String permission) {
-        return ((sender.hasPermission("magmabuildnetwork." + permission.toLowerCase())) ||
+        permission = permission.toLowerCase();
+        return ((sender.hasPermission("magmabuildnetwork." + permission)) ||
                 sender.hasPermission("magmabuildnetwork.admin") || sender.isOp());
+    }
+
+    public static boolean isAuthorized(Player p, String permission) {
+        final String prefix = name.toLowerCase() + ".";
+        permission = permission.toLowerCase();
+        return (p.hasPermission(prefix + permission) || p.hasPermission(prefix + "admin") ||
+                p.isOp());
     }
 
     public static String colorize(String args) {
@@ -88,14 +96,6 @@ public class Utils {
         message(sender, "§cSorry, you do not have permission");
     }
 
-    public static void messageSucceed(CommandSender sender, boolean useYellowColor ,String message) {
-        if (useYellowColor) {
-            message(sender, "§e" + message);
-        } else {
-            message(sender, message);
-        }
-    }
-
     public static boolean isPlayerOnline(CommandSender sender, String playerToCheck) {
         if (!Bukkit.getOnlinePlayers().contains(Bukkit.getPlayer(playerToCheck))) {
             message(sender, "§c" + playerToCheck + " §cis currently not online!");
@@ -122,7 +122,7 @@ public class Utils {
         return builder.toString();
     }
 
-    public static Player getPlayer(String searchItem, boolean getHidden, boolean getOffline) {
+    public static Player getPlayer(String searchItem, boolean getOffline) {
         Player target;
         try {
             target = Main.getInstance().getServer().getPlayer(UUID.fromString(searchItem));
@@ -133,13 +133,10 @@ public class Utils {
                 target = Main.getInstance().getServer().getPlayer(searchItem);
             }
         }
-        if (target != null) {
-            return target;
-        }
-        return null;
+        return target;
     }
 
-    public enum LogLevel {
+    private enum LogLevel {
         INFO, WARNING, ERROR, DEBUG;
 
         private ChatColor getColor() {

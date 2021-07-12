@@ -7,58 +7,67 @@ softdepend: [LuckPerms, PlaceHolderAPI, Vault]
 
 commands:
   magmabuildnetwork:
-    description: Main command
+    description: Root command
     aliases: [mbn]
-  reload:
-    description: Reloads the plugin
-    permission: <plugin name>.reload
-  ignite:
-    description: Sets a player on fire
-    permission: <plugin name>.ignite
+  debug:
+    description: For test purposes
+    permission: magmabuildnetwork.admin
   freeze:
     description: Freezes a player
-    permission: <plugin name>.freeze
+    permission: magmabuildnetwork.admin
   heal:
     description: Heals a player
-    permission: <plugin name>.heal
-  lock:
-    description: Allows you to protect a container
-    permission: <plugin name>.basic
+    permission: magmabuildnetwork.admin
+  ignite:
+    description: Sets a player on fire
+    permission: magmabuildnetwork.admin
   store:
     description: Stores a message inside the NBT tags of an item
-    permission: <plugin name>.store
-  stats:
-    description: Shows player stats
-    permission: <plugin name>.basic
-  debug:
-    description: Shows debug info
-  trade:
-    description: Sends a trade request to a player
+    permission: magmabuildnetwork.admin
   spawnnpc:
     description: Spawns an NPC
-  trails:
-    description: Shows all available trails
+    permission: magmabuildnetwork.admin
   createmap:
     description: Creates a custom Minecraft Map from an image
-  console:
-    description: Console command
+    permission: magmabuildnetwork.admin
+  vanish:
+    description: Vanish command
+    permission: magmabuildnetwork.vanish
   invsee:
     description: Shows the target's inventory
+    permission: magmabuildnetwork.admin
+  ban:
+    description: Bans a player
+    permission: magmabuildnetwork.admin
+  lock:
+    description: Allows you to protect a container
+    permission: magmabuildnetwork.basic
+  stats:
+    description: Shows player stats
+    permission: magmabuildnetwork.basic
+  trade:
+    description: Sends a trade request to a player
+    permission: magmabuildnetwork.basic
+  trails:
+    description: Shows all available trails
+    permission: magmabuildnetwork.trails
   ally:
     description: Shows up ally menu
+    permission: magmabuildnetwork.basic
+  spawn:
+    description: Teleports you to spawn
+    permission: magmabuildnetwork.basic
 
 permissions:
  magmabuildnetwork.admin:
     description: Grants access to all the commands
     default: false
     children:
-     - magmabuildnetwork.reload
-     - magmabuildnetwork.ignite
-     - magmabuildnetwork.freeze
-     - magmabuildnetwork.heal
-     - magmabuildnetwork.store
+     - magmabuildnetwork.vanish
      - magmabuildnetwork.basic
- magmabuildnetwork.notify:
+     - magmabuildnetwork.notifyupdate
+ magmabuildnetwork.notifyupdate:
+   description: Notifies user of new version
    default: op
  magmabuildnetwork.basic:
     description: Grants access to all player commands
