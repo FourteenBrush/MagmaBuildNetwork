@@ -40,7 +40,6 @@ public class CommandTrade extends BaseCommand {
 
         else if (args.length == 2 && args[0].equalsIgnoreCase("request")) {
             request(p, args);
-            Utils.logDebug("request works!"); // TODO
             return true;
         } else if (args.length == 2 && args[0].equalsIgnoreCase("accept")) {
             accept(p, args);
@@ -78,7 +77,7 @@ public class CommandTrade extends BaseCommand {
     }
 
     private void accept(Player sender, String[] args) {
-        Player target = Bukkit.getPlayer(args[0]);
+        Player target = Bukkit.getPlayer(args[1]);
         if (!Bukkit.getOnlinePlayers().contains(target)) {
             Utils.message(sender, "§c" + args[1] + " §cis not currently online!");
             return;
@@ -206,10 +205,13 @@ public class CommandTrade extends BaseCommand {
     @Override
     protected @Nullable List<String> tabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
 
-        arguments.add("help");
-        arguments.add("accept");
-        arguments.add("request");
-        arguments.add("decline");
-        return StringUtil.copyPartialMatches(args[0], arguments, new ArrayList<>());
+        if (args.length == 1) {
+            arguments.add("help");
+            arguments.add("accept");
+            arguments.add("request");
+            arguments.add("decline");
+            return StringUtil.copyPartialMatches(args[0], arguments, new ArrayList<>());
+        }
+        return null;
     }
 }

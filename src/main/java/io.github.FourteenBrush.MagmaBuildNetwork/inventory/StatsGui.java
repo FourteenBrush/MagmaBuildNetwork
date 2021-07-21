@@ -2,7 +2,6 @@ package io.github.FourteenBrush.MagmaBuildNetwork.inventory;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.PlayerCommand;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Statistic;
 import org.bukkit.entity.Player;
@@ -15,10 +14,11 @@ import org.jetbrains.annotations.NotNull;
 public class StatsGui  implements GUI, InventoryHolder {
 
     private final Inventory inv;
-    private Player p;
+    private final Player p;
 
-    public StatsGui() {
-        inv = Bukkit.createInventory(this, 54, ChatColor.RED + "Stats");
+    public StatsGui(Player p) {
+        inv = Bukkit.createInventory(this, 54, "§cStats");
+        this.p = p;
     }
 
     @NotNull
@@ -34,31 +34,26 @@ public class StatsGui  implements GUI, InventoryHolder {
         item.setItemMeta(meta);
         inv.setItem(10, item);
 
-        item = new ItemStack(Material.STONE_SWORD);
+        item.setType(Material.STONE_SWORD);
         meta.setDisplayName(p.getStatistic(Statistic.PLAYER_KILLS) + " kills");
         item.setItemMeta(meta);
         inv.setItem(13, item);
 
-        item = new ItemStack(Material.WITHER_SKELETON_SKULL);
+        item.setType(Material.WITHER_SKELETON_SKULL);
         meta.setDisplayName("§f" + p.getStatistic(Statistic.DEATHS) + " deaths");
         item.setItemMeta(meta);
         inv.setItem(16, item);
 
-        item = new ItemStack(Material.OAK_BOAT);
+        item.setType(Material.OAK_BOAT);
         meta.setDisplayName((p.getStatistic(Statistic.BOAT_ONE_CM) / 1000) + " blocks travelled with boat");
         item.setItemMeta(meta);
         inv.setItem(28, item);
 
-        item = new ItemStack(Material.IRON_AXE);
+        item.setType(Material.IRON_AXE);
         meta.setDisplayName(PlayerCommand.getTotalChoppedTrees(p) + " logs chopped");
         item.setItemMeta(meta);
         inv.setItem(31, item);
 
         return inv;
-    }
-
-
-    public void setPlayer(Player p) {
-        this.p = p;
     }
 }

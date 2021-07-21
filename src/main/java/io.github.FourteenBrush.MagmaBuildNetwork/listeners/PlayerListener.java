@@ -5,25 +5,23 @@ import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandLock;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandTrade;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandVanish;
 import io.github.FourteenBrush.MagmaBuildNetwork.data.ConfigManager;
-import io.github.FourteenBrush.MagmaBuildNetwork.inventory.StatsGui;
 import io.github.FourteenBrush.MagmaBuildNetwork.data.PacketReader;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.PlayerCommand;
+import io.github.FourteenBrush.MagmaBuildNetwork.events.RightClickNPCEvent;
+import io.github.FourteenBrush.MagmaBuildNetwork.inventory.GUI;
+import io.github.FourteenBrush.MagmaBuildNetwork.inventory.PrefixGui;
+import io.github.FourteenBrush.MagmaBuildNetwork.inventory.StatsGui;
 import io.github.FourteenBrush.MagmaBuildNetwork.inventory.TradeGui;
 import io.github.FourteenBrush.MagmaBuildNetwork.inventory.TrailsGui;
-import io.github.FourteenBrush.MagmaBuildNetwork.inventory.GUI;
-import io.github.FourteenBrush.MagmaBuildNetwork.events.RightClickNPCEvent;
+import io.github.FourteenBrush.MagmaBuildNetwork.spawn.Combat;
 import io.github.FourteenBrush.MagmaBuildNetwork.spawn.Spawn;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Effects;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.NPC;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.ScoreboardHandler;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
-import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.chat.hover.content.Text;
-import net.minecraft.server.v1_16_R3.Tags;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -31,8 +29,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.*;
 import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.bukkit.inventory.Inventory;
@@ -45,49 +43,43 @@ import java.util.Random;
 @SuppressWarnings("unused")
 public class PlayerListener implements Listener {
 
-    private final Main plugin = Main.getInstance();
+    private static final Main plugin = Main.getInstance();
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player p = event.getPlayer();
+        p.setDisplayName(Main.getChat().getPlayerPrefix(p) + " " + p.getName());
         for (Player e : Bukkit.getOnlinePlayers()) {
-            if (plugin.getConfig().getBoolean("use_scoreboard") && !p.isOnline()) {
+            if (plugin.getConfig().getBoolean("use_scoreboard")) {
                 e.setScoreboard(ScoreboardHandler.createScoreboard(e));
             }
-        }
-        for (Player e : CommandVanish.getVanishedPlayers()) {
-            if (!CommandVanish.getVanishedPlayers().contains(e))
-                p.hidePlayer(plugin, e);
+            if (CommandVanish.getVanishedPlayers().contains(p) && !CommandVanish.getVanishedPlayers().contains(e))
+                // if the player who joins is vanished and the player to hide them from isn't vanished -> hide them
+                e.hidePlayer(plugin, p);
         }
         if (!(CommandVanish.getVanishedPlayers().contains(p))) {
             event.setJoinMessage(Utils.colorize("&7[&a&l+&7] &b" + p.getName() + " &7joined the server."));
         } else {
             Utils.message(p, "§aNo join message sent because you joined vanished");
         }
-        PacketReader reader = new PacketReader();
-        reader.inject(p);
+        new PacketReader().inject(p);
         if (!(NPC.getNPCs() == null || NPC.getNPCs().isEmpty())) {
             NPC.addJoinPacket(p);
         }
         if (!p.hasPlayedBefore()) {
-            p.getInventory().setItem(0, new ItemStack(Material.WOODEN_AXE));
-            p.getInventory().setItem(1, new ItemStack(Material.APPLE, 16));
+            giveRespawnItems(p);
         }
-        TextComponent message = new TextComponent("Discord");
-        message.setColor(ChatColor.AQUA);
-        message.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://discord.gg/KWNYMDGX7H"));
-        message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click HERE to get a link to the Discord server.")));
     }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player p = event.getPlayer();
-        PacketReader reader = new PacketReader();
-        reader.unInject(p);
+        new PacketReader().unInject(p);
         event.setQuitMessage(Utils.colorize("&7[&c&l-&7] &b" + p.getName() + " &7left the server."));
         Effects d = new Effects(p, p.getUniqueId());
         if (d.hasID())
             d.endTask();
+        Combat.remove(p);
     }
 
     @EventHandler
@@ -129,12 +121,25 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler
+    public void onFoodLevelChange(FoodLevelChangeEvent event) {
+        try {
+            if (event.getEntity() instanceof Player && plugin.getConfig().getBoolean("disable_hunger_in_vanish")) {
+                Player p = (Player) event.getEntity();
+                if (event.getFoodLevel() <= p.getFoodLevel()) {
+                    event.setCancelled(true);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @EventHandler
     public void onPlayerRespawn(PlayerRespawnEvent event) {
         if (ConfigManager.getConfigConfig().getBoolean("teleport_to_spawn_on.respawn")) {
             event.setRespawnLocation(Spawn.getLocation());
         }
-        event.getPlayer().getInventory().setItem(0, new ItemStack(Material.WOODEN_AXE));
-        event.getPlayer().getInventory().setItem(1, new ItemStack(Material.APPLE, 16));
+        giveRespawnItems(event.getPlayer());
     }
 
     @EventHandler
@@ -144,9 +149,7 @@ public class PlayerListener implements Listener {
         if (!(event.getInventory().getHolder() instanceof GUI)) {
             return;
         }
-        if (event.getView().getType() == InventoryType.PLAYER) {
-            return;
-        }
+    
         if (event.getInventory().getHolder() instanceof TrailsGui) {
             event.setCancelled(true);
             Effects effect = new Effects(p, p.getUniqueId());
@@ -194,6 +197,9 @@ public class PlayerListener implements Listener {
                 }
             }
 
+        } else if (event.getInventory() instanceof PrefixGui) {
+            event.setCancelled(true);
+            // todo
         } else if (event.getInventory().getHolder() instanceof StatsGui) {
             event.setCancelled(true);
         }
@@ -220,19 +226,17 @@ public class PlayerListener implements Listener {
             return;
         }
         event.getVehicle().remove();
+        plugin.getServer().getWorlds().get(0).dropItem(event.getExited().getLocation(), new ItemStack(Material.OAK_BOAT));
     }
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         Block b = event.getBlock();
         if (LockListener.canLock(b)) {
-            LockListener.checkLockStillValid(b);
-        }
-        LockListener.checkLockStillValid(b);
-        if (Tag.LOGS.isTagged(b.getType()) &&
-                Tag.LOGS.isTagged(b.getLocation().subtract(0, -1, 0).getBlock().getType())) {
-            Block below = b.getLocation().subtract(0, 1, 0).getBlock();
-            if (below.getType() == Material.GRASS_BLOCK || below.getType() == Material.DIRT) {
+            LockListener.checkLockStillValid(b.getChunk());
+        } else if (b.getType() == Material.OAK_LOG) {
+            Material below = b.getLocation().subtract(0, 1, 0).getBlock().getType();
+            if (below == Material.GRASS_BLOCK || below == Material.DIRT) {
                 event.setCancelled(true);
                 b.setType(Material.OAK_SAPLING);
             }
@@ -241,6 +245,11 @@ public class PlayerListener implements Listener {
             event.setCancelled(true);
             Utils.message(event.getPlayer(), "§cYou cannot break this");
         }
+    }
+
+    public static void giveRespawnItems(Player player) {
+        player.getInventory().setExtraContents(new ItemStack[] {new ItemStack(Material.APPLE, 16),
+            new ItemStack(Material.WOODEN_AXE)});
     }
 
     /*@EventHandler

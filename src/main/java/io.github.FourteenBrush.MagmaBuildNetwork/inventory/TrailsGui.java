@@ -30,13 +30,13 @@ public class TrailsGui implements GUI, InventoryHolder {
         item.setItemMeta(meta);
         inv.setItem(3, item);
 
-        item = new ItemStack(Material.CAMPFIRE);
+        item.setType(Material.CAMPFIRE);
         meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.RED + "Fire Trail");
         item.setItemMeta(meta);
         inv.setItem(5, item);
 
-        item = new ItemStack(Material.BARRIER);
+        item.setType(Material.BARRIER);
         meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.RED + "Disable Trails");
         item.setItemMeta(meta);

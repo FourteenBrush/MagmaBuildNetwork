@@ -3,18 +3,16 @@ package io.github.FourteenBrush.MagmaBuildNetwork.listeners;
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandLock;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
-import org.bukkit.Location;
+import org.bukkit.Chunk;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Lockable;
 import org.bukkit.block.TileState;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.material.Openable;
@@ -77,21 +75,17 @@ public class LockListener implements Listener {
     }
 
     @EventHandler
-    public void onChunkUnload(ChunkUnloadEvent event){
-
+    public void onChunkUnload(ChunkUnloadEvent event) {
         PersistentDataContainer container = event.getChunk().getPersistentDataContainer();
         Block block;
-
         for (NamespacedKey key : container.getKeys()) {
             if (key.getNamespace().equalsIgnoreCase(plugin.getName())) {
-
-                String[] data = key.getKey().split("_");
-                if (data.length != 3) continue;
-
-                block = event.getChunk().getBlock(Integer.parseInt(data[0]) & 0b1111, Integer.parseInt(data[1]), Integer.parseInt(data[2]) & 0b1111);
-
+                String[] locationData = key.getKey().split("_");
+                if (locationData.length != 3) continue;
+                block = event.getChunk().getBlock(Integer.parseInt(locationData[0]) & 0b1111,
+                        Integer.parseInt(locationData[1]), Integer.parseInt(locationData[2]) & 0b1111);
                 if (!canLock(block)) {
-                    Utils.logWarning(String.format("Unknown lock removed! %s", key.getKey()));
+                    Utils.logInfo(String.format("Invalid lock removed! %s", (Object) key.getKey().split("_")));
                     container.remove(key);
                 }
             }
@@ -112,8 +106,9 @@ public class LockListener implements Listener {
         return (state instanceof TileState || state instanceof Lockable || b.getBlockData() instanceof Openable);
     }
 
-    public static void checkLockStillValid(Block block) {
-        PersistentDataContainer container = block.getChunk().getPersistentDataContainer();
+    public static void checkLockStillValid(Chunk chunk) {
+        PersistentDataContainer container = chunk.getPersistentDataContainer();
+        Block block;
 
         for (NamespacedKey key : container.getKeys()) {
             if (key.getNamespace().equalsIgnoreCase(plugin.getName())) {
@@ -121,10 +116,10 @@ public class LockListener implements Listener {
                 String[] data = key.getKey().split("_");
                 if (data.length != 3) continue;
 
-                block = block.getChunk().getBlock(Integer.parseInt(data[0]) & 0b1111, Integer.parseInt(data[1]), Integer.parseInt(data[2]) & 0b1111);
-
+                block = chunk.getBlock(Integer.parseInt(data[0]) & 0b1111,
+                        Integer.parseInt(data[1]), Integer.parseInt(data[2]) & 0b1111);
                 if (!canLock(block)) {
-                    Utils.logWarning(String.format("Unknown lock removed! %s", key.getKey()));
+                    Utils.logInfo(String.format("Invalid lock removed! %s", (Object) key.getKey().split("_")));
                     container.remove(key);
                 }
             }

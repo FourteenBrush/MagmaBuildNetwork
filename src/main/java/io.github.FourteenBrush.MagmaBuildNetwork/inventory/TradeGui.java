@@ -35,13 +35,13 @@ public class TradeGui implements GUI, InventoryHolder {
             inv.setItem(i, item);
         }
         // RED DYE
-        item = new ItemStack(Material.RED_DYE);
+        item.setType(Material.RED_DYE);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName("§cYour opponent is not ready");
         item.setItemMeta(meta);
         inv.setItem(41, item);
         // RED WOOL
-        item = new ItemStack(Material.RED_WOOL);
+        item.setType(Material.RED_WOOL);
         meta.setDisplayName("§cClick to change to ready");
         List<String> lore = Arrays.asList("Click here to change your status", "to ready. When both players have done this",
                 "the trade will be accepted");
@@ -49,13 +49,13 @@ public class TradeGui implements GUI, InventoryHolder {
         item.setItemMeta(meta);
         inv.setItem(37, item);
         // BARRIER
-        item = new ItemStack(Material.BARRIER);
+        item.setType(Material.BARRIER);
         meta.setDisplayName(ChatColor.RED + "Click here to exit the trade");
         meta.setLore(null);
         item.setItemMeta(meta);
         inv.setItem(38, item);
         // GRAY DYE
-        item = new ItemStack(Material.GRAY_DYE);
+        item.setType(Material.GRAY_DYE);
         meta.setDisplayName("§fStatus: §cnot ready");
         item.setItemMeta(meta);
         inv.setItem(39, item);

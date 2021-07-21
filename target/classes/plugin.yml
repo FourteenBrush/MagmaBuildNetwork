@@ -3,7 +3,7 @@ version: 1.0
 author: FourteenBrush
 main: io.github.FourteenBrush.MagmaBuildNetwork.Main
 api-version: 1.13
-softdepend: [LuckPerms, PlaceHolderAPI, Vault]
+softdepend: [LuckPerms, PlaceHolderAPI, Vault, WorldGuard]
 
 commands:
   magmabuildnetwork:

@@ -1,6 +1,7 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.spawn;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandVanish;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -17,16 +18,21 @@ public class Combat implements Listener {
     private static final HashMap<Player, BukkitTask> pvp = new HashMap<>();
 
     @EventHandler
-    public void onEntityDamageByEntity(EntityDamageByEntityEvent e) {
-        if (!(e.getEntity() instanceof Player) || !plugin.getConfig().getBoolean("disable-spawn-command-in-pvp"))
+    public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
+        if (event.getEntity() instanceof Player && CommandVanish.getVanishedPlayers().contains((event.getEntity()).getUniqueId())) {
+            event.setCancelled(true);
             return;
-        Player p = (Player)e.getEntity();
-        if (e.getDamager() instanceof Player) {
+        }
+        if (!(event.getEntity() instanceof Player) || !plugin.getConfig().getBoolean("disable_spawn_command_in_pvp"))
+            return;
+        Player p = (Player) event.getEntity();
+
+        if (event.getDamager() instanceof Player) {
             pvp(p);
-            pvp((Player)e.getDamager());
-        } else if (e.getDamager() instanceof Arrow && ((Arrow)e.getDamager()).getShooter() instanceof Player) {
+            pvp((Player) event.getDamager());
+        } else if (event.getDamager() instanceof Arrow && ((Arrow) event.getDamager()).getShooter() instanceof Player) {
             pvp(p);
-            pvp((Player)((Arrow)e.getDamager()).getShooter());
+            pvp((Player)((Arrow) event.getDamager()).getShooter());
         }
     }
 

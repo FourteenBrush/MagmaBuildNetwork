@@ -36,7 +36,7 @@ public class Spawn {
         return new Location(world, x, y, z, yaw, pitch);
     }
 
-    public static void teleportPlayer(CommandSender sender, Player p, boolean message) {
+    public static void teleportPlayer(Player p, CommandSender sender, boolean message) {
         Location l = getLocation();
         if (l == null) {
             Utils.logWarning("Spawn is not set yet!");
@@ -53,6 +53,14 @@ public class Spawn {
                 Utils.message(sender, ConfigManager.getMessagesConfig().getString("messages.spawn.teleported_other_player")
                         .replaceAll("%player%", sender.getName()));
             }
+        }
+    }
+
+    public static void spawn(final Player p) {
+        if (Combat.containsKey(p)) {
+            Utils.message(p, ConfigManager.getMessagesConfig().getString("disable_spawn_command_in_combat_message"));
+        } else {
+            teleportPlayer(p, null, false);
         }
     }
 }

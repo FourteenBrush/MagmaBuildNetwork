@@ -32,10 +32,11 @@ public class CommandMagmabuildnetwork extends BaseCommand {
     @Override
     protected @Nullable List<String> tabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
 
-        if (arguments.isEmpty()) {
+        if (args.length == 1) {
             arguments.add("help");
             arguments.add("reload");
+            return StringUtil.copyPartialMatches(args[0], arguments, new ArrayList<>());
         }
-        return StringUtil.copyPartialMatches(args[0], arguments, new ArrayList<>());
+        return null;
     }
 }

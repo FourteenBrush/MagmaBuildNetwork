@@ -13,6 +13,12 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
+/**
+ * This class is used for the spigot updatechecker
+ * currently not in use
+ *
+ * @author FourteenBrush
+ */
 public class UpdateChecker implements Listener {
 
     private final Main plugin = Main.getInstance();
@@ -64,7 +70,7 @@ public class UpdateChecker implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent event) {
         if (spigotIsNewer()) {
-            if (Utils.hasPermission(event.getPlayer(), "notifyupdate"))
+            if (Utils.isAuthorized(event.getPlayer(), "notifyupdate"))
                 Utils.logInfo(new String[] {"A new version is available", "Download it now at spigot.mc"});
         }
     }

@@ -11,20 +11,14 @@ import java.util.UUID;
 public class Utils {
 
     private static final Main plugin = Main.getInstance();
-    private static final String name = Main.getInstance().getDescription().getName();
+    private static final String name = plugin.getName();
 
     public static boolean verifyIfIsAPlayer(CommandSender sender) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage("§cThe console cannot run this command!");
+            message(sender, "§cThe console cannot run this command!");
             return false;
         }
         return true;
-    }
-
-    public static boolean hasPermission(CommandSender sender, String permission) {
-        permission = permission.toLowerCase();
-        return ((sender.hasPermission("magmabuildnetwork." + permission)) ||
-                sender.hasPermission("magmabuildnetwork.admin") || sender.isOp());
     }
 
     public static boolean isAuthorized(Player p, String permission) {
@@ -106,7 +100,7 @@ public class Utils {
 
     public static boolean checkNotEnoughArgs(CommandSender sender, int arguments, int expectedArguments) {
         if (expectedArguments > arguments) {
-            message(sender, "§cPlease specify " + (expectedArguments - arguments) + " §cmore arguments!");
+            message(sender, "§cIncorrect usage! Please specify " + (expectedArguments - arguments) + " §cmore arguments!");
             return true;
         }
         return false;

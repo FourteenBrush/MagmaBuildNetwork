@@ -11,7 +11,7 @@ import java.util.*;
 
 public class CommandLock extends BaseCommand {
 
-    private static Set<UUID> bypassingLock = new HashSet<>();
+    private static final Set<UUID> bypassingLock = new HashSet<>();
     private static final Map<UUID, Integer> peopleWantingLock = new HashMap<>();
     // 1 as integer means removing the lock
 
@@ -34,8 +34,7 @@ public class CommandLock extends BaseCommand {
             getPlayersWantingLock().put(p.getUniqueId(), 1);
             Utils.message(p, "§aRight click a block to remove the lock!\nOr type /lock cancel to cancel");
         } else if (args.length == 1 && args[0].equalsIgnoreCase("bypass")) {
-           if (bypassingLock.contains(p.getUniqueId())) {
-               bypassingLock.remove(p.getUniqueId());
+           if (bypassingLock.remove(p.getUniqueId())) {
                Utils.message(p, "§6Not longer bypassing locks!");
            } else {
                bypassingLock.add(p.getUniqueId());
@@ -62,12 +61,15 @@ public class CommandLock extends BaseCommand {
     @Override
     protected @Nullable List<String> tabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
 
-        arguments.add("set");
-        arguments.add("remove");
-        arguments.add("cancel");
-        arguments.add("help");
-        if (Utils.isAuthorized(p, "admin"))
-            arguments.add("bypass");
-        return StringUtil.copyPartialMatches(args[0], arguments, new ArrayList<>());
+        if (args.length == 1) {
+            arguments.add("set");
+            arguments.add("remove");
+            arguments.add("cancel");
+            arguments.add("help");
+            if (Utils.isAuthorized(p, "admin"))
+                arguments.add("bypass");
+            return StringUtil.copyPartialMatches(args[0], arguments, new ArrayList<>());
+        }
+        return null;
     }
 }

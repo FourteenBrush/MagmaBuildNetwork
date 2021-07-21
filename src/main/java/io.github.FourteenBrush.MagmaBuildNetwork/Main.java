@@ -22,6 +22,7 @@ import io.github.FourteenBrush.MagmaBuildNetwork.updatechecker.UpdateChecker;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.NPC;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import net.luckperms.api.LuckPerms;
+import net.milkbowl.vault.chat.Chat;
 import net.minecraft.server.v1_16_R3.EntityPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -39,14 +40,16 @@ import java.util.UUID;
 public class Main extends JavaPlugin {
 
     private static Main instance;
-    private static LuckPerms api;
+    private static LuckPerms api = null;
     private static Economy eco = null;
+    private static Chat chat = null;
+
     private static boolean vaultActivated = false;
 
     @Override
     public void onEnable() {
         instance = this;
-        initialSetup();
+        startup();
         commandsSetup();
         eventsSetup();
         Utils.logInfo(new String[] {"Version " + getDescription().getVersion() + " is activated!", "Done!"});
@@ -59,14 +62,17 @@ public class Main extends JavaPlugin {
         stopNPC();
     }
 
-    private void initialSetup() {
+    private void startup() {
         Utils.logInfo("Initializing...");
         if (!setupEconomy()) {
             Utils.logWarning(new String[] {"No Vault or economy plugin found!",
             "This is fine if that's not installed"});
         }
+        if (!setupChat()) {
+            Utils.logWarning("No Vault plugin found!");
+        }
         if (!setupLuckPerms()) {
-            Utils.logWarning(new String[] {"No LuckPerms dependency found!",
+            Utils.logWarning(new String[] {"No LuckPerms plugin found!",
             "This is fine if that's not installed"});
         }
         if (Spawn.getLocation() == null) {
@@ -76,6 +82,7 @@ public class Main extends JavaPlugin {
             loadNPC();
         }
         new ImageManager().init();
+        // in case of reload
         if (!Bukkit.getOnlinePlayers().isEmpty()) {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 new PacketReader().inject(p);
@@ -115,6 +122,10 @@ public class Main extends JavaPlugin {
         getCommand("spawn").setTabCompleter(new CommandSpawn());
     }
 
+    public static boolean isReloading() {
+        return Bukkit.getWorlds().size() != 0;
+    }
+
     private void eventsSetup() {
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(new PlayerListener(), this);
@@ -127,12 +138,23 @@ public class Main extends JavaPlugin {
             return false;
         }
         RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
-        if (rsp == null) {
-            return false;
+        if (rsp != null) {
+            eco = rsp.getProvider();
         }
-        eco = rsp.getProvider();
         vaultActivated = true;
         return eco != null;
+    }
+
+    private boolean setupChat() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+        RegisteredServiceProvider<Chat> chatProvider = getServer().getServicesManager().getRegistration(Chat.class);
+        if (chatProvider != null) {
+            chat = chatProvider.getProvider();
+        }
+        vaultActivated = true;
+        return (chat != null);
     }
 
     private boolean setupLuckPerms() {
@@ -183,9 +205,15 @@ public class Main extends JavaPlugin {
         return eco;
     }
 
+    public static Chat getChat() {
+        return chat;
+    }
+
     public static LuckPerms getApi() {
         return api;
     }
 
-    public static boolean getVaultActivated() {return vaultActivated; }
+    public static boolean getVaultActivated() {
+        return vaultActivated;
+    }
 }

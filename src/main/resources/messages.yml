@@ -9,3 +9,4 @@
 messages:
   spawn:
     teleported_other_player: "§aYou have been teleported to spawn by %player%"
+    disable_spawn_command_in_combat_message: "§cYou cannot go to spawn while you are in combat!"

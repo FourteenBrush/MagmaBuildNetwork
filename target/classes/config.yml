@@ -24,6 +24,8 @@ trade_from_different_worlds: false
 pickup_items_during_vanish: false
 # Do players in vanish get the nightvision effect
 nightvision_during_vanish: true
+# Disable hunger in vanish
+disable_hunger_in_vanish: true
 
 # +--------------------------------------------------------------------------+ #
 # SPAWN
@@ -33,7 +35,7 @@ teleport_to_spawn_on:
   first_join: true
   join: false
   respawn: true
-disable-spawn-command-in-pvp: true
+disable_spawn_command_in_pvp: true
 spawn:
   world:
   x:
