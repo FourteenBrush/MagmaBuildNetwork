@@ -2,6 +2,7 @@ package io.github.FourteenBrush.MagmaBuildNetwork.spawn;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
 import io.github.FourteenBrush.MagmaBuildNetwork.data.ConfigManager;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.MessagesUtils;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -20,11 +21,12 @@ public class Spawn {
         plugin.getConfig().set("spawn.z", l.getZ());
         plugin.getConfig().set("spawn.yaw", l.getYaw());
         plugin.getConfig().set("spawn.pitch", l.getPitch());
+        ConfigManager.saveConfig();
     }
 
     public static Location getLocation() {
         String worldName = plugin.getConfig().getString("spawn.world");
-        if (worldName == null) {
+        if (worldName == null || worldName.isEmpty()) {
             return null;
         }
         World world = Bukkit.getServer().getWorld(worldName);
@@ -36,7 +38,7 @@ public class Spawn {
         return new Location(world, x, y, z, yaw, pitch);
     }
 
-    public static void teleportPlayer(Player p, CommandSender sender, boolean message) {
+    private static void teleportPlayer(Player p, CommandSender sender, boolean message) {
         Location l = getLocation();
         if (l == null) {
             Utils.logWarning("Spawn is not set yet!");
@@ -49,16 +51,18 @@ public class Spawn {
             if (message) {
                 Utils.message(sender, "§aYou have been teleported to spawn!");
             }
-            if (!p.getName().equalsIgnoreCase(sender.getName())) {
-                Utils.message(sender, ConfigManager.getMessagesConfig().getString("messages.spawn.teleported_other_player")
-                        .replaceAll("%player%", sender.getName()));
+            if (sender != null) {
+                if (!p.getName().equalsIgnoreCase(sender.getName())) {
+                    Utils.message(sender, MessagesUtils.getMessageTeleportedOtherPlayer()
+                            .replaceAll("%player%", sender.getName()));
+                }
             }
         }
     }
 
-    public static void spawn(final Player p) {
+    public static void spawn(Player p) {
         if (Combat.containsKey(p)) {
-            Utils.message(p, ConfigManager.getMessagesConfig().getString("disable_spawn_command_in_combat_message"));
+            Utils.message(p, MessagesUtils.getMessageDisableSpawnCommandInCombat());
         } else {
             teleportPlayer(p, null, false);
         }

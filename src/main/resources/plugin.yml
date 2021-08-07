@@ -3,11 +3,12 @@ version: 1.0
 author: FourteenBrush
 main: io.github.FourteenBrush.MagmaBuildNetwork.Main
 api-version: 1.13
-softdepend: [LuckPerms, PlaceHolderAPI, Vault, WorldGuard]
+softdepend: [LuckPerms, PlaceHolderAPI, Vault, WorldGuard, EssentialsX]
 
 commands:
   magmabuildnetwork:
     description: Root command
+    permission: magmabuildnetwork.basic
     aliases: [mbn]
   debug:
     description: For test purposes
@@ -57,14 +58,27 @@ commands:
   spawn:
     description: Teleports you to spawn
     permission: magmabuildnetwork.basic
+  prefix:
+    description: Shows up a prefix menu
+    permission: magmabuildnetwork.basic
+  shop:
+    description: Shop command
+    permission: magmabuildnetwork.basic
+  home:
+    description: Sets a home
+    permission: magmabuildnetwork.basic
+  safechest:
+    description: Opens your safechest
+    permission: magmabuildnetwork.safechest
 
 permissions:
  magmabuildnetwork.admin:
     description: Grants access to all the commands
-    default: false
+    default: op
     children:
      - magmabuildnetwork.vanish
      - magmabuildnetwork.basic
+     - magmabuildnetwork.safechest
      - magmabuildnetwork.notifyupdate
  magmabuildnetwork.notifyupdate:
    description: Notifies user of new version

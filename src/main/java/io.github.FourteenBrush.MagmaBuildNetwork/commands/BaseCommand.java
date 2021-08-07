@@ -12,12 +12,11 @@ import java.util.List;
 
 public abstract class BaseCommand implements CommandExecutor, TabCompleter {
 
-    protected Main plugin = Main.getInstance();
-    protected CommandSender sender = null;
-    protected boolean isAuthorized = false;
+    protected final Main plugin = Main.getInstance();
     protected boolean isConsole = false;
+    protected CommandSender sender = null;
     protected Player p = null;
-    protected List<String> arguments = new ArrayList<>(); // tabComplete
+    protected final List<String> arguments = new ArrayList<>(); // tabComplete
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
@@ -27,15 +26,14 @@ public abstract class BaseCommand implements CommandExecutor, TabCompleter {
         try {
             return execute(args);
         } catch (Exception e) {
+            Utils.logError("An error occurred whilst executing a command:");
             e.printStackTrace();
         }
-
         return true;
     }
 
     public boolean validate(CommandSender sender, Command cmd) {
 
-        // VALIDATE THE PLAYER
         if (sender instanceof BlockCommandSender) {
             return false;
         }
@@ -43,10 +41,7 @@ public abstract class BaseCommand implements CommandExecutor, TabCompleter {
 
         if (sender instanceof Player) {
             p = (Player) sender;
-
-            if (Utils.isAuthorized(p, cmd.getPermission())) {
-                isAuthorized = true;
-            } else {
+            if (!Utils.isAuthorized(p, cmd.getPermission())) {
                 Utils.messageNoPermission(p);
                 return false;
             }
@@ -65,7 +60,6 @@ public abstract class BaseCommand implements CommandExecutor, TabCompleter {
     }
 
     protected @Nullable List<String> tabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
-        // if there is no tabComplete, return
         return new ArrayList<>();
     }
 

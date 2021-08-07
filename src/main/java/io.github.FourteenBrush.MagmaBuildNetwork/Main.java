@@ -1,33 +1,20 @@
 package io.github.FourteenBrush.MagmaBuildNetwork;
 
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
-import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandBan;
-import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandCreatemap;
-import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandDebug;
-import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandLock;
-import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandMagmabuildnetwork;
-import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandSpawn;
-import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandStore;
-import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandTrade;
-import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandVanish;
-import io.github.FourteenBrush.MagmaBuildNetwork.commands.PlayerCommand;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.*;
 import io.github.FourteenBrush.MagmaBuildNetwork.data.ConfigManager;
 import io.github.FourteenBrush.MagmaBuildNetwork.data.ImageManager;
 import io.github.FourteenBrush.MagmaBuildNetwork.data.PacketReader;
+import io.github.FourteenBrush.MagmaBuildNetwork.database.MySQL;
+import io.github.FourteenBrush.MagmaBuildNetwork.listeners.InventoryListener;
 import io.github.FourteenBrush.MagmaBuildNetwork.listeners.LockListener;
 import io.github.FourteenBrush.MagmaBuildNetwork.listeners.PlayerListener;
+import io.github.FourteenBrush.MagmaBuildNetwork.listeners.VaultListener;
 import io.github.FourteenBrush.MagmaBuildNetwork.spawn.Spawn;
-import io.github.FourteenBrush.MagmaBuildNetwork.updatechecker.UpdateChecker;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.NPC;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import net.luckperms.api.LuckPerms;
 import net.milkbowl.vault.chat.Chat;
-import net.minecraft.server.v1_16_R3.EntityPlayer;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -35,20 +22,26 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import net.milkbowl.vault.economy.Economy;
 
-import java.util.UUID;
+import java.sql.SQLException;
 
 public class Main extends JavaPlugin {
 
     private static Main instance;
-    private static LuckPerms api = null;
-    private static Economy eco = null;
-    private static Chat chat = null;
 
-    private static boolean vaultActivated = false;
+    public MySQL mySQL;
+    public static LuckPerms api = null;
+    public static Economy eco = null;
+    public static Chat chat = null;
+
+    @Override
+    public void onLoad() {
+        instance = this;
+        mySQL = new MySQL();
+        ConfigManager.createFiles();
+    }
 
     @Override
     public void onEnable() {
-        instance = this;
         startup();
         commandsSetup();
         eventsSetup();
@@ -58,12 +51,24 @@ public class Main extends JavaPlugin {
     @Override
     public void onDisable() {
         Utils.logInfo(new String[] {"Stopping...", "Goodbye!"});
+        NPC.stopNPC();
+        if (!CommandSafechest.getMenus().isEmpty()) {
+            CommandSafechest.saveInventories();
+        }
+        mySQL.disconnect();
         instance = null;
-        stopNPC();
     }
 
     private void startup() {
         Utils.logInfo("Initializing...");
+        try {
+            mySQL.connect();
+        } catch (ClassNotFoundException | SQLException e) {
+            Utils.logInfo("Database not connected");
+        }
+        if (mySQL.isConnected()) {
+            Utils.logInfo("Database connected");
+        }
         if (!setupEconomy()) {
             Utils.logWarning(new String[] {"No Vault or economy plugin found!",
             "This is fine if that's not installed"});
@@ -75,20 +80,25 @@ public class Main extends JavaPlugin {
             Utils.logWarning(new String[] {"No LuckPerms plugin found!",
             "This is fine if that's not installed"});
         }
+        if (getConfig().contains("npc_data")) {
+            NPC.loadNPCIntoWorld();
+        }
+        if (getConfig().contains("safe_chests")) {
+            CommandSafechest.loadInventories();
+        }
         if (Spawn.getLocation() == null) {
             Spawn.setLocation(getServer().getWorlds().get(0).getSpawnLocation());
         }
-        if (ConfigManager.getConfigConfig().contains("npc_data")) {
-            loadNPC();
-        }
         new ImageManager().init();
         // in case of reload
-        if (!Bukkit.getOnlinePlayers().isEmpty()) {
+        if (isReloading()) {
+            if (!Bukkit.getOnlinePlayers().isEmpty()) {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 new PacketReader().inject(p);
             }
         }
     }
+}
 
     private void commandsSetup() {
         // admin commands
@@ -120,6 +130,12 @@ public class Main extends JavaPlugin {
         getCommand("spawn").setExecutor(new CommandSpawn());
 
         getCommand("spawn").setTabCompleter(new CommandSpawn());
+        getCommand("prefix").setExecutor(new PlayerCommand());
+        getCommand("shop").setExecutor(new PlayerCommand());
+        getCommand("home").setExecutor(new CommandHome());
+
+        getCommand("home").setTabCompleter(new CommandHome());
+        getCommand("safechest").setExecutor(new CommandSafechest());
     }
 
     public static boolean isReloading() {
@@ -130,7 +146,10 @@ public class Main extends JavaPlugin {
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(new PlayerListener(), this);
         pm.registerEvents(new LockListener(), this);
-        pm.registerEvents(new UpdateChecker(), this);
+        pm.registerEvents(new InventoryListener(), this);
+        if (getVaultActivated()) {
+            pm.registerEvents(new VaultListener(), this);
+        }
     }
 
     private boolean setupEconomy() {
@@ -141,7 +160,6 @@ public class Main extends JavaPlugin {
         if (rsp != null) {
             eco = rsp.getProvider();
         }
-        vaultActivated = true;
         return eco != null;
     }
 
@@ -153,8 +171,7 @@ public class Main extends JavaPlugin {
         if (chatProvider != null) {
             chat = chatProvider.getProvider();
         }
-        vaultActivated = true;
-        return (chat != null);
+        return chat != null;
     }
 
     private boolean setupLuckPerms() {
@@ -162,47 +179,14 @@ public class Main extends JavaPlugin {
            return false;
        }
        RegisteredServiceProvider<LuckPerms> rsp = getServer().getServicesManager().getRegistration(LuckPerms.class);
-       if (rsp == null) {
-           return false;
+       if (rsp != null) {
+           api = rsp.getProvider();
        }
-       api = rsp.getProvider();
        return api != null;
-    }
-
-    private void loadNPC() {
-        FileConfiguration file = ConfigManager.getConfigConfig();
-        file.getConfigurationSection("npc_data").getKeys(false).forEach(npc -> {
-            Location location = new Location(Bukkit.getWorld(
-                    file.getString("npc_data." + npc + ".world")),
-                    file.getInt("npc_data." + npc + ".x"), file.getInt("npc_data." + npc + ".y"),
-                    file.getInt("npc_data." + npc + ".z"));
-            location.setPitch((float) file.getDouble("npc_data." + npc + ".p"));
-            location.setYaw((float) file.getDouble("npc_data." + npc + ".yaw"));
-
-            String name = file.getString("npc_data." + npc + ".name");
-            GameProfile gameProfile = new GameProfile(UUID.randomUUID(), ChatColor.DARK_AQUA + "" + ChatColor.BOLD + name);
-            gameProfile.getProperties().put("textures", new Property("textures", file.getString("npc_data." + npc + ".text"),
-                    file.getString("npc_data." + npc + ".signature")));
-            NPC.loadNPC(location, gameProfile);
-        });
-    }
-
-    private void stopNPC() {
-        for (Player p : Bukkit.getOnlinePlayers()) {
-            PacketReader reader = new PacketReader();
-            reader.unInject(p);
-            for (EntityPlayer npc : NPC.getNPCs()) {
-                NPC.removeNPC(p, npc);
-            }
-        }
     }
 
     public static Main getInstance() {
         return instance;
-    }
-
-    public static Economy getEco() {
-        return eco;
     }
 
     public static Chat getChat() {
@@ -214,6 +198,14 @@ public class Main extends JavaPlugin {
     }
 
     public static boolean getVaultActivated() {
-        return vaultActivated;
+        return Bukkit.getServer().getPluginManager().isPluginEnabled("Vault");
+    }
+
+    public static boolean getGemsEconomyActivated() {
+        return Bukkit.getServer().getPluginManager().isPluginEnabled("GemsEconomy");
+    }
+
+    public static boolean getLPActivated() {
+        return Bukkit.getServer().getPluginManager().isPluginEnabled("LuckPerms");
     }
 }

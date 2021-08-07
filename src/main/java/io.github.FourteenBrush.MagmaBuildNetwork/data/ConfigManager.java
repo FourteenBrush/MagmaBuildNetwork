@@ -11,8 +11,8 @@ import java.io.IOException;
 public class ConfigManager {
 
     private static final Main plugin = Main.getInstance();
-    private static FileConfiguration config, data, messages;
-    private static File configFile, dataFile, messagesFile;
+    private static FileConfiguration config, data, messages, homes;
+    private static File configFile, dataFile, messagesFile, homesFile;
 
     public static void createFiles() {
         if (!plugin.getDataFolder().exists()) {
@@ -35,6 +35,12 @@ public class ConfigManager {
             plugin.saveResource("messages.yml", false);
         }
         messages = YamlConfiguration.loadConfiguration(messagesFile);
+
+        homesFile = new File(plugin.getDataFolder(), "homes.yml");
+        if (!homesFile.exists()) {
+            plugin.saveResource("homes.yml", false);
+        }
+        homes = YamlConfiguration.loadConfiguration(homesFile);
     }
 
     public static void saveConfig() {
@@ -42,8 +48,30 @@ public class ConfigManager {
             config.save(configFile);
             data.save(dataFile);
             messages.save(messagesFile);
+            homes.save(homesFile);
         } catch (IOException e) {
             Utils.logError("Could not save data to config file");
+            e.printStackTrace();
+        }
+    }
+
+    public static void saveConfig(String file) {
+        try {
+            switch (file) {
+                case "config":
+                    config.save(configFile);
+                    break;
+                case "data":
+                    data.save(dataFile);
+                    break;
+                case "messages":
+                    messages.save(messagesFile);
+                    break;
+                case "homes":
+                    homes.save(homesFile);
+                    break;
+            }
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -67,5 +95,12 @@ public class ConfigManager {
             createFiles();
         }
         return messages;
+    }
+
+    public static FileConfiguration getHomes() {
+        if (homes == null) {
+            createFiles();
+        }
+        return homes;
     }
 }

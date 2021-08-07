@@ -16,6 +16,8 @@ public class CommandCreatemap extends BaseCommand{
     @Override
     protected boolean execute(@NotNull String[] args) {
 
+        if (isConsole) return true;
+
         MapView view = Bukkit.createMap(p.getWorld());
         view.getRenderers().clear();
 

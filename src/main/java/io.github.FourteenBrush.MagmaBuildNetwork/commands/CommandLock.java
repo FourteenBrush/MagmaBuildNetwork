@@ -34,12 +34,14 @@ public class CommandLock extends BaseCommand {
             getPlayersWantingLock().put(p.getUniqueId(), 1);
             Utils.message(p, "§aRight click a block to remove the lock!\nOr type /lock cancel to cancel");
         } else if (args.length == 1 && args[0].equalsIgnoreCase("bypass")) {
-           if (bypassingLock.remove(p.getUniqueId())) {
-               Utils.message(p, "§6Not longer bypassing locks!");
-           } else {
-               bypassingLock.add(p.getUniqueId());
-               Utils.message(p, "§aNow bypassing locks!");
-           }
+            if (Utils.isAuthorized(p, "admin")) {
+                if (bypassingLock.remove(p.getUniqueId())) {
+                    Utils.message(p, "§6Not longer bypassing locks!");
+                } else {
+                    bypassingLock.add(p.getUniqueId());
+                    Utils.message(p, "§aNow bypassing locks!");
+                }
+            }
         } else if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
             Utils.message(p, new String[] {"§f--- §9Lock command §f---",
                     "§9/lock §7set - §fsets a lock on the block you right-click on",

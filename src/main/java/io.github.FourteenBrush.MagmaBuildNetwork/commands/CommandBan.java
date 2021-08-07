@@ -19,19 +19,16 @@ public class CommandBan extends BaseCommand {
             return true;
         }
         Player target = Bukkit.getPlayer(args[0]);
-        if (!Utils.isPlayerOnline(sender, args[0])) {
+        if (!Utils.isPlayerOnline(sender, target)) {
             return true;
         }
         String banreason = "Banned by a moderator";
         if (args.length > 1) {
             banreason = Utils.getFinalArg(args, 1);
         }
-        if (!Utils.checkNotEnoughArgs(sender, args.length, 1)) {
-            return true;
-        }
         plugin.getServer().getBanList(BanList.Type.NAME).addBan(target.getName(), banreason, null, p.getName());
+        Utils.message(sender, String.format("§6Banned %s | %s", target.getName(), banreason));
         Utils.logWarning("Player " + target.getName() + " got banned by " + p.getName());
-
         return true;
     }
 }

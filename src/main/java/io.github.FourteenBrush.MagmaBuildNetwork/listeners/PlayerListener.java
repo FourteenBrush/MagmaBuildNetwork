@@ -2,22 +2,16 @@ package io.github.FourteenBrush.MagmaBuildNetwork.listeners;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandLock;
-import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandTrade;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandVanish;
 import io.github.FourteenBrush.MagmaBuildNetwork.data.ConfigManager;
 import io.github.FourteenBrush.MagmaBuildNetwork.data.PacketReader;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.PlayerCommand;
 import io.github.FourteenBrush.MagmaBuildNetwork.events.RightClickNPCEvent;
-import io.github.FourteenBrush.MagmaBuildNetwork.inventory.GUI;
-import io.github.FourteenBrush.MagmaBuildNetwork.inventory.PrefixGui;
-import io.github.FourteenBrush.MagmaBuildNetwork.inventory.StatsGui;
-import io.github.FourteenBrush.MagmaBuildNetwork.inventory.TradeGui;
-import io.github.FourteenBrush.MagmaBuildNetwork.inventory.TrailsGui;
+import io.github.FourteenBrush.MagmaBuildNetwork.gui.GuiCreator;
 import io.github.FourteenBrush.MagmaBuildNetwork.spawn.Combat;
 import io.github.FourteenBrush.MagmaBuildNetwork.spawn.Spawn;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Effects;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.NPC;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.ScoreboardHandler;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -27,17 +21,13 @@ import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.vehicle.VehicleExitEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Random;
 
 @SuppressWarnings("unused")
@@ -48,21 +38,19 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player p = event.getPlayer();
-        p.setDisplayName(Main.getChat().getPlayerPrefix(p) + " " + p.getName());
+        new PacketReader().inject(p);
         for (Player e : Bukkit.getOnlinePlayers()) {
-            if (plugin.getConfig().getBoolean("use_scoreboard")) {
-                e.setScoreboard(ScoreboardHandler.createScoreboard(e));
-            }
-            if (CommandVanish.getVanishedPlayers().contains(p) && !CommandVanish.getVanishedPlayers().contains(e))
+            if (CommandVanish.getVanishedPlayers().contains(p.getUniqueId()) && !CommandVanish.getVanishedPlayers().contains(e.getUniqueId()))
                 // if the player who joins is vanished and the player to hide them from isn't vanished -> hide them
                 e.hidePlayer(plugin, p);
         }
-        if (!(CommandVanish.getVanishedPlayers().contains(p))) {
+        // todo fix this lists are cleared when user leaves the server
+        if (!(CommandVanish.getVanishedPlayers().contains(p.getUniqueId()))) {
             event.setJoinMessage(Utils.colorize("&7[&a&l+&7] &b" + p.getName() + " &7joined the server."));
         } else {
             Utils.message(p, "§aNo join message sent because you joined vanished");
+            event.setJoinMessage(null);
         }
-        new PacketReader().inject(p);
         if (!(NPC.getNPCs() == null || NPC.getNPCs().isEmpty())) {
             NPC.addJoinPacket(p);
         }
@@ -74,12 +62,13 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player p = event.getPlayer();
+        GuiCreator.openInventories.remove(p.getUniqueId());
+        Combat.remove(p);
         new PacketReader().unInject(p);
         event.setQuitMessage(Utils.colorize("&7[&c&l-&7] &b" + p.getName() + " &7left the server."));
         Effects d = new Effects(p, p.getUniqueId());
         if (d.hasID())
             d.endTask();
-        Combat.remove(p);
     }
 
     @EventHandler
@@ -90,15 +79,17 @@ public class PlayerListener implements Listener {
                 event.setCancelled(true);
             }
         }
-        if (!Effects.hasWalkTrail(p.getUniqueId()))
-            return;
-        Random r = new Random();
-        for (int i = 0; i < 5; i++)
-            p.getWorld().spawnParticle(Particle.CRIT_MAGIC, p.getLocation().add(
-                    r.nextDouble() * 0.5, r.nextDouble() * 0.5, r.nextDouble() * .5),0);
-        for (int i = 0; i < 5; i++)
-            p.getWorld().spawnParticle(Particle.CRIT_MAGIC, p.getLocation().add(
-                    -1 * (r.nextDouble() * 0.5), r.nextDouble() * 0.5, (r.nextDouble() * .5) * -1),0);
+        if (Effects.hasWalkTrail(p.getUniqueId())) {
+            Random r = new Random();
+            for (int i = 0; i < 5; i++) {
+                p.getWorld().spawnParticle(Particle.CRIT_MAGIC, p.getLocation().add(
+                        r.nextDouble() * 0.5, r.nextDouble() * 0.5, r.nextDouble() * .5), 0);
+            }
+            for (int i = 0; i < 5; i++) {
+                p.getWorld().spawnParticle(Particle.CRIT_MAGIC, p.getLocation().add(
+                        -1 * (r.nextDouble() * 0.5), r.nextDouble() * 0.5, (r.nextDouble() * .5) * -1), 0);
+            }
+        }
     }
 
     @EventHandler
@@ -122,16 +113,12 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onFoodLevelChange(FoodLevelChangeEvent event) {
-        try {
             if (event.getEntity() instanceof Player && plugin.getConfig().getBoolean("disable_hunger_in_vanish")) {
                 Player p = (Player) event.getEntity();
                 if (event.getFoodLevel() <= p.getFoodLevel()) {
                     event.setCancelled(true);
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     @EventHandler
@@ -140,84 +127,6 @@ public class PlayerListener implements Listener {
             event.setRespawnLocation(Spawn.getLocation());
         }
         giveRespawnItems(event.getPlayer());
-    }
-
-    @EventHandler
-    public void onClick(InventoryClickEvent event) {
-        Player p = (Player) event.getWhoClicked();
-        int slot = event.getSlot();
-        if (!(event.getInventory().getHolder() instanceof GUI)) {
-            return;
-        }
-    
-        if (event.getInventory().getHolder() instanceof TrailsGui) {
-            event.setCancelled(true);
-            Effects effect = new Effects(p, p.getUniqueId());
-            if (effect.hasID()) {
-                effect.endTask();
-                effect.removeID();
-            }
-            switch (slot) {
-                case 3:
-                    effect.startTotem();
-                    p.closeInventory();
-                    break;
-                case 5:
-                    effect.setID(1);
-                    p.closeInventory();
-                    break;
-                case 8:
-                    p.closeInventory();
-                    break;
-                default:
-                    break;
-            }
-        } else if (event.getInventory().getHolder() instanceof TradeGui) {
-            List<Integer> placeableSlots = Arrays.asList(10, 11, 12, 19, 20, 21, 28, 29, 30);
-            List<Integer> functionSlots = Arrays.asList(37, 38, 39, 41);
-            Inventory inv = event.getInventory();
-            TradeGui senderGui = CommandTrade.getSenderGui();
-            TradeGui targetGui = CommandTrade.getTargetGui();
-            if (!(event.getRawSlot() > 53 || placeableSlots.contains(slot))) {
-                event.setCancelled(true);
-            }
-            if (inv == senderGui) {
-                if (placeableSlots.contains(slot)) {
-                    // if clicking on a placeable slot -> place the same item by the other player
-                    CommandTrade.setItemInGui(targetGui, slot, inv.getItem(slot));
-                } else if (functionSlots.contains(slot)) {
-                    CommandTrade.changeClickedSlots(slot, event, p);
-                }
-            } else if (inv == targetGui) {
-                if (placeableSlots.contains(slot)) {
-                    // if clicking on a placeable slot -> place the same item by the other player
-                    CommandTrade.setItemInGui(senderGui, slot, inv.getItem(slot));
-                } else if (functionSlots.contains(slot)) {
-                    CommandTrade.changeClickedSlots(slot, event, p);
-                }
-            }
-
-        } else if (event.getInventory() instanceof PrefixGui) {
-            event.setCancelled(true);
-            // todo
-        } else if (event.getInventory().getHolder() instanceof StatsGui) {
-            event.setCancelled(true);
-        }
-
-    }
-
-    @EventHandler
-    public void onKill(EntityDeathEvent event) {
-        if (!Main.getVaultActivated()) return;
-        if (event.getEntity() instanceof Monster) {
-            Player player = event.getEntity().getKiller();
-            if (player == null) // if mobs died of a natural dead return
-                return;
-            Random r = new Random();
-            int amount = r.nextInt(10) + 10;
-            Main.getEco().depositPlayer(player, amount);
-            Utils.message(player, "§2§l+ $" + amount);
-        }
     }
 
     @EventHandler
@@ -234,10 +143,10 @@ public class PlayerListener implements Listener {
         Block b = event.getBlock();
         if (LockListener.canLock(b)) {
             LockListener.checkLockStillValid(b.getChunk());
+            // todo
         } else if (b.getType() == Material.OAK_LOG) {
             Material below = b.getLocation().subtract(0, 1, 0).getBlock().getType();
             if (below == Material.GRASS_BLOCK || below == Material.DIRT) {
-                event.setCancelled(true);
                 b.setType(Material.OAK_SAPLING);
             }
         } else if (LockListener.cannotOpen(LockListener.getOwner(), event.getPlayer()) &&
@@ -247,9 +156,15 @@ public class PlayerListener implements Listener {
         }
     }
 
+    @EventHandler
+    public void onArrowPickup(PlayerPickupArrowEvent event) {
+        event.setCancelled(CommandVanish.getVanishedPlayers().contains(event.getPlayer().getUniqueId()));
+    }
+
     public static void giveRespawnItems(Player player) {
-        player.getInventory().setExtraContents(new ItemStack[] {new ItemStack(Material.APPLE, 16),
-            new ItemStack(Material.WOODEN_AXE)});
+        PlayerInventory inv = player.getInventory();
+        inv.setItem(0, new ItemStack(Material.WOODEN_AXE));
+        inv.setItem(1, new ItemStack(Material.APPLE, 16));
     }
 
     /*@EventHandler

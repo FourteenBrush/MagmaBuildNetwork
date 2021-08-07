@@ -22,35 +22,33 @@ public class CommandVanish extends BaseCommand {
 
     private static final Main plugin = Main.getInstance();
     private static final Set<UUID> vanishedPlayers = new HashSet<>();
+    private static final BossBar bar = Bukkit.createBossBar(new NamespacedKey(plugin, "mbnbossbar"), "Vanished", BarColor.BLUE, BarStyle.SOLID);
 
     @Override
     protected boolean execute(@NotNull String[] args) {
 
-        final boolean nightvision = ConfigManager.getConfigConfig().getBoolean("nightvision_during_vanish");
         if (args.length == 1) {
-            if (!Utils.isPlayerOnline(p, args[0])) {
+            Player target = Bukkit.getPlayer(args[0]);
+            if (!Utils.isPlayerOnline(p, target)) {
                 return true;
             }
-            Player target = Bukkit.getPlayer(args[0]);
-            vanishPlayer(target, nightvision);
+            vanish(target, !vanishedPlayers.contains(target.getUniqueId()));
             Utils.message(p, "§aSuccessfully vanished " + target.getName());
             return true;
         } else if (args.length < 1) {
-            vanishPlayer(p, nightvision);
+            vanish(p, !vanishedPlayers.contains(p.getUniqueId()));
         }
         return true;
     }
 
-    private static void vanishPlayer(Player p, boolean nightvision) {
-        if (vanishedPlayers.remove(p)) {
+    private static void vanishPlayer(Player p) {
+        if (vanishedPlayers.remove(p.getUniqueId())) {
             // vanished -> unvanish
             for (Player player : Bukkit.getOnlinePlayers()) {
                 player.showPlayer(plugin, p);
             }
             setBossBar(p, true);
-            if (p.getGameMode() != GameMode.CREATIVE) {
-                p.setAllowFlight(false);
-            }
+            p.setAllowFlight(p.getGameMode() == GameMode.CREATIVE);
             p.setInvulnerable(false);
             p.removePotionEffect(PotionEffectType.NIGHT_VISION);
             Utils.message(p, "§aYou became visible again");
@@ -58,27 +56,53 @@ public class CommandVanish extends BaseCommand {
             // not vanished -> vanish
             vanishedPlayers.add(p.getUniqueId());
             for (Player player : Bukkit.getOnlinePlayers()) {
-                if (!getVanishedPlayers().contains(player))
+                if (!getVanishedPlayers().contains(player.getUniqueId()))
                     player.hidePlayer(plugin, p);
             }
             setBossBar(p, false);
             p.setAllowFlight(true);
             p.setInvulnerable(true);
-            if (nightvision) {
+            if (plugin.getConfig().getBoolean("nightvision_during_vanish")) {
                 p.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 200000, 1));
             }
             Utils.message(p, "§aYou have been vanished");
         }
     }
+    // todo remove after test
+
+    private void vanish(Player player, boolean vanish) {
+        if (vanish) {
+            vanishedPlayers.add(player.getUniqueId());
+            for (Player pl : Bukkit.getOnlinePlayers()) {
+                if (!getVanishedPlayers().contains(pl.getUniqueId()))
+                    pl.hidePlayer(plugin, player);
+            }
+            if (plugin.getConfig().getBoolean("nightvision_during_vanish")) {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 200000, 1));
+            }
+            player.setAllowFlight(true);
+            Utils.message(player, "§aYou have been vanished");
+        } else {
+            vanishedPlayers.remove(player.getUniqueId());
+            for (Player pl : Bukkit.getOnlinePlayers()) {
+                pl.showPlayer(plugin, player);
+            }
+            player.removePotionEffect(PotionEffectType.NIGHT_VISION);
+            player.setAllowFlight(player.getGameMode() == GameMode.CREATIVE);
+            Utils.message(player, "§aYou became visible again");
+        }
+        setBossBar(player, !vanish);
+        player.setInvulnerable(vanish);
+    }
 
     private static void setBossBar(Player p, boolean remove) {
-        NamespacedKey key = new NamespacedKey(plugin, "mbnbossbar");
-        BossBar bar = Bukkit.createBossBar(key, "Vanished", BarColor.BLUE, BarStyle.SEGMENTED_20);
-        bar.setColor(BarColor.BLUE);
-        if (remove)
+        if (remove) {
             bar.removePlayer(p);
-        else
+            bar.setVisible(false);
+        } else {
             bar.addPlayer(p);
+            bar.setVisible(true);
+        }
     }
 
     public static Set<UUID> getVanishedPlayers() {

@@ -6,7 +6,11 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 public class Utils {
 
@@ -22,14 +26,20 @@ public class Utils {
     }
 
     public static boolean isAuthorized(Player p, String permission) {
-        final String prefix = name.toLowerCase() + ".";
-        permission = permission.toLowerCase();
-        return (p.hasPermission(prefix + permission) || p.hasPermission(prefix + "admin") ||
-                p.isOp());
+        String prefix = name.toLowerCase() + ".";
+        return p.hasPermission(prefix + permission.toLowerCase()) || p.hasPermission(prefix + "admin");
     }
 
     public static String colorize(String args) {
         return ChatColor.translateAlternateColorCodes('&', ChatColor.GRAY + args);
+    }
+
+    public static List<String> colorize(String... args) {
+        List<String> output = new ArrayList<>();
+        for (String s : args) {
+            output.add(colorize(s));
+        }
+        return output;
     }
 
     private static void log(LogLevel level, String message) {
@@ -98,6 +108,14 @@ public class Utils {
         return true;
     }
 
+    public static boolean isPlayerOnline(CommandSender sender, Player target) {
+        if (!Bukkit.getOnlinePlayers().contains(target)) {
+            message(sender, "§c" + target.getName() + " §cis currently not online!");
+            return false;
+        }
+        return true;
+    }
+
     public static boolean checkNotEnoughArgs(CommandSender sender, int arguments, int expectedArguments) {
         if (expectedArguments > arguments) {
             message(sender, "§cIncorrect usage! Please specify " + (expectedArguments - arguments) + " §cmore arguments!");
@@ -116,6 +134,11 @@ public class Utils {
         return builder.toString();
     }
 
+    public static String getSafeString(String str) {
+        final Pattern strictInvalidChars = Pattern.compile("[^a-z0-9]");
+        return strictInvalidChars.matcher(str.toLowerCase(Locale.ENGLISH)).replaceAll("_");
+    }
+
     public static Player getPlayer(String searchItem, boolean getOffline) {
         Player target;
         try {
@@ -128,6 +151,15 @@ public class Utils {
             }
         }
         return target;
+    }
+
+    public static void broadcast(boolean broadcastConsole, String message) {
+        if (!broadcastConsole) {
+            for (Player player : Bukkit.getOnlinePlayers())
+                message(player, message);
+            return;
+        }
+        Bukkit.getServer().broadcastMessage(message);
     }
 
     private enum LogLevel {

@@ -6,10 +6,12 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
 import io.github.FourteenBrush.MagmaBuildNetwork.data.ConfigManager;
+import io.github.FourteenBrush.MagmaBuildNetwork.data.PacketReader;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.craftbukkit.v1_16_R3.CraftServer;
 import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
@@ -24,7 +26,7 @@ import java.util.UUID;
 public class NPC {
 
     private static final Main plugin = Main.getInstance();
-    private static final List<EntityPlayer> NPC = new ArrayList<EntityPlayer>();
+    private static final List<EntityPlayer> NPC = new ArrayList<>();
 
     public static void createNPC(Player p, String skin) {
         MinecraftServer server = ((CraftServer) Bukkit.getServer()).getServer();
@@ -41,7 +43,7 @@ public class NPC {
 
         // saves the players position
         int var = 1;
-        if (plugin.getConfig().contains("data")) {
+        if (plugin.getConfig().contains("npc_data")) {
             var = plugin.getConfig().getConfigurationSection("npc_data").getKeys(false).size() + 1;
         }
         plugin.getConfig().set("npc_data." + var + ".x", (int) p.getLocation().getX());
@@ -67,6 +69,33 @@ public class NPC {
 
         addNPCPacket(npc);
         NPC.add(npc);
+    }
+
+    public static void loadNPCIntoWorld() {
+        FileConfiguration file = plugin.getConfig();
+        file.getConfigurationSection("npc_data").getKeys(false).forEach(npc -> {
+            Location location = new Location(Bukkit.getWorld(
+                    file.getString("npc_data." + npc + ".world")),
+                    file.getInt("npc_data." + npc + ".x"),
+                    file.getInt("npc_data." + npc + ".y"),
+                    file.getInt("npc_data." + npc + ".z"),
+                    (float) file.getDouble("npc_data." + npc + ".p"),
+                    (float) file.getDouble("npc_data." + npc + ".yaw"));
+            String name = file.getString("npc_data." + npc + ".name");
+            GameProfile gameProfile = new GameProfile(UUID.randomUUID(), ChatColor.DARK_AQUA + "" + ChatColor.BOLD + name);
+            gameProfile.getProperties().put("textures", new Property("textures", file.getString("npc_data." + npc + ".text"),
+                    file.getString("npc_data." + npc + ".signature")));
+            loadNPC(location, gameProfile);
+        });
+    }
+
+    public static void stopNPC() {
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            new PacketReader().unInject(p);
+            for (EntityPlayer npc : getNPCs()) {
+                removeNPC(p, npc);
+            }
+        }
     }
 
     private static String[] getSkin(Player p, String name) {

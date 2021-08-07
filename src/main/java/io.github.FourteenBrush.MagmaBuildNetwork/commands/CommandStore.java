@@ -14,6 +14,8 @@ public class CommandStore extends BaseCommand {
     @Override
     protected boolean execute(@NotNull String[] args) {
 
+        if (isConsole) return true;
+
         if(args.length > 0) {
             String message = Utils.getFinalArg(args, 0);
             ItemStack itemStack = p.getInventory().getItemInMainHand();

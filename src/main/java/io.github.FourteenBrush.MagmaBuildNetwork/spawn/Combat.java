@@ -11,11 +11,12 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
+import java.util.UUID;
 
 public class Combat implements Listener {
 
     private static final Main plugin = Main.getInstance();
-    private static final HashMap<Player, BukkitTask> pvp = new HashMap<>();
+    private static final HashMap<UUID, BukkitTask> pvp = new HashMap<>();
 
     @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
@@ -37,23 +38,25 @@ public class Combat implements Listener {
     }
 
     public static boolean containsKey(Player p) {
-        return pvp.containsKey(p);
+        return pvp.containsKey(p.getUniqueId());
     }
 
     public static void remove(Player p) {
-        if (pvp.containsKey(p)) {
-            if (pvp.get(p).isSync())
-                (pvp.get(p)).cancel();
-            pvp.remove(p);
+        UUID uuid = p.getUniqueId();
+        if (pvp.containsKey(uuid)) {
+            if (pvp.get(uuid).isSync())
+                (pvp.get(uuid)).cancel();
+            pvp.remove(uuid);
         }
     }
 
     private void pvp(final Player p) {
-        if (pvp.containsKey(p) && pvp.get(p).isSync())
-            pvp.get(p).cancel();
-        pvp.put(p, (new BukkitRunnable() {
+        UUID uuid = p.getUniqueId();
+        if (pvp.containsKey(uuid) && pvp.get(uuid).isSync())
+            pvp.get(uuid).cancel();
+        pvp.put(uuid, (new BukkitRunnable() {
             public void run() {
-                pvp.remove(p);
+                pvp.remove(uuid);
             }
         }).runTaskLater(plugin, 160L));
     }

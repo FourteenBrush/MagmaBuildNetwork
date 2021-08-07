@@ -55,44 +55,11 @@ requires_placeholderAPI: false
 requires_luckperms: false
 
 # +--------------------------------------------------------------------------+ #
-# SCOREBOARD
-# This section stores data about the scoreboard ingame
+# SPAWN
+# This section stores config options for the spawn command (homes itself are saved in the data.yml file)
 
-# Do you want to use the scoreboard
-# NOTE: this will override all the scoreboards
-use_scoreboard: true
-# Configure the scoreboard layout
-scoreboards:
-  1:
-    enabled: true
-    title: ""
-    scores:
-      13:
-        - ""
-      12:
-        - ""
-      11:
-        - ""
-      10:
-        - ""
-      9:
-        - ""
-      8:
-        - ""
-      7:
-        - ""
-      6:
-        - ""
-      5:
-        - ""
-      4:
-        - ""
-      3:
-        - ""
-      2:
-        - ""
-      1:
-        - ""
+# Avoid a player teleporting to his home when it's not safe there
+unSafePlayerTeleport: true
 
 # +--------------------------------------------------------------------------+ #
 # NPC DATA

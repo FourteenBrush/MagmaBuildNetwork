@@ -1,8 +1,10 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.commands;
 
-import io.github.FourteenBrush.MagmaBuildNetwork.inventory.StatsGui;
+import io.github.FourteenBrush.MagmaBuildNetwork.gui.PrefixGui;
+import io.github.FourteenBrush.MagmaBuildNetwork.gui.ShopGui;
+import io.github.FourteenBrush.MagmaBuildNetwork.gui.StatsGui;
+import io.github.FourteenBrush.MagmaBuildNetwork.gui.TrailsGui;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.NPC;
-import io.github.FourteenBrush.MagmaBuildNetwork.inventory.TrailsGui;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
@@ -31,97 +33,130 @@ public class PlayerCommand implements CommandExecutor {
             return true;
         }
 
-        if (cmd.getName().equalsIgnoreCase("ignite")) {
-            if (args.length < 1) {
-                Utils.message(p, "§cPlease specify a player to ignite!");
-                return true;
-            }
-            Player target = Bukkit.getPlayer(args[0]);
-            if (!Utils.isPlayerOnline(p, args[0])) {
-                return true;
-            }
-            // Sets the player on fire for 500 ticks (there are ~20 ticks in second, so 25 seconds total - that will possibly kill him).
-            target.setFireTicks(500);
-            Utils.message(p, "§aPlayer " + target.getName() + " §aignited!");
-            return true;
-        } else if (cmd.getName().equalsIgnoreCase("freeze")) {
-            if (args.length < 1) {
-                Utils.message(p, "§cPlease specify a player to freeze!");
-                return true;
-            }
-            Player target = Bukkit.getPlayer(args[0]);
-            if (!Utils.isPlayerOnline(p, args[0])) {
-                return true;
-            }
-            if (PlayerCommand.getFrozenPlayers().contains(target.getUniqueId())) {
-                PlayerCommand.getFrozenPlayers().remove(target.getUniqueId());
-                Utils.message(p, "§aPlayer " + target.getName() + " §aunfrozen!");
-            } else {
-                PlayerCommand.getFrozenPlayers().add(target.getUniqueId());
-                Utils.message(p, "§aPlayer " + target.getName() + " §afrozen!");
-            }
-            return true;
-        } else if (cmd.getName().equalsIgnoreCase("heal")) {
-            if (args.length < 1) {
-                heal(p, p);
-                return true;
-            }
-            Player target = Bukkit.getServer().getPlayer(args[0]);
-            if (!Utils.isPlayerOnline(p, args[0])) {
-                return true;
-            }
-            // Heal the player
-            heal(target, p);
-            return true;
-        } else if (cmd.getName().equalsIgnoreCase("invsee")) {
-            if (args.length < 1) {
-                Utils.message(p, "§cPlease specify a player!");
-                return true;
-            }
-            Player target = Bukkit.getServer().getPlayer(args[0]);
-            if (!Utils.isPlayerOnline(p, args[0])) {
-                return true;
-            }
-            p.openInventory(target.getInventory());
-
-        } else if (cmd.getName().equalsIgnoreCase("stats")) {
-            p.openInventory(new StatsGui(p).createInv());
-
-        } else if (cmd.getName().equalsIgnoreCase("spawnnpc")) {
-            if (args.length == 0) {
-                NPC.createNPC(p, "NPC");
-                Utils.message(p, "§aDefault NPC generated!");
-                return true;
-            } else if (args.length > 12) {
-                Utils.message(p, "§cDue to limitations, the name cannot be longer than 14 characters!");
-                return true;
-            }
-            NPC.createNPC(p, args[0]);
-            Utils.message(p, "§aNPC created!");
-            return true;
-        } else if (cmd.getName().equalsIgnoreCase("trails")) {
-            if (!Utils.isAuthorized(p, "basic")) {
-                Utils.messageNoPermission(p);
-                return true;
-            }
-            p.openInventory(new TrailsGui().createInv());
-            return true;
+        switch(cmd.getName().toLowerCase()) {
+            case "ignite":
+                ignite(p, args);
+                break;
+            case "heal":
+                heal(p, args);
+                break;
+            case "freeze":
+                freeze(p, args);
+                break;
+            case "invsee":
+                invsee(p, args);
+                break;
+            case "stats":
+                stats(p, args);
+                break;
+            case "spawnnpc":
+                spawnNPC(p, args);
+                break;
+            case "trails":
+                trails(p, args);
+                break;
+            case "shop":
+                shop(p, args);
+                break;
+            case "prefix":
+                prefix(p, args);
+                break;
         }
         return true;
+    }
+
+    private static void ignite(Player p, String[] args) {
+        if (args.length < 1) {
+            Utils.message(p, "§cPlease specify a player to ignite!");
+            return;
+        }
+        Player target = Bukkit.getPlayer(args[0]);
+        if (!Utils.isPlayerOnline(p, target)) {
+            return;
+        }
+        target.setFireTicks(500);
+        Utils.message(p, "§aPlayer " + target.getName() + " §aignited!");
+    }
+
+    private static void heal(Player p, String[] args) {
+        if (args.length < 1 ) {
+            p.setHealth(p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getDefaultValue());
+            p.setFoodLevel(20);
+            p.setFireTicks(0);
+            Utils.message(p, "§aHealed" + p.getName());
+        } else {
+            Player target = Bukkit.getPlayer(args[0]);
+            if (!Utils.isPlayerOnline(p, target)) {
+                return;
+            }
+            target.setHealth(p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getDefaultValue());
+            target.setFoodLevel(20);
+            target.setFireTicks(0);
+            Utils.message(target, "§aHealed " + p.getName());
+        }
     }
 
     public static Set<UUID> getFrozenPlayers() {
         return frozenPlayers;
     }
 
-    private static void heal(Player p, Player sender) {
-        p.setHealth(p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getDefaultValue());
-        p.setFoodLevel(20);
-        p.setFireTicks(0);
-        if (p != sender) {
-            Utils.message(p, "§aHealed by " + sender.getName());
+    private static void freeze(Player p, String[] args) {
+        if (args.length < 1) {
+            getFrozenPlayers().add(p.getUniqueId());
+            Utils.message(p, "§aYou just froze yourself!");
+            return;
         }
-        Utils.message(p, "§aHealed " + p.getName());
+        Player target = Bukkit.getPlayer(args[0]);
+        if (!Utils.isPlayerOnline(p, target)) {
+            return;
+        }
+        if (PlayerCommand.getFrozenPlayers().remove(target.getUniqueId())) {
+            Utils.message(p, "§aPlayer " + target.getName() + " §aunfrozen!");
+        } else {
+            PlayerCommand.getFrozenPlayers().add(target.getUniqueId());
+            Utils.message(p, "§aPlayer " + target.getName() + " §afrozen!");
+        }
+    }
+
+    private static void invsee(Player p, String[] args) {
+        if (args.length < 1) {
+            Utils.message(p, "§cPlease specify a player!");
+            return;
+        }
+        Player target = Bukkit.getPlayer(args[0]);
+        if (!Utils.isPlayerOnline(p, target)) {
+            return;
+        }
+        p.openInventory(target.getInventory());
+    }
+
+    private static void stats(Player p, String[] args) {
+        new StatsGui(p).open(p);
+    }
+
+    private static void spawnNPC(Player p, String[] args) {
+        if (args.length < 1) {
+            NPC.createNPC(p, "NPC");
+            Utils.message(p, "§aDefault NPC generated!");
+            return;
+        } else if (args.length > 12) {
+            Utils.message(p, "§cDue to limitations, the name cannot be longer than 14 characters!");
+            return;
+        }
+        NPC.createNPC(p, Utils.getFinalArg(args, 0));
+        Utils.message(p, "§aNPC created!");
+    }
+
+    private static void prefix(Player p, String[] args) {
+        new PrefixGui(p).open(p);
+    }
+
+    private static void trails(Player p, String[] args) {
+        new TrailsGui(p).open(p);
+    }
+
+    private static void shop(Player p, String[] args) {
+        new ShopGui().open(p);
     }
 
     public static int getTotalMinedBlocks(Player p) {

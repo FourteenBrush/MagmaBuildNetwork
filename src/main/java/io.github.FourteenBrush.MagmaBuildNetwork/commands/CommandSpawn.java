@@ -2,9 +2,11 @@ package io.github.FourteenBrush.MagmaBuildNetwork.commands;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.spawn.Spawn;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,6 +33,11 @@ public class CommandSpawn extends BaseCommand {
                 Utils.message(p, "§aSpawn successfully set!");
                 return true;
             }
+        } else if (args.length == 1) {
+            Player target = Bukkit.getPlayer(args[0]);
+            if (!Utils.isPlayerOnline(p, target)) return true;
+            Spawn.spawn(target);
+            Utils.message(p, "§aSuccessfully teleported " + target.getName() + " to spawn");
         }
         return true;
     }
@@ -40,7 +47,8 @@ public class CommandSpawn extends BaseCommand {
 
         if (args.length == 1) {
             if (Utils.isAuthorized(p, "admin"))
-                arguments.add("set");
+                if (args[0].startsWith("s"))
+                    arguments.add("set");
             return StringUtil.copyPartialMatches(args[0], arguments, new ArrayList<>());
         }
         return null;

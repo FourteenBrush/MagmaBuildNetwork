@@ -16,7 +16,7 @@ public class Effects {
     private int taskID;
     private final Player player;
 
-    private static Map<UUID, Integer> TRAILS = new HashMap<UUID, Integer>();
+    private static final Map<UUID, Integer> TRAILS = new HashMap<>();
     private final UUID uuid;
 
     public Effects(Player player, UUID uuid) {

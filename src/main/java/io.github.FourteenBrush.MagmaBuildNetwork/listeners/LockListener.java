@@ -32,9 +32,9 @@ public class LockListener implements Listener {
         if (!canLock(block)) return;
 
         Player p = event.getPlayer();
-        String s = block.getX() + "_" + block.getY() + "_" + block.getZ();
-        NamespacedKey keyOwner = new NamespacedKey(plugin, s);
+        NamespacedKey keyOwner = new NamespacedKey(plugin, block.getX() + "_" + block.getY() + "_" + block.getZ());
         PersistentDataContainer container = block.getLocation().getChunk().getPersistentDataContainer();
+        // todo add support for adding multiple people to a lock
 
         final String[] data = keyOwner.getKey().split("_");
         final String owner = container.get(keyOwner, PersistentDataType.STRING);
@@ -45,7 +45,7 @@ public class LockListener implements Listener {
             // trying to remove lock
             if (cannotOpen(owner, p)) {
                 event.setCancelled(true);
-                Utils.message(p, "§cYou cannot open this!");
+                Utils.message(p, "§cYou cannot do this!");
                 return;
             }
             event.setCancelled(true);
@@ -76,7 +76,7 @@ public class LockListener implements Listener {
 
     @EventHandler
     public void onChunkUnload(ChunkUnloadEvent event) {
-        PersistentDataContainer container = event.getChunk().getPersistentDataContainer();
+       /* PersistentDataContainer container = event.getChunk().getPersistentDataContainer();
         Block block;
         for (NamespacedKey key : container.getKeys()) {
             if (key.getNamespace().equalsIgnoreCase(plugin.getName())) {
@@ -89,7 +89,8 @@ public class LockListener implements Listener {
                     container.remove(key);
                 }
             }
-        }
+        }*/
+        checkLockStillValid(event.getChunk());
     }
 
     public static boolean cannotOpen(String owner, Player opener) {
