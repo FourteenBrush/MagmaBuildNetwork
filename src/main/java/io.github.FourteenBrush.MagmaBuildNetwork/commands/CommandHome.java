@@ -17,8 +17,8 @@ import java.util.*;
 public class CommandHome extends BaseCommand {
 
     private int homesLimit;
-    private final FileConfiguration homesFile = ConfigManager.getHomes();
-    private final Map<UUID, Home> homes = new HashMap<>(); // todo
+    private final static FileConfiguration homesFile = ConfigManager.getHomes();
+    private final static Map<UUID, Home> homes = new HashMap<>(); // todo
 
     @Override
     protected boolean execute(@NotNull String[] args) {
@@ -29,7 +29,7 @@ public class CommandHome extends BaseCommand {
             homesLimit = Utils.isAuthorized(p, "admin") ? 5 : 2;
             setHome(args[1], p.getLocation());
             return true;
-        } else if (args.length > 1 && args[0].equalsIgnoreCase("remove")) {
+        } else if (args.length > 1 && (args[0].equalsIgnoreCase("remove") || args[0].equalsIgnoreCase("delete"))) {
             removeHome(p, args[1]);
             return true;
         } else if (args.length > 0 && args[0].equalsIgnoreCase("list")) {
@@ -53,16 +53,17 @@ public class CommandHome extends BaseCommand {
         if (hasHome(p, name)) {
             Utils.message(p, "§cYou already have a home with that name, please try again!");
             return;
-        } else if (hasAtleastOneHome(p) && hasLimitReached(p)) {
+        } else if (hasLimitReached(p)) {
             Utils.message(p, "§cYou have reached the maximum amount of homes, please delete one first!");
             return;
         }
-        homes.put(p.getUniqueId(), new Home(name, p.getLocation()));
+        homes.put(p.getUniqueId(), new Home(name, p.getUniqueId(), p.getLocation()));
+        String temp = name;
         name = "homes." + p.getUniqueId() + "." + name;
         homesFile.set(name + ".playerName", p.getName());
         homesFile.set(name + ".location", l);
         ConfigManager.saveConfig();
-        Utils.message(p, String.format("§aSuccessfully set your new home! [%s]", name));
+        Utils.message(p, String.format("§aSuccessfully set your new home! [%s]", temp));
     }
 
     private void removeHome(Player p, String name) {
@@ -70,26 +71,23 @@ public class CommandHome extends BaseCommand {
             homesFile.set("homes." + p.getUniqueId() + "." + name, null);
             ConfigManager.saveConfig();
             Utils.message(p, "§aRemoved " + name);
-        } else {
-            Utils.message(p, new String[]{"§cHome not found!", "§cYou can use /home list to see all your homes"});
+            return;
         }
+        Utils.message(p, new String[]{"§cHome not found!", "§cYou can use /home list to see all your homes"});
     }
 
     private void getHomes(Player p) {
         if (hasAtleastOneHome(p)) {
-            List<String> homes = new ArrayList<>(homesFile.getConfigurationSection("homes." + p.getUniqueId()).getKeys(false));
-            if (!homes.isEmpty()) {
-                Utils.message(p, "§f--- §9Homes §f---");
-                homes.forEach(home -> {
-                    Utils.message(p, home);
-                    Utils.message(p, homesFile.getConfigurationSection("homes." + p.getUniqueId() + "." + home).getValues(true).toString());
-                });
-            } else {
-                Utils.message(p, "§cNo homes found!");
-            }
-        } else {
-            Utils.message(p, "§cYou have no homes");
+            String path = "homes." + p.getUniqueId();
+            List<String> homes = new ArrayList<>(homesFile.getConfigurationSection(path).getKeys(false));
+            Utils.message(p, "§f--- §9Homes §f---");
+            homes.forEach(home -> {
+                Location loc = (Location) homesFile.get(path + "." + home + ".location");
+                Utils.message(p, new String[] {"§f" + home, String.format("x: %s, y: %s, z: %s", (int) loc.getX(), (int) loc.getY(), (int) loc.getZ())});
+            });
+            return;
         }
+        Utils.message(p, "§cYou have no homes");
     }
 
 
@@ -109,18 +107,21 @@ public class CommandHome extends BaseCommand {
     }
 
     private boolean hasAtleastOneHome(Player p) {
-        return homesFile.contains("homes." + p.getUniqueId());
+        return homesFile.contains("homes." + p.getUniqueId()) &&
+                homesFile.getConfigurationSection("homes." + p.getUniqueId()).getKeys(false).size() > 0;
     }
 
     private boolean hasLimitReached(Player player) {
-        return homesFile.getConfigurationSection("homes." + player.getUniqueId()).getKeys(false).size() >= homesLimit;
+        if (hasAtleastOneHome(p)) {
+            return homesFile.getConfigurationSection("homes." + player.getUniqueId()).getKeys(false).size() >= homesLimit;
+        }
+        return false;
     }
 
     private @Nullable Location getLocation(Player p, String name) {
         Location loc = null;
         if (hasHome(p, name)) {
-            name = "homes." + p.getUniqueId() + "." + name;
-            loc = homesFile.getLocation(name);
+            loc = (Location) homesFile.get("homes." + p.getUniqueId() + "." + name + ".location");
         } else {
             Utils.message(p, new String[] {"§cHome not found!", "§cYou can use /home list to see all your homes"});
         }
@@ -128,7 +129,7 @@ public class CommandHome extends BaseCommand {
     }
 
     @Override
-    protected @Nullable List<String> tabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
+    protected List<String> tabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
 
         if (args.length == 1) {
             arguments.addAll(Arrays.asList("set", "remove", "list", "tp", "help"));

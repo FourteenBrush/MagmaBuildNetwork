@@ -18,7 +18,7 @@ public abstract class GuiCreator {
     public static final Map<UUID, UUID> openInventories = new HashMap<>(); // player id and gui id
 
     private final UUID uuid;
-    private final Inventory inv;
+    protected Inventory inv;
     private final Map<Integer, GuiAction> actions;
 
     public GuiCreator(String invName, int rows) {
@@ -81,5 +81,11 @@ public abstract class GuiCreator {
     protected ItemStack createItem(Material material, String displayName, List<String> lore) {
         ItemBuilder itemBuilder = new ItemBuilder(material);
         return itemBuilder.build(material, displayName, lore);
+    }
+
+    protected ItemStack createItem(Material material, int amount, String displayName, List<String> lore) {
+        ItemStack itemStack = createItem(material, displayName, lore);
+        itemStack.setAmount(amount);
+        return itemStack;
     }
 }

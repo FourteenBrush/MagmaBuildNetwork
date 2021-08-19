@@ -23,34 +23,31 @@ public class CommandSpawn extends BaseCommand {
         if (isConsole) return true;
 
         if (args.length < 1) {
-            Spawn.spawn(p);
-        }
-        if (args.length == 1 && args[0].equalsIgnoreCase("set")) {
+            Spawn.spawn(p, p);
+        }else if (args.length == 1 && args[0].equalsIgnoreCase("set")) {
             if (Utils.isAuthorized(p, "admin")) {
                 Location loc = p.getLocation();
                 Spawn.setLocation(loc);
-                p.getWorld().setSpawnLocation((int) loc.getX(), (int) loc.getY(), (int) loc.getZ());
+                p.getWorld().setSpawnLocation(loc);
                 Utils.message(p, "§aSpawn successfully set!");
                 return true;
             }
         } else if (args.length == 1) {
             Player target = Bukkit.getPlayer(args[0]);
             if (!Utils.isPlayerOnline(p, target)) return true;
-            Spawn.spawn(target);
-            Utils.message(p, "§aSuccessfully teleported " + target.getName() + " to spawn");
+            Spawn.spawn(p, target);
         }
         return true;
     }
 
     @Override
-    protected @Nullable List<String> tabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
+    protected List<String> tabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
 
         if (args.length == 1) {
-            if (Utils.isAuthorized(p, "admin"))
-                if (args[0].startsWith("s"))
-                    arguments.add("set");
+            if (Utils.isAuthorized(p, "admin") && args[0].startsWith("set"))
+                arguments.add("set");
             return StringUtil.copyPartialMatches(args[0], arguments, new ArrayList<>());
         }
-        return null;
+        return new ArrayList<>();
     }
 }

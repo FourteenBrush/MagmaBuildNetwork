@@ -1,7 +1,6 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.commands;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.gui.TradeGui;
-import io.github.FourteenBrush.MagmaBuildNetwork.listeners.PlayerListener;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -10,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class CommandDebug extends BaseCommand {
@@ -22,8 +22,6 @@ public class CommandDebug extends BaseCommand {
 
         if (args.length == 1 && args[0].equalsIgnoreCase("tradegui")) {
             new TradeGui().open(p);
-        } else if (args.length == 1 && args[0].equalsIgnoreCase("spawnitems")) {
-            PlayerListener.giveRespawnItems(p);
         } else if (args.length == 1 && args[0].equalsIgnoreCase("displayname")) {
             Utils.message(p, "Your displayName is " + p.getDisplayName());
         }
@@ -31,14 +29,12 @@ public class CommandDebug extends BaseCommand {
     }
 
     @Override
-    protected @Nullable List<String> tabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
+    protected List<String> tabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
 
             if (args.length == 1) {
-                arguments.add("tradegui");
-                arguments.add("spawnitems");
-                arguments.add("displayname");
+                arguments.addAll(Arrays.asList("tradegui", "displayname"));
                 return StringUtil.copyPartialMatches(args[0], arguments, new ArrayList<>());
             }
-            return null;
+            return new ArrayList<>();
     }
 }

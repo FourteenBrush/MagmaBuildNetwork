@@ -1,6 +1,7 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.dependencies;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import net.luckperms.api.model.group.Group;
 import org.bukkit.entity.Player;
 
@@ -10,9 +11,10 @@ public class LP {
 
     private static final ArrayList<String> groups = new ArrayList<>();
     private static final Map<String, String> prefixes = new HashMap<>(); //group, prefix
+    private static boolean enabled = Utils.isPluginEnabled("LuckPerms");
 
     private static void loadGroups() {
-        if (!Main.getLPActivated()) return;
+        if (!enabled) return;
         groups.clear();
         Set<Group> groupsSet = Main.getApi().getGroupManager().getLoadedGroups();
         for (Group group : groupsSet) {
@@ -20,8 +22,8 @@ public class LP {
         }
     }
 
-    public static Map<String, String> loadPrefixes(Player p) {
-        if (!Main.getLPActivated()) return null;
+    public static Map<String, String> loadPrefixes() {
+        if (!enabled) return null;
         loadGroups();
         prefixes.clear();
         for (String groupName : groups) {
@@ -39,7 +41,7 @@ public class LP {
     }
 
     public static List<String> getPlayerGroups(Player player) {
-        if (!Main.getLPActivated()) return null;
+        if (!enabled) return null;
         List<String> groups = new ArrayList<>();
         for (Group g : Main.getApi().getGroupManager().getLoadedGroups()) {
             if (player.hasPermission("group." + g)) {

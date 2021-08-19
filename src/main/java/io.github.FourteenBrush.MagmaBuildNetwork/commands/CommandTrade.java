@@ -128,19 +128,13 @@ public class CommandTrade extends BaseCommand {
             PlayerInventory targetInv = target.getInventory();
             for (int i : placeableSlots) {
                 // transfer from sender to target
-                giveOrDropFor(sender, targetTradeItems.get(i));
+                Utils.giveOrDropFor(sender, targetTradeItems.get(i));
                 targetInv.removeItem(targetTradeItems.get(i));
                 // transfer from target to sender
-                giveOrDropFor(target, senderInv.getItem(i));
+                Utils.giveOrDropFor(target, senderInv.getItem(i));
                 senderInv.removeItem(senderTradeItems.get(i));
             }
         }, 100);
-    }
-
-    public void giveOrDropFor(final Player target, final ItemStack... items) {
-        final World world = target.getWorld();
-        final Location playerLoc = target.getLocation();
-        target.getInventory().addItem(items).values().forEach(overFlownItem -> world.dropItemNaturally(playerLoc, overFlownItem));
     }
 
     public TradeGui getSenderGui() {
@@ -164,15 +158,12 @@ public class CommandTrade extends BaseCommand {
     }
 
     @Override
-    protected @Nullable List<String> tabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
+    protected List<String> tabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
 
         if (args.length == 1) {
-            arguments.add("help");
-            arguments.add("accept");
-            arguments.add("request");
-            arguments.add("decline");
+            arguments.addAll(Arrays.asList("help", "accept", "request", "decline"));
             return StringUtil.copyPartialMatches(args[0], arguments, new ArrayList<>());
         }
-        return null;
+        return new ArrayList<>();
     }
 }

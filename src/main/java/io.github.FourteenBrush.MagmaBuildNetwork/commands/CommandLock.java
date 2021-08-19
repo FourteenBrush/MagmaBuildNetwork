@@ -61,17 +61,14 @@ public class CommandLock extends BaseCommand {
     }
 
     @Override
-    protected @Nullable List<String> tabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
+    protected List<String> tabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
 
         if (args.length == 1) {
-            arguments.add("set");
-            arguments.add("remove");
-            arguments.add("cancel");
-            arguments.add("help");
+            arguments.addAll(Arrays.asList("set", "remove", "cancel", "help"));
             if (Utils.isAuthorized(p, "admin"))
                 arguments.add("bypass");
             return StringUtil.copyPartialMatches(args[0], arguments, new ArrayList<>());
         }
-        return null;
+        return new ArrayList<>();
     }
 }

@@ -36,30 +36,7 @@ teleport_to_spawn_on:
   join: false
   respawn: true
 disable_spawn_command_in_pvp: true
-spawn:
-  world:
-  x:
-  y:
-  z:
-  yaw:
-  pitch:
-
-# +--------------------------------------------------------------------------+ #
-# DEPENDENCIES
-# This section stores config options about dependencies like Vault and PlaceholderAPI
-
-# Does this plugin requires this plugins in order to function
-# Note: only change this to true when you want to use one of their features
-requires_vault: false
-requires_placeholderAPI: false
-requires_luckperms: false
-
-# +--------------------------------------------------------------------------+ #
-# SPAWN
-# This section stores config options for the spawn command (homes itself are saved in the data.yml file)
-
-# Avoid a player teleporting to his home when it's not safe there
-unSafePlayerTeleport: true
+# The spawn is configurated in the data.yml
 
 # +--------------------------------------------------------------------------+ #
 # NPC DATA

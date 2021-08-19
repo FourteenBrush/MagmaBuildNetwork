@@ -1,10 +1,15 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.utils;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +21,10 @@ public class Utils {
 
     private static final Main plugin = Main.getInstance();
     private static final String name = plugin.getName();
+
+    public static boolean isPluginEnabled(String plugin) {
+        return Bukkit.getServer().getPluginManager().isPluginEnabled(plugin);
+    }
 
     public static boolean verifyIfIsAPlayer(CommandSender sender) {
         if (!(sender instanceof Player)) {
@@ -40,6 +49,12 @@ public class Utils {
             output.add(colorize(s));
         }
         return output;
+    }
+
+    public static void giveOrDropFor(final Player target, final ItemStack... items) {
+        final World world = target.getWorld();
+        final Location playerLoc = target.getLocation();
+        target.getInventory().addItem(items).values().forEach(overFlownItem -> world.dropItemNaturally(playerLoc, overFlownItem));
     }
 
     private static void log(LogLevel level, String message) {
@@ -110,7 +125,7 @@ public class Utils {
 
     public static boolean isPlayerOnline(CommandSender sender, Player target) {
         if (!Bukkit.getOnlinePlayers().contains(target)) {
-            message(sender, "§c" + target.getName() + " §cis currently not online!");
+            message(sender, "§c" + target + " §cis currently not online!");
             return false;
         }
         return true;
@@ -160,6 +175,10 @@ public class Utils {
             return;
         }
         Bukkit.getServer().broadcastMessage(message);
+    }
+
+    public static void sendActionBar(Player player, String message) {
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
     }
 
     private enum LogLevel {

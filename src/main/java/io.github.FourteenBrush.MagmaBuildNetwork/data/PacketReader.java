@@ -34,8 +34,7 @@ public class PacketReader {
         channel.pipeline().addAfter("decoder", "PacketInjector", new MessageToMessageDecoder<PacketPlayInUseEntity>() {
 
             @Override
-            protected void decode(ChannelHandlerContext channelHandlerContext, PacketPlayInUseEntity packet, List<Object> arg)
-                    throws Exception {
+            protected void decode(ChannelHandlerContext channelHandlerContext, PacketPlayInUseEntity packet, List<Object> arg) {
                 arg.add(packet);
                 readPacket(player, packet);
             }

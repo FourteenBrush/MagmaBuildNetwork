@@ -55,19 +55,19 @@ public class ConfigManager {
         }
     }
 
-    public static void saveConfig(String file) {
+    public static void saveConfig(FileType file) {
         try {
             switch (file) {
-                case "config":
+                case CONFIG:
                     config.save(configFile);
                     break;
-                case "data":
+                case DATA:
                     data.save(dataFile);
                     break;
-                case "messages":
+                case MESSAGES:
                     messages.save(messagesFile);
                     break;
-                case "homes":
+                case HOMES:
                     homes.save(homesFile);
                     break;
             }
@@ -76,7 +76,7 @@ public class ConfigManager {
         }
     }
 
-    public static FileConfiguration getConfigConfig() {
+    public static FileConfiguration getConfig() {
         if (config == null) {
             createFiles();
         }
@@ -102,5 +102,9 @@ public class ConfigManager {
             createFiles();
         }
         return homes;
+    }
+
+    public enum FileType {
+        CONFIG, DATA, MESSAGES, HOMES
     }
 }

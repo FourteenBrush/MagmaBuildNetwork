@@ -7,8 +7,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public abstract class BaseCommand implements CommandExecutor, TabCompleter {
 
@@ -17,6 +16,7 @@ public abstract class BaseCommand implements CommandExecutor, TabCompleter {
     protected CommandSender sender = null;
     protected Player p = null;
     protected final List<String> arguments = new ArrayList<>(); // tabComplete
+    protected final Map<UUID, Long> cooldowns = new HashMap<>();
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
@@ -51,6 +51,18 @@ public abstract class BaseCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    public boolean checkCooldown(int secondsIfNotDefault) { // todo
+        long time = secondsIfNotDefault == -1 ? 5 : secondsIfNotDefault;
+        if (cooldowns.containsKey(p.getUniqueId())) {
+            if (cooldowns.get(p.getUniqueId()) > System.currentTimeMillis()) {
+                Utils.message(p, "§cPlease wait " + (cooldowns.get(p.getUniqueId()) - System.currentTimeMillis()) / 1000 + " more seconds!");
+                return true;
+            }
+        }
+        cooldowns.put(p.getUniqueId(), System.currentTimeMillis() / 1000 + time);
+        return false;
+    }
+
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
 
@@ -64,4 +76,9 @@ public abstract class BaseCommand implements CommandExecutor, TabCompleter {
     }
 
     protected abstract boolean execute(@NotNull String[] args);
+
+    protected boolean messageNoConsole() {
+        Utils.message(p, Utils.colorize("&cThe console cannot execute this!"));
+        return true;
+    }
 }

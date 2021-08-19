@@ -29,11 +29,9 @@ public class Combat implements Listener {
         Player p = (Player) event.getEntity();
 
         if (event.getDamager() instanceof Player) {
-            pvp(p);
-            pvp((Player) event.getDamager());
+            pvp(p, (Player) event.getDamager());
         } else if (event.getDamager() instanceof Arrow && ((Arrow) event.getDamager()).getShooter() instanceof Player) {
-            pvp(p);
-            pvp((Player)((Arrow) event.getDamager()).getShooter());
+            pvp(p, (Player)((Arrow) event.getDamager()).getShooter());
         }
     }
 
@@ -41,8 +39,7 @@ public class Combat implements Listener {
         return pvp.containsKey(p.getUniqueId());
     }
 
-    public static void remove(Player p) {
-        UUID uuid = p.getUniqueId();
+    public static void remove(UUID uuid) {
         if (pvp.containsKey(uuid)) {
             if (pvp.get(uuid).isSync())
                 (pvp.get(uuid)).cancel();
@@ -59,5 +56,10 @@ public class Combat implements Listener {
                 pvp.remove(uuid);
             }
         }).runTaskLater(plugin, 160L));
+    }
+
+    private void pvp(Player player, Player player1) {
+        pvp(player);
+        pvp(player1);
     }
 }

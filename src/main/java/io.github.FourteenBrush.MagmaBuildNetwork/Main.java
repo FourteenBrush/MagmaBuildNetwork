@@ -2,7 +2,6 @@ package io.github.FourteenBrush.MagmaBuildNetwork;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.*;
 import io.github.FourteenBrush.MagmaBuildNetwork.data.ConfigManager;
-import io.github.FourteenBrush.MagmaBuildNetwork.data.ImageManager;
 import io.github.FourteenBrush.MagmaBuildNetwork.data.PacketReader;
 import io.github.FourteenBrush.MagmaBuildNetwork.database.MySQL;
 import io.github.FourteenBrush.MagmaBuildNetwork.listeners.InventoryListener;
@@ -29,15 +28,13 @@ public class Main extends JavaPlugin {
     private static Main instance;
 
     public MySQL mySQL;
-    public static LuckPerms api = null;
-    public static Economy eco = null;
-    public static Chat chat = null;
+    private static LuckPerms api = null;
+    private static Economy eco = null;
+    private static Chat chat = null;
 
     @Override
     public void onLoad() {
         instance = this;
-        mySQL = new MySQL();
-        ConfigManager.createFiles();
     }
 
     @Override
@@ -45,22 +42,22 @@ public class Main extends JavaPlugin {
         startup();
         commandsSetup();
         eventsSetup();
-        Utils.logInfo(new String[] {"Version " + getDescription().getVersion() + " is activated!", "Done!"});
+        Utils.logInfo(new String[]{"Version " + getDescription().getVersion() + " is activated!", "Done!"});
     }
 
     @Override
     public void onDisable() {
-        Utils.logInfo(new String[] {"Stopping...", "Goodbye!"});
+        Utils.logInfo(new String[]{"Stopping...", "Goodbye!"});
+        CommandManager.onDisable();
         NPC.stopNPC();
-        if (!CommandSafechest.getMenus().isEmpty()) {
-            CommandSafechest.saveInventories();
-        }
         mySQL.disconnect();
         instance = null;
     }
 
     private void startup() {
         Utils.logInfo("Initializing...");
+        ConfigManager.createFiles();
+        mySQL = new MySQL();
         try {
             mySQL.connect();
         } catch (ClassNotFoundException | SQLException e) {
@@ -69,36 +66,27 @@ public class Main extends JavaPlugin {
         if (mySQL.isConnected()) {
             Utils.logInfo("Database connected");
         }
+        CommandManager.onEnable();
         if (!setupEconomy()) {
-            Utils.logWarning(new String[] {"No Vault or economy plugin found!",
-            "This is fine if that's not installed"});
+            Utils.logWarning(new String[]{"No Vault or economy plugin found!",
+                    "This is fine if that's not installed"});
         }
         if (!setupChat()) {
             Utils.logWarning("No Vault plugin found!");
         }
         if (!setupLuckPerms()) {
-            Utils.logWarning(new String[] {"No LuckPerms plugin found!",
-            "This is fine if that's not installed"});
+            Utils.logWarning(new String[]{"No LuckPerms plugin found!",
+                    "This is fine if that's not installed"});
         }
-        if (getConfig().contains("npc_data")) {
-            NPC.loadNPCIntoWorld();
-        }
-        if (getConfig().contains("safe_chests")) {
-            CommandSafechest.loadInventories();
-        }
-        if (Spawn.getLocation() == null) {
+        if (Spawn.getLocation() == null) { // todo debug
             Spawn.setLocation(getServer().getWorlds().get(0).getSpawnLocation());
         }
-        new ImageManager().init();
-        // in case of reload
-        if (isReloading()) {
-            if (!Bukkit.getOnlinePlayers().isEmpty()) {
+        if (!Bukkit.getOnlinePlayers().isEmpty()) {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 new PacketReader().inject(p);
             }
         }
     }
-}
 
     private void commandsSetup() {
         // admin commands
@@ -113,7 +101,6 @@ public class Main extends JavaPlugin {
         getCommand("ignite").setExecutor(new PlayerCommand());
         getCommand("store").setExecutor(new CommandStore());
         getCommand("spawnnpc").setExecutor(new PlayerCommand());
-        getCommand("createmap").setExecutor(new CommandCreatemap());
         getCommand("vanish").setExecutor(new CommandVanish());
         getCommand("invsee").setExecutor(new PlayerCommand());
         getCommand("ban").setExecutor(new CommandBan());
@@ -138,16 +125,12 @@ public class Main extends JavaPlugin {
         getCommand("safechest").setExecutor(new CommandSafechest());
     }
 
-    public static boolean isReloading() {
-        return Bukkit.getWorlds().size() != 0;
-    }
-
     private void eventsSetup() {
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(new PlayerListener(), this);
         pm.registerEvents(new LockListener(), this);
         pm.registerEvents(new InventoryListener(), this);
-        if (getVaultActivated()) {
+        if (Utils.isPluginEnabled("Vault")) {
             pm.registerEvents(new VaultListener(), this);
         }
     }
@@ -175,37 +158,29 @@ public class Main extends JavaPlugin {
     }
 
     private boolean setupLuckPerms() {
-       if (getServer().getPluginManager().getPlugin("LuckPerms") == null) {
-           return false;
-       }
-       RegisteredServiceProvider<LuckPerms> rsp = getServer().getServicesManager().getRegistration(LuckPerms.class);
-       if (rsp != null) {
-           api = rsp.getProvider();
-       }
-       return api != null;
+        if (getServer().getPluginManager().getPlugin("LuckPerms") == null) {
+            return false;
+        }
+        RegisteredServiceProvider<LuckPerms> rsp = getServer().getServicesManager().getRegistration(LuckPerms.class);
+        if (rsp != null) {
+            api = rsp.getProvider();
+        }
+        return api != null;
     }
 
     public static Main getInstance() {
         return instance;
     }
 
-    public static Chat getChat() {
-        return chat;
-    }
-
     public static LuckPerms getApi() {
         return api;
     }
 
-    public static boolean getVaultActivated() {
-        return Bukkit.getServer().getPluginManager().isPluginEnabled("Vault");
+    public static Economy getEco() {
+        return eco;
     }
 
-    public static boolean getGemsEconomyActivated() {
-        return Bukkit.getServer().getPluginManager().isPluginEnabled("GemsEconomy");
-    }
-
-    public static boolean getLPActivated() {
-        return Bukkit.getServer().getPluginManager().isPluginEnabled("LuckPerms");
+    public static Chat getChat() {
+        return chat;
     }
 }

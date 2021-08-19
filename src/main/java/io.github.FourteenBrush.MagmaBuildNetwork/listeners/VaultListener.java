@@ -1,6 +1,7 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.listeners;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
+import io.github.FourteenBrush.MagmaBuildNetwork.dependencies.LP;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
@@ -15,8 +16,11 @@ public class VaultListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        Player p = event.getPlayer();
-        p.setDisplayName(Main.getChat().getPlayerPrefix(p) + " " + p.getName());
+        Player player = event.getPlayer();
+        player.setDisplayName(LP.loadPrefixes().get(
+                Main.getApi().getUserManager().getUser(player.getUniqueId()).getPrimaryGroup())
+                .replaceAll("&", "§") + player.getDisplayName());
+        player.setDisplayName(Main.getChat().getPlayerPrefix(player) + " " + player.getName());
     }
 
     @EventHandler
@@ -24,9 +28,10 @@ public class VaultListener implements Listener {
         if (event.getEntity() instanceof Monster) {
             Player p = event.getEntity().getKiller();
             if (p == null) return; // if mobs died of a natural dead return
-            int amount = new Random().nextInt(10) + 10;
-            Main.eco.depositPlayer(p, amount);
-            Utils.message(p, "§2§l+ $" + amount);
+            Random random = new Random();
+            int amount = random.nextInt(10) + 10;
+            Main.getEco().depositPlayer(p, amount);
+            Utils.message(p, "§a+§b" + amount + " §3coins");
         }
     }
 }

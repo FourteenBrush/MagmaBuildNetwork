@@ -12,24 +12,21 @@ public class TrailsGui extends GuiCreator {
         super("trails", 1);
         effects = new Effects(player, player.getUniqueId());
         setItem(3, createItem(Material.TOTEM_OF_UNDYING, "§eTotem Trail", null), p -> {
-            hasTrail(p);
+            checkTrail(p);
             effects.startTotem();
         });
         setItem(5, createItem(Material.CAMPFIRE, "§cFire Trail", null), p -> {
-            hasTrail(p);
+            checkTrail(p);
             effects.setID(1);
         });
-        setItem(8, createItem(Material.BARRIER, "§cDisable Trails", null), this::hasTrail);
+        setItem(8, createItem(Material.BARRIER, "§cDisable Trails", null), this::checkTrail);
     }
 
-    private boolean hasTrail(Player player) {
+    private void checkTrail(Player player) {
         if (effects.hasID()) {
             effects.endTask();
             effects.removeID();
-            player.closeInventory();
-            return true;
         }
         player.closeInventory();
-        return false;
     }
 }

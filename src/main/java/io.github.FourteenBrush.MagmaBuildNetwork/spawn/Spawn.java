@@ -1,44 +1,23 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.spawn;
 
-import io.github.FourteenBrush.MagmaBuildNetwork.Main;
 import io.github.FourteenBrush.MagmaBuildNetwork.data.ConfigManager;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.MessagesUtils;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class Spawn {
 
-    private static final Main plugin = Main.getInstance();
-
     public static void setLocation(Location l) {
-        plugin.getConfig().set("spawn.world", l.getWorld().getName());
-        plugin.getConfig().set("spawn.x", l.getX());
-        plugin.getConfig().set("spawn.y", l.getY());
-        plugin.getConfig().set("spawn.z", l.getZ());
-        plugin.getConfig().set("spawn.yaw", l.getYaw());
-        plugin.getConfig().set("spawn.pitch", l.getPitch());
-        ConfigManager.saveConfig();
+        ConfigManager.getDataConfig().set("spawn", l);
+        ConfigManager.saveConfig(ConfigManager.FileType.DATA);
     }
 
     public static Location getLocation() {
-        String worldName = plugin.getConfig().getString("spawn.world");
-        if (worldName == null || worldName.isEmpty()) {
-            return null;
-        }
-        World world = Bukkit.getServer().getWorld(worldName);
-        double x = plugin.getConfig().getDouble("spawn.x");
-        double y = plugin.getConfig().getDouble("spawn.y");
-        double z = plugin.getConfig().getDouble("spawn.z");
-        float yaw = plugin.getConfig().getInt("spawn.yaw");
-        float pitch = plugin.getConfig().getInt("spawn.pitch");
-        return new Location(world, x, y, z, yaw, pitch);
+        return (Location) ConfigManager.getDataConfig().get("spawn");
     }
 
-    private static void teleportPlayer(Player p, CommandSender sender, boolean message) {
+    private static void teleportPlayer(Player sender, Player target) {
         Location l = getLocation();
         if (l == null) {
             Utils.logWarning("Spawn is not set yet!");
@@ -47,24 +26,20 @@ public class Spawn {
             if (!l.getChunk().isLoaded()) {
                 l.getChunk().load();
             }
-            p.teleport(l);
-            if (message) {
-                Utils.message(sender, "§aYou have been teleported to spawn!");
-            }
-            if (sender != null) {
-                if (!p.getName().equalsIgnoreCase(sender.getName())) {
-                    Utils.message(sender, MessagesUtils.getMessageTeleportedOtherPlayer()
-                            .replaceAll("%player%", sender.getName()));
-                }
+            target.teleport(l);
+            if (!sender.getName().equalsIgnoreCase(target.getName())) {
+                Utils.message(target, MessagesUtils.getMessageTeleportedOtherPlayer()
+                        .replaceAll("%player%", sender.getName()));
+                Utils.message(sender, "§aSuccessfully teleported " + target.getName() + " to spawn");
             }
         }
     }
 
-    public static void spawn(Player p) {
-        if (Combat.containsKey(p)) {
-            Utils.message(p, MessagesUtils.getMessageDisableSpawnCommandInCombat());
+    public static void spawn(Player sender, Player target) {
+        if (Combat.containsKey(target)) {
+            Utils.message(sender, MessagesUtils.getMessageDisableSpawnCommandInCombat());
         } else {
-            teleportPlayer(p, null, false);
+            teleportPlayer(sender, target);
         }
     }
 }

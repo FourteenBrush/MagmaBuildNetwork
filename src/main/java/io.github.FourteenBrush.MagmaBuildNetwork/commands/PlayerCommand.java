@@ -83,7 +83,7 @@ public class PlayerCommand implements CommandExecutor {
             p.setHealth(p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getDefaultValue());
             p.setFoodLevel(20);
             p.setFireTicks(0);
-            Utils.message(p, "§aHealed" + p.getName());
+            Utils.message(p, "§aHealed " + p.getName());
         } else {
             Player target = Bukkit.getPlayer(args[0]);
             if (!Utils.isPlayerOnline(p, target)) {
@@ -156,7 +156,7 @@ public class PlayerCommand implements CommandExecutor {
     }
 
     private static void shop(Player p, String[] args) {
-        new ShopGui().open(p);
+        new ShopGui(p).open(p);
     }
 
     public static int getTotalMinedBlocks(Player p) {

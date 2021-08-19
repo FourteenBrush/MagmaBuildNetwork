@@ -12,6 +12,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 
 import java.util.UUID;
+
 public class InventoryListener implements Listener {
 
     @EventHandler
@@ -23,10 +24,11 @@ public class InventoryListener implements Listener {
         UUID inventoryUUID = GuiCreator.openInventories.get(player.getUniqueId());
         if (inventoryUUID != null) {
             if (!(event.getInventory() instanceof TradeGui && (CommandTrade.getPlaceableSlots()
-                    .contains(event.getSlot()) || event.getRawSlot() > 54)))
-            event.setCancelled(true);
+                    .contains(event.getSlot()) || event.getRawSlot() > 54))) {
+                event.setCancelled(true);
+            }
             GuiCreator gui = GuiCreator.getInventoriesByUUID().get(inventoryUUID);
-            GuiCreator.GuiAction action = gui.getActions().get(event.getSlot());
+            GuiCreator.GuiAction action = gui.getActions().get(event.getRawSlot());
 
             if (action != null) {
                 action.click(player);
@@ -34,12 +36,12 @@ public class InventoryListener implements Listener {
         }
     }
 
-    @EventHandler
-    public void onClose(InventoryCloseEvent event){
+    @EventHandler()
+    public void onClose(InventoryCloseEvent event) {
         Player player = (Player) event.getPlayer();
         if (event.getInventory() instanceof TradeGui) {
             CommandTrade.cancel();
-        } else if (event.getInventory() instanceof CommandSafechest) {
+        } else if (event.getView().getTitle().endsWith("safechest")) {
             CommandSafechest.getMenus().put(player.getUniqueId(), event.getInventory().getContents());
         }
         GuiCreator.openInventories.remove(player.getUniqueId());

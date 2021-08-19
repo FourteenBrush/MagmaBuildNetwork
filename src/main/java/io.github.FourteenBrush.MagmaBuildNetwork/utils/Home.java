@@ -3,61 +3,67 @@ package io.github.FourteenBrush.MagmaBuildNetwork.utils;
 import io.github.FourteenBrush.MagmaBuildNetwork.data.ConfigManager;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import java.util.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-public class Home {
+public class Home implements ConfigurationSerializable {
 
     private final String name;
     private final Location location;
-    private final UUID homeID;
-    private final FileConfiguration homesFile = ConfigManager.getHomes();
+    private final UUID owner;
+    private static final FileConfiguration homesFile = ConfigManager.getHomes();
+    private static final List<Home> buffer = new ArrayList<>();
 
-    public Home(String name, Location location) {
+    public Home(String name, UUID owner, Location location) {
         this.name = name;
         this.location = location;
-        homeID = UUID.randomUUID();
+        this.owner = owner;
+        buffer.add(this);
     }
 
-    public void createHome(Player player) { // on disable
-        String data = "homes." + player.getUniqueId() + "." + name;
-        homesFile.set(data + ".playerName", player.getName());
-        homesFile.set(data + ".location", location);
-        ConfigManager.saveConfig("homes");
+    @Override
+    public @NotNull Map<String, Object> serialize() {
+        final Map<String, Object> data = new HashMap<>();
+        data.put("name", this.name);
+        data.put("owner", this.owner);
+        data.put("location", this.location);
+        return data;
     }
 
-    public void removeHome(Player player, String name) {
-        if (hasHome(player, name)) {
-            homesFile.set("homes." + player.getUniqueId() + "." + name, null);
-            ConfigManager.saveConfig("homes");
-            Utils.message(player, "§aSuccessfully removed the home " + name);
-            return;
-        }
-        Utils.message(player, new String[]{"§cHome not found!", "§cYou can use /home list to see all your homes"});
+    public static Home deserialize(final Map<String, Object> map) {
+        return new Home((String) map.get("name"), (UUID) map.get("owner"), (Location) map.get("location"));
     }
 
-    public void getHomes(Player player) {
-        if (hasHome(player)) {
-            List<String> homes = new ArrayList<>(homesFile.getConfigurationSection("homes." + player.getUniqueId()).getKeys(false));
-            Utils.message(player, "§f--- §9Homes §f---");
-            homes.forEach(home -> {
-                Utils.message(player, home);
-                Utils.message(player, homesFile.getConfigurationSection("homes." + player.getUniqueId() + "." + home).getValues(true).toString());
+    public void savePlayerHomes(UUID uuid) {
+        homesFile.set("homes", getHomes(uuid));
+        ConfigManager.saveConfig(ConfigManager.FileType.HOMES);
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<Home> loadHomes() {
+        return (List<Home>) homesFile.getList("homes");
+    }
+
+    private List<Home> getHomes(UUID uuid) {
+        if (homesFile.getConfigurationSection("homes." + uuid).getKeys(false).size() > 0) {
+            List<Home> homes = new ArrayList<>();
+            homesFile.getConfigurationSection("homes." + uuid).getKeys(false).forEach(home -> {
+                //homes.add();
             });
-            return;
+            return homes;
         }
-        Utils.message(player, "§cYou have no homes");
+        return null;
     }
+
 
     private boolean hasHome(Player player, String name) {
         return homesFile.contains("homes." + player.getUniqueId() + "." + name);
     }
 
     private boolean hasHome(Player player) {
-        return homesFile.contains("homes." + player.getUniqueId());
+        return homesFile.getConfigurationSection("homes." + player.getUniqueId()).getKeys(false).size() > 0;
     }
 
     public String getName() {
@@ -68,7 +74,8 @@ public class Home {
         return location;
     }
 
-    public UUID getHomeID() {
-        return homeID;
+    public UUID getOwner() {
+        return owner;
     }
+
 }

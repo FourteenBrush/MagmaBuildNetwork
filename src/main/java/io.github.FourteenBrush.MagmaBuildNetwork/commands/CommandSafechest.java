@@ -18,15 +18,13 @@ public class CommandSafechest extends BaseCommand {
     @Override
     protected boolean execute(@NotNull String[] args) {
 
-        if (isConsole) return true;
+        if (isConsole) messageNoConsole();
+
+        Inventory inv = Bukkit.createInventory(p, 45, p.getName() + "'s safechest");
 
         if (menus.containsKey(p.getUniqueId())) {
-            Inventory inv = Bukkit.createInventory(p, 54, p.getName() + "'s safechest");
             inv.setContents(menus.get(p.getUniqueId()));
-            p.openInventory(inv);
-            return true;
         }
-        Inventory inv = Bukkit.createInventory(p, 54, p.getName() + "'s safechest");
         p.openInventory(inv);
         return true;
     }
@@ -35,7 +33,7 @@ public class CommandSafechest extends BaseCommand {
         for (Map.Entry<UUID, ItemStack[]> entry : CommandSafechest.getMenus().entrySet()) {
             ConfigManager.getDataConfig().set("safe_chests." + entry.getKey(), entry.getValue());
         }
-        ConfigManager.saveConfig();
+        ConfigManager.saveConfig(ConfigManager.FileType.DATA);
     }
 
     public static void loadInventories() {

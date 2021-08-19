@@ -15,6 +15,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -41,36 +42,7 @@ public class CommandVanish extends BaseCommand {
         return true;
     }
 
-    private static void vanishPlayer(Player p) {
-        if (vanishedPlayers.remove(p.getUniqueId())) {
-            // vanished -> unvanish
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                player.showPlayer(plugin, p);
-            }
-            setBossBar(p, true);
-            p.setAllowFlight(p.getGameMode() == GameMode.CREATIVE);
-            p.setInvulnerable(false);
-            p.removePotionEffect(PotionEffectType.NIGHT_VISION);
-            Utils.message(p, "§aYou became visible again");
-        } else {
-            // not vanished -> vanish
-            vanishedPlayers.add(p.getUniqueId());
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                if (!getVanishedPlayers().contains(player.getUniqueId()))
-                    player.hidePlayer(plugin, p);
-            }
-            setBossBar(p, false);
-            p.setAllowFlight(true);
-            p.setInvulnerable(true);
-            if (plugin.getConfig().getBoolean("nightvision_during_vanish")) {
-                p.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 200000, 1));
-            }
-            Utils.message(p, "§aYou have been vanished");
-        }
-    }
-    // todo remove after test
-
-    private void vanish(Player player, boolean vanish) {
+    private static void vanish(Player player, boolean vanish) {
         if (vanish) {
             vanishedPlayers.add(player.getUniqueId());
             for (Player pl : Bukkit.getOnlinePlayers()) {
@@ -78,7 +50,7 @@ public class CommandVanish extends BaseCommand {
                     pl.hidePlayer(plugin, player);
             }
             if (plugin.getConfig().getBoolean("nightvision_during_vanish")) {
-                player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 200000, 1));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 2000000, 1, false, false, false));
             }
             player.setAllowFlight(true);
             Utils.message(player, "§aYou have been vanished");
@@ -98,14 +70,21 @@ public class CommandVanish extends BaseCommand {
     private static void setBossBar(Player p, boolean remove) {
         if (remove) {
             bar.removePlayer(p);
-            bar.setVisible(false);
         } else {
             bar.addPlayer(p);
-            bar.setVisible(true);
         }
+        bar.setVisible(!remove);
     }
 
     public static Set<UUID> getVanishedPlayers() {
         return vanishedPlayers;
+    }
+
+    public static void save() {
+        ConfigManager.getDataConfig().set("vanished_players", vanishedPlayers);
+    }
+
+    public static void load(List<UUID> list) {
+        list.forEach((s) -> vanish(Bukkit.getPlayer(s), true));
     }
 }
