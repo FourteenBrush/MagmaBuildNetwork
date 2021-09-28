@@ -7,29 +7,28 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-public class CommandBan extends BaseCommand {
+public class CommandBan extends AbstractCommand {
 
-    private static final Main plugin = Main.getInstance();
+    private static final Main plugin = Main.getPlugin(Main.class);
+
+    public CommandBan() {
+        super("ban", false);
+    }
 
     @Override
-    protected boolean execute(@NotNull String[] args) {
+    public boolean execute(@NotNull String[] args) {
 
         if (args.length < 1) {
-            Utils.message(p, "§cPlease specify a player!");
+            Utils.message(executor, "&cPlease specify a player!");
             return true;
         }
         Player target = Bukkit.getPlayerExact(args[0]);
-        if (!Utils.isPlayerOnline(sender, target)) {
-            return true;
-        }
-        String banreason = "Banned by a moderator";
-        if (args.length > 1) {
-            banreason = Utils.getFinalArg(args, 1);
-        }
-        plugin.getServer().getBanList(BanList.Type.NAME).addBan(target.getName(), banreason, null, p.getName());
-        target.kickPlayer(banreason);
-        Utils.message(sender, String.format("§6Banned %s | %s", target.getName(), banreason));
-        Utils.logWarning("Player " + target.getName() + " got banned by " + p.getName());
+        if (!Utils.isPlayerOnline(sender, target)) return true;
+        String banReason = args.length > 1 ? Utils.getFinalArgs(args, 1) : "Banned by a moderator";
+        plugin.getServer().getBanList(BanList.Type.NAME).addBan(target.getName(), banReason, null, executor.getName());
+        target.kickPlayer(banReason);
+        Utils.message(sender, String.format("&6Banned %s | %s", target.getName(), banReason));
+        Utils.logWarning("Player " + target.getName() + " got banned by " + sender.getName());
         return true;
     }
 }

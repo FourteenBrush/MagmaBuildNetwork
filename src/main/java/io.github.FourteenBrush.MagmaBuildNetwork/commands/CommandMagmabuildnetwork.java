@@ -1,43 +1,53 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.commands;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.data.ConfigManager;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.MessagesUtils;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
-public class CommandMagmabuildnetwork extends BaseCommand {
+public class CommandMagmabuildnetwork extends AbstractCommand {
+
+    private static final Set<UUID> bypassingPlayers = new HashSet<>();
+
+    public CommandMagmabuildnetwork() {
+        super("magmabuildnetwork", true);
+    }
 
     @Override
-    protected boolean execute(@NotNull String[] args) {
-
+    public boolean execute(@NotNull String[] args) {
         if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
-            Utils.message(sender, new String[] {"§f---- §9MagmaBuildNetwork §f---",
-                    "§9/mbn §7help <command> - §fDisplay info about a command.",
-                    "§9/mbn §7reload - §fReloads the plugin"});
-            return true;
+            Utils.message(sender, "&f---- &9MagmaBuildNetwork &f---",
+                    "&9/mbn &7help <command> - &fDisplay info about a command.",
+                    "&9/mbn &7reload - &fReloads the plugin");
         } else if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
+            long start = System.currentTimeMillis();
             ConfigManager.createFiles();
-            CommandManager.onEnable();
             plugin.reloadConfig();
-            Utils.message(sender, "§aSuccessfully reloaded " + plugin.getName());
-            return true;
+            CommandManager.onEnable();
+            Utils.message(sender, "&aSuccessfully reloaded " + plugin.getName() + "! (" + (start - System.currentTimeMillis()) + ")");
+        } else if (args.length == 1 && args[0].equalsIgnoreCase("bypass")) {
+            if (isConsole) return MessagesUtils.noConsole(sender);
+            if (bypassingPlayers.remove(executor.getUniqueId())) Utils.message(executor, "&6Not longer bypassing cooldowns!");
+            else {
+                bypassingPlayers.add(executor.getUniqueId());
+                Utils.message(executor, "&aNow bypassing cooldowns!");
+            }
         }
         return true;
     }
 
-    @Override
-    protected List<String> tabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
+    public static Set<UUID> getBypassingPlayers() {
+        return bypassingPlayers;
+    }
 
+    @Override
+    protected List<String> tabComplete(@NotNull String[] args) {
         if (args.length == 1) {
-            arguments.addAll(Arrays.asList("help", "reload"));
-            return StringUtil.copyPartialMatches(args[0], arguments, new ArrayList<>());
+            return StringUtil.copyPartialMatches(args[0], Arrays.asList("help", "reload", "bypass"), new ArrayList<>());
         }
-        return new ArrayList<>();
+        return null;
     }
 }

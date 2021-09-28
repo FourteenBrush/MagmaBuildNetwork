@@ -1,77 +1,100 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.updatechecker;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URL;
-import javax.net.ssl.HttpsURLConnection;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.concurrent.CompletableFuture;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
-import org.bukkit.Bukkit;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
 
-/**
- * This class is used for the spigot updatechecker
- * currently not in use
- *
- * @author FourteenBrush
- */
-public class UpdateChecker implements Listener {
+public class UpdateChecker {
 
-    private final Main plugin = Main.getInstance();
-    private final int RESOURCE_ID = 1000;
-    private final String pluginVersion = plugin.getDescription().getVersion();
-    private String spigotVersion;
-    private boolean updateAvailable;
+    private final Main plugin = Main.getPlugin(Main.class);
+    private final int resourceId;
 
-    public boolean hasUpdateAvailable() {
-        return this.updateAvailable;
+    public UpdateChecker(int resourceId) {
+        this.resourceId = resourceId;
     }
 
-    public String getSpigotVersion() {
-        return this.spigotVersion;
-    }
-
-    public void fetch() {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                HttpsURLConnection con = (HttpsURLConnection) (new URL("https://api.spigotmc.org/legacy/update.php?resource=" + RESOURCE_ID)).openConnection();
-                con.setRequestMethod("GET");
-                this.spigotVersion = (new BufferedReader(new InputStreamReader(con.getInputStream()))).readLine();
-            } catch (Exception ex) {
-                plugin.getLogger().info("Failed to check for updates on spigot.");
-                return;
+    public CompletableFuture<UpdateResult> checkUpdate() {
+        return CompletableFuture.supplyAsync(() -> {
+            String latestVersion = getLatestVersion();
+            if (latestVersion == null) {
+                return new UpdateResult(VersionResult.ERROR);
             }
-            if (this.spigotVersion == null || this.spigotVersion.isEmpty())
-                return;
-            this.updateAvailable = spigotIsNewer();
-            if (!this.updateAvailable)
-                return;
+            String strippedLatest = latestVersion.replaceAll("[^A-Za-z0-9]", "");
+            String strippedCurrent = plugin.getDescription().getVersion().replaceAll("[^A-Za-z0-9]", "");
+            return strippedCurrent.equals(strippedLatest) ? new UpdateResult(VersionResult.NONE) : new UpdateResult(VersionResult.AVAILABLE, latestVersion);
         });
     }
 
-    private boolean spigotIsNewer() {
-        if (this.spigotVersion == null || this.spigotVersion.isEmpty())
-            return false;
-        String plV = toReadable(this.pluginVersion);
-        String spV = toReadable(this.spigotVersion);
-        return (plV.compareTo(spV) < 0);
+    public CompletableFuture<DownloadResult> downloadUpdate() {
+        File current = new File(plugin.getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
+        File updateFile = new File(plugin.getServer().getUpdateFolderFile(), current.getName());
+        return downloadFile(updateFile, "FILL THIS IN");
     }
 
-    private String toReadable(String version) {
-        if (version.contains("-DEV-"))
-            version = version.split("-DEV-")[0];
-        return version.replaceAll("\\.", "");
+    private CompletableFuture<DownloadResult> downloadFile(File filePath, String url) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                URL web = new URL(url);
+                try (InputStream in = web.openStream()) {
+                    Files.createDirectories(filePath.getParentFile().toPath());
+                    Files.copy(in, filePath.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                }
+                return DownloadResult.SUCCESSFUL;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return DownloadResult.ERROR;
+            }
+        });
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onJoin(PlayerJoinEvent event) {
-        if (spigotIsNewer()) {
-            if (Utils.isAuthorized(event.getPlayer(), "notifyupdate"))
-                Utils.logInfo(new String[] {"A new version is available", "Download it now at spigot.mc"});
+    private String getLatestVersion() {
+        try {
+            URL url = new URL("https://api.spigotmc.org/legacy/update.php?resource=" + resourceId);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            return new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private enum VersionResult {
+        AVAILABLE,
+        ERROR,
+        NONE
+    }
+
+    private enum DownloadResult {
+        ERROR,
+        SUCCESSFUL
+    }
+
+    public static class UpdateResult {
+
+        private final VersionResult versionResult;
+        private String newVersion;
+
+        public UpdateResult(VersionResult versionResult, String newVersion) {
+            this.versionResult = versionResult;
+            this.newVersion = newVersion;
+        }
+
+        public UpdateResult(VersionResult versionResult) {
+            this.versionResult = versionResult;
+        }
+
+        public VersionResult getResult() {
+            return versionResult;
+        }
+
+        public String getNewVersion() {
+            return newVersion;
         }
     }
 }

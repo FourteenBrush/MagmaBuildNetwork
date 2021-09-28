@@ -1,6 +1,5 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.gui;
 
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.ItemBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -12,20 +11,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public abstract class GuiCreator {
+public abstract class GuiCreator extends ItemBuilder {
 
-    public static final Map<UUID, GuiCreator> inventoriesByUUID = new HashMap<>();
-    public static final Map<UUID, UUID> openInventories = new HashMap<>(); // player id and gui id
+    private static final Map<UUID, GuiCreator> inventoriesByUUID = new HashMap<>();
+    private static final Map<UUID, UUID> openInventories = new HashMap<>(); // player id and gui id
 
-    private final UUID uuid;
-    protected Inventory inv;
     private final Map<Integer, GuiAction> actions;
+    private final UUID uuid;
+
+    protected Inventory inv;
 
     public GuiCreator(String invName, int rows) {
         uuid = UUID.randomUUID();
         inv = Bukkit.createInventory(null, rows * 9, invName);
         actions = new HashMap<>();
-        inventoriesByUUID.put(getUuid(), this);
+        inventoriesByUUID.put(uuid, this);
     }
 
     public void setItem(int slot, ItemStack stack, GuiAction action) {
@@ -39,19 +39,28 @@ public abstract class GuiCreator {
         setItem(slot, stack, null);
     }
 
-    public void open(Player p) {
-        p.openInventory(inv);
-        openInventories.put(p.getUniqueId(), getUuid());
+    protected ItemStack createItem(Material material, String displayName, List<String> lore) {
+        return new ItemBuilder(material).setLore(lore).setDisplayName(displayName).build();
+    }
+
+    protected ItemStack createItem(Material material, int amount, String displayName, List<String> lore) {
+        ItemStack itemStack = createItem(material, displayName, lore);
+        itemStack.setAmount(amount);
+        return itemStack;
+    }
+
+    public void open(Player player) {
+        player.openInventory(inv);
+        openInventories.put(player.getUniqueId(), uuid);
     }
 
     public void delete() {
-        for (Player p : Bukkit.getOnlinePlayers()){
-            UUID u = openInventories.get(p.getUniqueId());
-            if (u.equals(getUuid())){
-                p.closeInventory();
-            }
-        }
-        inventoriesByUUID.remove(getUuid());
+        Bukkit.getOnlinePlayers().forEach(player -> {
+            UUID u = openInventories.get(player.getUniqueId());
+            if (u.equals(uuid)) player.closeInventory();
+            inventoriesByUUID.remove(uuid);
+        });
+        inventoriesByUUID.remove(uuid);
     }
 
     public UUID getUuid() {
@@ -76,16 +85,6 @@ public abstract class GuiCreator {
 
     public interface GuiAction {
         void click(Player player);
-    }
-
-    protected ItemStack createItem(Material material, String displayName, List<String> lore) {
-        ItemBuilder itemBuilder = new ItemBuilder(material);
-        return itemBuilder.build(material, displayName, lore);
-    }
-
-    protected ItemStack createItem(Material material, int amount, String displayName, List<String> lore) {
-        ItemStack itemStack = createItem(material, displayName, lore);
-        itemStack.setAmount(amount);
-        return itemStack;
+        default void ex() {}
     }
 }

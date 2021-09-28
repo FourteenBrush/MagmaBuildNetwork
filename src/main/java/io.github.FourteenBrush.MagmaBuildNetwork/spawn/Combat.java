@@ -11,33 +11,13 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class Combat implements Listener {
 
-    private static final Main plugin = Main.getInstance();
+    private static final Main plugin = Main.getPlugin(Main.class);
     private static final HashMap<UUID, BukkitTask> pvp = new HashMap<>();
-
-    @EventHandler
-    public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
-        if (event.getEntity() instanceof Player && CommandVanish.getVanishedPlayers().contains((event.getEntity()).getUniqueId())) {
-            event.setCancelled(true);
-            return;
-        }
-        if (!(event.getEntity() instanceof Player) || !plugin.getConfig().getBoolean("disable_spawn_command_in_pvp"))
-            return;
-        Player p = (Player) event.getEntity();
-
-        if (event.getDamager() instanceof Player) {
-            pvp(p, (Player) event.getDamager());
-        } else if (event.getDamager() instanceof Arrow && ((Arrow) event.getDamager()).getShooter() instanceof Player) {
-            pvp(p, (Player)((Arrow) event.getDamager()).getShooter());
-        }
-    }
-
-    public static boolean containsKey(Player p) {
-        return pvp.containsKey(p.getUniqueId());
-    }
 
     public static void remove(UUID uuid) {
         if (pvp.containsKey(uuid)) {
@@ -47,7 +27,7 @@ public class Combat implements Listener {
         }
     }
 
-    private void pvp(final Player p) {
+    private static void pvp(Player p) {
         UUID uuid = p.getUniqueId();
         if (pvp.containsKey(uuid) && pvp.get(uuid).isSync())
             pvp.get(uuid).cancel();
@@ -55,11 +35,15 @@ public class Combat implements Listener {
             public void run() {
                 pvp.remove(uuid);
             }
-        }).runTaskLater(plugin, 160L));
+        }).runTaskLater(plugin, 600L));
     }
 
-    private void pvp(Player player, Player player1) {
+    public static void pvp(Player player, Player player1) {
         pvp(player);
         pvp(player1);
+    }
+
+    public static Map<UUID, BukkitTask> getPvpList() {
+        return pvp;
     }
 }

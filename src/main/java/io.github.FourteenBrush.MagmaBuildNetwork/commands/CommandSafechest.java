@@ -1,6 +1,7 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.commands;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.data.ConfigManager;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.MessagesUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -11,35 +12,36 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class CommandSafechest extends BaseCommand {
+public class CommandSafechest extends AbstractCommand {
 
     private static final Map<UUID, ItemStack[]> menus = new HashMap<>();
 
+    public CommandSafechest() {
+        super("safechest", false);
+    }
+
     @Override
-    protected boolean execute(@NotNull String[] args) {
-
-        if (isConsole) messageNoConsole();
-
-        Inventory inv = Bukkit.createInventory(p, 45, p.getName() + "'s safechest");
-
-        if (menus.containsKey(p.getUniqueId())) {
-            inv.setContents(menus.get(p.getUniqueId()));
+    public boolean execute(@NotNull String[] args) {
+        if (isConsole) return MessagesUtils.noConsole(sender);
+        Inventory inv = Bukkit.createInventory(executor, 45, executor.getName() + "'s safechest");
+        if (menus.containsKey(executor.getUniqueId())) {
+            inv.setContents(menus.get(executor.getUniqueId()));
         }
-        p.openInventory(inv);
+        executor.openInventory(inv);
         return true;
     }
 
-    public static void saveInventories() {
+    public static void save() {
         for (Map.Entry<UUID, ItemStack[]> entry : CommandSafechest.getMenus().entrySet()) {
-            ConfigManager.getDataConfig().set("safe_chests." + entry.getKey(), entry.getValue());
+            ConfigManager.getData().set("safe_chests." + entry.getKey(), entry.getValue());
         }
         ConfigManager.saveConfig(ConfigManager.FileType.DATA);
     }
 
-    public static void loadInventories() {
-        ConfigManager.getDataConfig().getConfigurationSection("safe_chests").getKeys(false).forEach(key -> {
+    public static void load() {
+        ConfigManager.getData().getConfigurationSection("safe-chests").getKeys(false).forEach(key -> {
             @SuppressWarnings("unchecked")
-            ItemStack[] content = ((List<ItemStack>) ConfigManager.getDataConfig().get("safe_chests." + key)).toArray(new ItemStack[0]);
+            ItemStack[] content = ((List<ItemStack>) ConfigManager.getData().get("safe-chests." + key)).toArray(new ItemStack[0]);
             menus.put(UUID.fromString(key), content);
         });
     }

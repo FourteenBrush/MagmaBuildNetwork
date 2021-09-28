@@ -20,19 +20,14 @@ public class InventoryListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player)) return;
         if (event.getClick().equals(ClickType.DROP)) return;
         Player player = (Player) event.getWhoClicked();
-
-        UUID inventoryUUID = GuiCreator.openInventories.get(player.getUniqueId());
-        if (inventoryUUID != null) {
-            if (!(event.getInventory() instanceof TradeGui && (CommandTrade.getPlaceableSlots()
-                    .contains(event.getSlot()) || event.getRawSlot() > 54))) {
-                event.setCancelled(true);
-            }
-            GuiCreator gui = GuiCreator.getInventoriesByUUID().get(inventoryUUID);
-            GuiCreator.GuiAction action = gui.getActions().get(event.getRawSlot());
-
-            if (action != null) {
-                action.click(player);
-            }
+        UUID inventoryUUID = GuiCreator.getOpenInventories().get(player.getUniqueId());
+        if (inventoryUUID == null) return;
+        if (shouldCancel(event))
+            event.setCancelled(true);
+        GuiCreator.GuiAction action = GuiCreator.getInventoriesByUUID().get(inventoryUUID).getActions()
+                .get(event.getRawSlot());
+        if (action != null) {
+            action.click(player);
         }
     }
 
@@ -41,9 +36,13 @@ public class InventoryListener implements Listener {
         Player player = (Player) event.getPlayer();
         if (event.getInventory() instanceof TradeGui) {
             CommandTrade.cancel();
-        } else if (event.getView().getTitle().endsWith("safechest")) {
+        } else if (event.getView().getTitle().endsWith("safechest")) { // todo instanceof doesnt work
             CommandSafechest.getMenus().put(player.getUniqueId(), event.getInventory().getContents());
         }
-        GuiCreator.openInventories.remove(player.getUniqueId());
+        GuiCreator.getOpenInventories().remove(player.getUniqueId());
+    }
+
+    private boolean shouldCancel(InventoryClickEvent event) {
+        return !(event.getInventory() instanceof TradeGui && (CommandTrade.getPlaceableSlots().contains(event.getSlot()) || event.getRawSlot() > 54));
     }
 }

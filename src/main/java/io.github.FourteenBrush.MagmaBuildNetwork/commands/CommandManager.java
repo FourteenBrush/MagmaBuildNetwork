@@ -1,37 +1,31 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.commands;
 
-import io.github.FourteenBrush.MagmaBuildNetwork.Main;
 import io.github.FourteenBrush.MagmaBuildNetwork.data.ConfigManager;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.NPC;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.Home;
 import org.bukkit.configuration.file.FileConfiguration;
-
-import java.util.List;
-import java.util.UUID;
 
 public abstract class CommandManager {
 
-    private static final Main plugin = Main.getInstance();
-    private static final FileConfiguration dataFile = ConfigManager.getDataConfig();
-
-    @SuppressWarnings("unchecked")
     public static void onEnable() {
-        if (dataFile.contains("safe_chests") && dataFile.getConfigurationSection("safe_chests").getKeys(false).size() > 0) {
-            CommandSafechest.loadInventories();
+        final FileConfiguration dataFile = ConfigManager.getData();
+        if (dataFile.isConfigurationSection("safe-chests")) {
+            CommandSafechest.load();
         }
-        if (dataFile.contains("vanished_players")) {
-            CommandVanish.load((List<UUID>) dataFile.getList("vanished_players"));
-        }
-        if (plugin.getConfig().contains("npc_data")) {
-            NPC.loadNPCIntoWorld();
+        if (dataFile.contains("vanished-players")) {
+            new CommandVanish().load(dataFile.getStringList("vanished-players"));
         }
     }
 
     public static void onDisable() {
         if (!CommandSafechest.getMenus().isEmpty()) {
-            CommandSafechest.saveInventories();
+            CommandSafechest.save();
         }
         if (!CommandVanish.getVanishedPlayers().isEmpty()) {
             CommandVanish.save();
         }
+        if (!Home.getBuffer().isEmpty())
+            for (Home h: Home.getBuffer()) {
+                h.savePlayerHomes(h.getOwner());
+            }
     }
 }

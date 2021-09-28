@@ -8,7 +8,7 @@ softdepend: [LuckPerms, PlaceHolderAPI, Vault, WorldGuard, EssentialsX]
 commands:
   magmabuildnetwork:
     description: Root command
-    permission: magmabuildnetwork.basic
+    permission: magmabuildnetwork.admin
     aliases: [mbn]
   debug:
     description: For test purposes
@@ -25,12 +25,6 @@ commands:
   store:
     description: Stores a message inside the NBT tags of an item
     permission: magmabuildnetwork.admin
-  spawnnpc:
-    description: Spawns an NPC
-    permission: magmabuildnetwork.admin
-  createmap:
-    description: Creates a custom Minecraft Map from an image
-    permission: magmabuildnetwork.admin
   vanish:
     description: Vanish command
     permission: magmabuildnetwork.vanish
@@ -39,6 +33,9 @@ commands:
     permission: magmabuildnetwork.admin
   ban:
     description: Bans a player
+    permission: magmabuildnetwork.admin
+  fly:
+    description: Allows a player to fly
     permission: magmabuildnetwork.admin
   lock:
     description: Allows you to protect a container

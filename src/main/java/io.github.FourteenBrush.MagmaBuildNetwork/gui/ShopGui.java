@@ -13,13 +13,11 @@ import java.text.DecimalFormat;
 
 public class ShopGui extends GuiCreator {
 
-    private final Player player;
     private final Inventory root;
 
-    public ShopGui(Player pl) {
+    public ShopGui() {
         super("Shop", 2);
         createShop();
-        player = pl;
         root = inv;
     }
 

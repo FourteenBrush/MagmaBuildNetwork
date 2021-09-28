@@ -1,53 +1,55 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.commands;
 
+import com.google.common.collect.Lists;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.MessagesUtils;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class CommandLock extends BaseCommand {
+public class CommandLock extends AbstractCommand {
 
     private static final Set<UUID> bypassingLock = new HashSet<>();
     private static final Map<UUID, Integer> peopleWantingLock = new HashMap<>();
+
+    public CommandLock() {
+        super("lock", true);
+    }
     // 1 as integer means removing the lock
 
     @Override
-    protected boolean execute(@NotNull String[] args) {
+    public boolean execute(@NotNull String[] args) {
 
-        if (isConsole) return true;
+        if (isConsole) return MessagesUtils.noConsole(sender);
 
         if (args.length == 1 && args[0].equalsIgnoreCase("set")) {
-            getPlayersWantingLock().put(p.getUniqueId(), 0);
-            Utils.message(p, "§aRight click a block to lock it!\nOr type /lock cancel to cancel");
-
+            getPlayersWantingLock().put(executor.getUniqueId(), 0);
+            Utils.message(executor, "&aRight click a block to lock it!\nOr type /lock cancel to cancel");
         } else if (args.length == 1 && args[0].equalsIgnoreCase("cancel")) {
-            if (getPlayersWantingLock().remove(p.getUniqueId(), 0) || getPlayersWantingLock().remove(p.getUniqueId(), 1)) {
-                Utils.message(p, "§aCancelled!");
+            if (getPlayersWantingLock().remove(executor.getUniqueId(), 0) || getPlayersWantingLock().remove(executor.getUniqueId(), 1)) {
+                Utils.message(executor, "&aCancelled!");
             } else {
-                Utils.message(p, "§cNothing to cancel!");
+                Utils.message(executor, "&cNothing to cancel!");
             }
         } else if (args.length == 1 && args[0].equalsIgnoreCase("remove")) {
-            getPlayersWantingLock().put(p.getUniqueId(), 1);
-            Utils.message(p, "§aRight click a block to remove the lock!\nOr type /lock cancel to cancel");
+            getPlayersWantingLock().put(executor.getUniqueId(), 1);
+            Utils.message(executor, "&aRight click a block to remove the lock!\nOr type /lock cancel to cancel");
         } else if (args.length == 1 && args[0].equalsIgnoreCase("bypass")) {
-            if (Utils.isAuthorized(p, "admin")) {
-                if (bypassingLock.remove(p.getUniqueId())) {
-                    Utils.message(p, "§6Not longer bypassing locks!");
+            if (Utils.isAuthorized(executor, "admin")) {
+                if (bypassingLock.remove(executor.getUniqueId())) {
+                    Utils.message(executor, "&6Not longer bypassing locks!");
                 } else {
-                    bypassingLock.add(p.getUniqueId());
-                    Utils.message(p, "§aNow bypassing locks!");
+                    bypassingLock.add(executor.getUniqueId());
+                    Utils.message(executor, "&aNow bypassing locks!");
                 }
             }
         } else if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
-            Utils.message(p, new String[] {"§f--- §9Lock command §f---",
-                    "§9/lock §7set - §fsets a lock on the block you right-click on",
-                    "§9/lock §7remove - §fremoves the lock from the block you right-click on",
-                    "§9/lock §7cancel - §fcancels the lock creation",
-                    "§9/lock §7help - §fshows this message"});
+            Utils.message(executor, "&f--- &9Lock command &f---",
+                    "&9/lock &7set - &fsets a lock on the block you right-click on",
+                    "&9/lock &7remove - &fremoves the lock from the block you right-click on",
+                    "&9/lock &7cancel - &fcancels the lock creation",
+                    "&9/lock &7help - &fshows this message");
         }
         return true;
     }
@@ -56,19 +58,17 @@ public class CommandLock extends BaseCommand {
         return peopleWantingLock;
     }
 
-    public static Set<UUID> getBypassingLock() {
+    public static Set<UUID> getPlayersBypassingLock() {
         return bypassingLock;
     }
 
     @Override
-    protected List<String> tabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
-
+    protected List<String> tabComplete(@NotNull String[] args) {
         if (args.length == 1) {
-            arguments.addAll(Arrays.asList("set", "remove", "cancel", "help"));
-            if (Utils.isAuthorized(p, "admin"))
-                arguments.add("bypass");
-            return StringUtil.copyPartialMatches(args[0], arguments, new ArrayList<>());
+            List<String> l = Lists.newArrayList("set", "remove", "cancel", "help");
+            if (Utils.isAuthorized(executor, "admin")) l.add("bypass");
+            return StringUtil.copyPartialMatches(args[0], l, new ArrayList<>());
         }
-        return new ArrayList<>();
+        return null;
     }
 }

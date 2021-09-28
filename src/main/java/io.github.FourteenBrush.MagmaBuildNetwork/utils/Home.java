@@ -2,10 +2,12 @@ package io.github.FourteenBrush.MagmaBuildNetwork.utils;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.data.ConfigManager;
 import org.bukkit.Location;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+
 import java.util.*;
 
 public class Home implements ConfigurationSerializable {
@@ -36,6 +38,13 @@ public class Home implements ConfigurationSerializable {
         return new Home((String) map.get("name"), (UUID) map.get("owner"), (Location) map.get("location"));
     }
 
+    @Override
+    public String toString() {
+        return "Owner: " + owner +
+                " Name: " + name + " Location: " +
+                String.format("x: %s, y: %s, z: %s", (int) location.getX(), (int) location.getY(), (int) location.getZ());
+    }
+
     public void savePlayerHomes(UUID uuid) {
         homesFile.set("homes", getHomes(uuid));
         ConfigManager.saveConfig(ConfigManager.FileType.HOMES);
@@ -43,18 +52,22 @@ public class Home implements ConfigurationSerializable {
 
     @SuppressWarnings("unchecked")
     public List<Home> loadHomes() {
-        return (List<Home>) homesFile.getList("homes");
+        List<Home> self = (List<Home>) homesFile.getList("homes");
+        if (self != null)
+            buffer.addAll(self);
+        return self;
     }
 
-    private List<Home> getHomes(UUID uuid) {
-        if (homesFile.getConfigurationSection("homes." + uuid).getKeys(false).size() > 0) {
-            List<Home> homes = new ArrayList<>();
-            homesFile.getConfigurationSection("homes." + uuid).getKeys(false).forEach(home -> {
-                //homes.add();
-            });
-            return homes;
+    private static List<Home> getHomes(UUID uuid) {
+        ConfigurationSection s = homesFile.getConfigurationSection("homes." + uuid);
+        List<Home> homes = new ArrayList<>();
+        if (s.getKeys(false).size() > 0) {
+            s.getKeys(false).forEach(home -> homes.add(new Home(
+                    homesFile.getString("homes." + home + ".name"),
+                    (UUID) homesFile.get("homes." + home + ".uuid"),
+                    (Location) homesFile.get("homes." + home + ".location"))));
         }
-        return null;
+        return homes;
     }
 
 
@@ -78,4 +91,7 @@ public class Home implements ConfigurationSerializable {
         return owner;
     }
 
+    public static List<Home> getBuffer() {
+        return buffer;
+    }
 }

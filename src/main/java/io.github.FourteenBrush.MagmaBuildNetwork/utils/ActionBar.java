@@ -16,6 +16,6 @@ public class ActionBar extends BukkitRunnable {
     @Override
     public void run() {
         DecimalFormat df = new DecimalFormat("#.#");
-        Utils.sendActionBar(player, "§c" + df.format(player.getHealth() * 5) + " / 100");
+        Utils.sendActionBar(player, "&a&lHP&r " + df.format(player.getHealth() * 5) + " / 100");
     }
 }

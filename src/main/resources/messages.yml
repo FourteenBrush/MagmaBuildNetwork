@@ -1,12 +1,5 @@
-# +--------------------------------------------------------------------------+ #
-# <                    MagmaBuildNetwork Configuration File                  > #
-# <--------------------------------------------------------------------------> #
-# <               For help understanding a config option go to               > #
-# <          https://github.com/FourteenBrush/FourteenBrush.github.io        > #
-# <                  or Discord https://discord.gg/KWNYMDGX7H                > #
-# +--------------------------------------------------------------------------+ #
-
 messages:
+
   spawn:
-    teleported_other_player: "§aYou have been teleported to spawn by %player%"
-    disable_spawn_command_in_combat_message: "§cYou cannot go to spawn while you are in combat!"
+    teleported-other-player: "&aYou have been teleported to spawn by %player%"
+    disable-spawn-command-in-combat: "&cYou cannot go to spawn while you are in combat!"
