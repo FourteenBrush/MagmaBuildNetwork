@@ -22,12 +22,9 @@ commands:
   ignite:
     description: Sets a player on fire
     permission: magmabuildnetwork.admin
-  store:
-    description: Stores a message inside the NBT tags of an item
-    permission: magmabuildnetwork.admin
   vanish:
     description: Vanish command
-    permission: magmabuildnetwork.vanish
+    permission: magmabuildnetwork.admin
   invsee:
     description: Shows the target's inventory
     permission: magmabuildnetwork.admin
@@ -37,6 +34,8 @@ commands:
   fly:
     description: Allows a player to fly
     permission: magmabuildnetwork.admin
+  maintenance:
+    description: Enables server maintenance
   lock:
     description: Allows you to protect a container
     permission: magmabuildnetwork.basic
@@ -73,12 +72,16 @@ permissions:
     description: Grants access to all the commands
     default: op
     children:
-     - magmabuildnetwork.vanish
      - magmabuildnetwork.basic
+     - magmabuildnetwork.trails
      - magmabuildnetwork.safechest
      - magmabuildnetwork.notifyupdate
+     - magmabuildnetwork.maintenance-bypass
  magmabuildnetwork.notifyupdate:
    description: Notifies user of new version
+   default: op
+ magmabuildnetwork.maintenance-bypass:
+   description: Bypasses the server maintenance launched by this plugin
    default: op
  magmabuildnetwork.basic:
     description: Grants access to all player commands
