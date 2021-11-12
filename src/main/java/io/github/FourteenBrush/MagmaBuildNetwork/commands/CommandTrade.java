@@ -22,14 +22,17 @@ import java.util.*;
 public class CommandTrade extends AbstractCommand {
 
     private static final String[] HELP_MESSAGE = Utils.colorize(
-            "&f--- &9Trade command &f---",
-            "&9/trade &7request - &fsends a trade request to a player",
-            "&9/trade &7accept - &faccepts the trade request from a player",
-            "&9/trade &7decline - &fdeclines the trade request from a player",
-            "&9/trade &7help - &fshows this message");
+            "&e------------&7[&eTrade Command&7] &e------------",
+            "&7Below is a list of all trade commands:",
+            "  &6/trade request <player> &7- &6Sends a trade request to a player",
+            "  &6/trade accept <player> &7- &6Accepts the trade request of a player",
+            "  &6/trade decline <player> &7- &6Declines the trade request of a player",
+            "  &6/trade cancel &7- &6Cancels a pending trade request",
+            "  &6/trade help &7- &6Shows this message"
+    );
     private final Map<Player, Player> traders; // stored with executor as key
     private final List<Integer> placeableSlots;
-    private TradeGui executorGui, targetGui;
+    private TradeGui executorGui, targetGui; // todo
     private Player target;
     private boolean cancelled;
 
@@ -87,6 +90,8 @@ public class CommandTrade extends AbstractCommand {
         } else if (traders.remove(executor, target)) {
             PlayerUtils.message(executor, Lang.TRADE_REQUEST_CANCELLED.get(target.getName()));
             PlayerUtils.message(target, Lang.TRADE_REQUEST_CANCELLED_BY.get(executor.getName()));
+        } else {
+            PlayerUtils.message(executor, Lang.TRADE_NO_OUTGOING_REQUEST.get());
         }
         return true;
     }

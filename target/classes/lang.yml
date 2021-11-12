@@ -16,9 +16,13 @@ home:
   created-success: "&aSuccessfully set your new home ( &6{0}&a )."
   removed-success: "&aSuccessfully removed &6{0} &afrom your homes."
 vanish:
-  other-player: "&aSuccessfully vanished &6{0}&a."
   enabled: "&aYou have been vanished."
   disabled: "&aYou became visible again."
+  other-player: "&aSuccessfully vanished &6{0}&a."
+  announce: "&e{0} has vanished. Poof."
+fly:
+  enabled: "&eSet fly mode &aenabled&e for &6{0}&e."
+  disabled: "&eSet fly mode &cdisabled&e for &6{0}&e."
 trade:
   with-yourself-disallowed: "&cYou cannot trade with yourself!"
   no-creative: "&cYou are not allowed to trade in creative!"
@@ -28,7 +32,11 @@ trade:
   request-cancelled-by: "&6{0}&a cancelled his trade request."
   request-cancelled: "&aCancelled trade request with &6{0}&a."
   no-request: "&aYou don't have a trade request from that player!"
+  no-outgoing-request: "&cYou don't have sent a trade request!"
   accepted-by: "&6{0}&a accepted your trade request."
   accepted: "&aAccepted the trade request of &6{0}&6."
   declined-by: "&6{0}&a declined your trade request."
   declined: "&aDeclined the trade request of &6{0}&a."
+chat:
+  rate-limited: "&cYou are sending messages to fast, Please slow down!"
+  not-in-channel: "&cYou cannot chat as you aren't in a channel, use \"/ch (channel name)\" to join one"

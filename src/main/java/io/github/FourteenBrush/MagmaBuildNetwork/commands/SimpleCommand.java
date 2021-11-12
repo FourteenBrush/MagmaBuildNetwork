@@ -47,8 +47,6 @@ public class SimpleCommand implements CommandExecutor {
                 return heal(args);
             case "freeze":
                 return freeze(args);
-            case "invsee":
-                return invsee(args);
             case "stats":
                 return stats();
             case "trails":
@@ -98,22 +96,15 @@ public class SimpleCommand implements CommandExecutor {
         return true;
     }
 
-    private boolean invsee(String[] args) {
-        if (args.length == 0) return true;
-        Player target = Bukkit.getPlayer(args[0]);
-        if (!PlayerUtils.checkPlayerOnline(executor, target, false)) return true;
-        executor.openInventory(target.getInventory());
-        return true;
-    }
-
     private boolean stats() {
         new StatsGui(executor).open(executor);
         return true;
     }
 
     private boolean prefix() {
-        if (Utils.isPluginEnabled("LuckPerms"))
+        if (Bukkit.getPluginManager().isPluginEnabled("LuckPerms")) {
             new PrefixGui().open(executor);
+        }
         return true;
     }
 

@@ -25,9 +25,7 @@ commands:
   vanish:
     description: Vanish command
     permission: magmabuildnetwork.admin
-  invsee:
-    description: Shows the target's inventory
-    permission: magmabuildnetwork.admin
+    aliases: [v]
   ban:
     description: Bans a player
     permission: magmabuildnetwork.admin
@@ -77,6 +75,10 @@ permissions:
      - magmabuildnetwork.safechest
      - magmabuildnetwork.notifyupdate
      - magmabuildnetwork.maintenance-bypass
+     - magmabuildnetwork.moderator
+ magmabuildnetwork.moderator:
+   description: Moderator permission
+   default: false
  magmabuildnetwork.notifyupdate:
    description: Notifies user of new version
    default: op

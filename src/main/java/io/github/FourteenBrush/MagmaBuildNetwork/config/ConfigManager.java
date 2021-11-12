@@ -10,9 +10,13 @@ import java.io.IOException;
 
 public class ConfigManager {
 
-    private final Main plugin = Main.getPlugin(Main.class);
+    private final Main plugin;
     private FileConfiguration config, data, homes, lang;
     private File configFile, dataFile, homesFile, langFile;
+
+    public ConfigManager(Main plugin) {
+        this.plugin = plugin;
+    }
 
     public void startup() {
         if (!plugin.getDataFolder().exists() && !plugin.getDataFolder().mkdirs()) {
@@ -37,7 +41,7 @@ public class ConfigManager {
     }
 
     private FileConfiguration createAndLoad(File file, String name) {
-        if (file == null) file = new File(plugin.getDataFolder(), name);
+        if (!file.exists()) file = new File(plugin.getDataFolder(), name);
         if (!file.exists()) plugin.saveResource(name, false);
         return YamlConfiguration.loadConfiguration(file);
     }
@@ -59,7 +63,7 @@ public class ConfigManager {
                     break;
             }
         } catch (IOException e) {
-            Utils.logError("Could not save data to file: ");
+            Utils.logError("Could not save data to file " + file.name());
             e.printStackTrace();
         }
     }

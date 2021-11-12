@@ -1,12 +1,11 @@
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\commands\CommandHome.java
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\commands\CommandMaintenance.java
-C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\dependencies\LP.java
-C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\utils\EffectsUtils.java
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\utils\PlayerUtils.java
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\commands\SimpleCommand.java
+C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\library\Combat.java
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\gui\TrailsGui.java
-C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\spawn\Spawn.java
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\commands\CommandTrade.java
+C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\database\DatabaseFactory.java
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\utils\Utils.java
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\commands\managers\CommandManager.java
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\utils\Instances.java
@@ -14,8 +13,10 @@ C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBr
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\gui\PrefixGui.java
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\listeners\PlayerListener.java
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\commands\CommandBan.java
+C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\database\SQLite.java
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\updatechecker\UpdateChecker.java
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\config\InventorySerialisation.java
+C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\database\MySQL.java
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\library\ActionBar.java
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\gui\GuiCreator.java
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\gui\StatsGui.java
@@ -24,10 +25,12 @@ C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBr
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\commands\CommandLock.java
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\library\CooldownManager.java
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\commands\CommandMagmabuildnetwork.java
+C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\library\LibraryProvider.java
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\listeners\InventoryListener.java
-C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\spawn\Combat.java
+C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\library\Effects.java
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\library\NoPush.java
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\commands\CommandSpawn.java
+C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\database\Database.java
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\Main.java
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\gui\ShopGui.java
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\listeners\VaultListener.java
@@ -35,7 +38,6 @@ C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBr
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\config\ConfigManager.java
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\gui\TradeGui.java
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\commands\ConsoleCommand.java
-C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\library\DataAccessor.java
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\gui\ItemBuilder.java
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\listeners\LockListener.java
 C:\Users\27747\IdeaProjects\MagmaBuildNetwork\src\main\java\io\github\FourteenBrush\MagmaBuildNetwork\utils\Lang.java

@@ -45,9 +45,8 @@ public abstract class AbstractCommand implements CommandExecutor, TabCompleter {
         if (sender instanceof BlockCommandSender) return false;
         if (sender instanceof Player) {
             executor = (Player) sender;
-            if (!permission.has(executor, true)) {
-                return false;
-            }
+            if (!permission.has(executor, true)) return false;
+            isConsoleSender = false;
         } else isConsoleSender = true;
         if (!(this instanceof ConsoleCommand) && isConsoleSender) {
             PlayerUtils.message(sender, Lang.NO_CONSOLE.get());
@@ -57,7 +56,7 @@ public abstract class AbstractCommand implements CommandExecutor, TabCompleter {
     }
 
     protected List<String> tabComplete(@NotNull String... args) {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override

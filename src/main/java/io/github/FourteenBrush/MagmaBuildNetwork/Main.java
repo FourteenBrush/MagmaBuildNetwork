@@ -3,11 +3,10 @@ package io.github.FourteenBrush.MagmaBuildNetwork;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.SimpleCommand;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.managers.CommandManager;
 import io.github.FourteenBrush.MagmaBuildNetwork.config.ConfigManager;
-import io.github.FourteenBrush.MagmaBuildNetwork.database.DatabaseFactory;
-import io.github.FourteenBrush.MagmaBuildNetwork.listeners.InventoryListener;
-import io.github.FourteenBrush.MagmaBuildNetwork.listeners.LockListener;
-import io.github.FourteenBrush.MagmaBuildNetwork.listeners.PlayerListener;
-import io.github.FourteenBrush.MagmaBuildNetwork.listeners.VaultListener;
+import io.github.FourteenBrush.MagmaBuildNetwork.library.chat.ChannelManager;
+import io.github.FourteenBrush.MagmaBuildNetwork.library.chat.framework.ChatPlayer;
+import io.github.FourteenBrush.MagmaBuildNetwork.listeners.*;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.Lang;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import net.luckperms.api.LuckPerms;
 import net.milkbowl.vault.chat.Chat;
@@ -17,23 +16,35 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import net.milkbowl.vault.economy.Economy;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 public class Main extends JavaPlugin {
 
     private LuckPerms api;
     private Economy eco;
     private Chat chat;
+    private UUID consoleUUID;
     private CommandManager commandManager;
     private ConfigManager configManager;
+    private ChannelManager channelManager;
+    private Map<UUID, ChatPlayer> playerCache;
 
     @Override
     public void onEnable() {
         long start = System.currentTimeMillis();
         Utils.logInfo("Initializing...");
-        configManager = new ConfigManager();
-        commandManager = new CommandManager();
+        configManager = new ConfigManager(this);
+        commandManager = new CommandManager(this);
+        consoleUUID = UUID.nameUUIDFromBytes("Console".getBytes());
         configManager.startup();
         commandManager.startup();
-        DatabaseFactory.startup(); // todo remove after test
+        for (Lang l : Lang.values()) {
+            configManager.getLang().set(l.getPath(), l.getFallback());
+            configManager.saveConfig(ConfigManager.FileType.LANG);
+        }
+        // DatabaseFactory.startup();
         if (!setupEconomy()) {
             Utils.logWarning("No Vault or economy plugin found!",
                     "This is fine if that's not installed");
@@ -45,8 +56,17 @@ public class Main extends JavaPlugin {
             Utils.logWarning("No LuckPerms plugin found!",
                     "This is fine if that's not installed");
         }
+        PluginManager pm = getServer().getPluginManager();
+        pm.registerEvents(new PlayerListener(this), this);
+        pm.registerEvents(new LockListener(this), this);
+        pm.registerEvents(new InventoryListener(), this);
+        if (pm.isPluginEnabled("Vault")) {
+            channelManager = new ChannelManager();
+            playerCache = new HashMap<>();
+            pm.registerEvents(new VaultListener(this), this);
+            pm.registerEvents(new ChatListener(this), this);
+        }
         setupCommands();
-        setupEvents();
         Utils.logInfo("Version " + getDescription().getVersion() + " is activated!", "Done! (" + (System.currentTimeMillis() - start) + "ms)");
     }
 
@@ -61,7 +81,6 @@ public class Main extends JavaPlugin {
         getCommand("freeze").setExecutor(new SimpleCommand());
         getCommand("heal").setExecutor(new SimpleCommand());
         getCommand("ignite").setExecutor(new SimpleCommand());
-        getCommand("invsee").setExecutor(new SimpleCommand());
         // basic commands
         getCommand("stats").setExecutor(new SimpleCommand());
         getCommand("trails").setExecutor(new SimpleCommand());
@@ -69,16 +88,6 @@ public class Main extends JavaPlugin {
         getCommand("prefix").setExecutor(new SimpleCommand());
         getCommand("shop").setExecutor(new SimpleCommand());
         getCommand("safechest").setExecutor(new SimpleCommand());
-    }
-
-    private void setupEvents() {
-        PluginManager pm = getServer().getPluginManager();
-        pm.registerEvents(new PlayerListener(), this);
-        pm.registerEvents(new LockListener(), this);
-        pm.registerEvents(new InventoryListener(), this);
-        if (Utils.isPluginEnabled("Vault")) {
-            pm.registerEvents(new VaultListener(), this);
-        }
     }
 
     private boolean setupEconomy() {
@@ -114,6 +123,10 @@ public class Main extends JavaPlugin {
         return api != null;
     }
 
+    public ChatPlayer getChatPlayer(UUID uuid) {
+        return playerCache.computeIfAbsent(uuid, ignored -> new ChatPlayer(this, uuid));
+    }
+
     public LuckPerms getApi() {
         return api;
     }
@@ -132,5 +145,13 @@ public class Main extends JavaPlugin {
 
     public ConfigManager getConfigManager() {
         return configManager;
+    }
+
+    public ChannelManager getChannelManager() {
+        return channelManager;
+    }
+
+    public UUID getConsoleUUID() {
+        return consoleUUID;
     }
 }

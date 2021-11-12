@@ -21,20 +21,20 @@ public class ShopGui extends GuiCreator {
     }
 
     private void createShop() {
-        setItem(0, new ItemStack(Material.WOODEN_AXE), player -> openMenu(Material.WOODEN_AXE, 100, false));
-        setItem(1, new ItemStack(Material.WOODEN_PICKAXE), player -> openMenu(Material.WOODEN_PICKAXE, 100, false));
-        setItem(2, new ItemStack(Material.WOODEN_HOE), player -> openMenu(Material.WOODEN_HOE, 100, false));
-        setItem(3, new ItemStack(Material.WOODEN_SHOVEL), player -> openMenu(Material.WOODEN_SHOVEL, 100, false));
-        setItem(4, new ItemStack(Material.COBBLESTONE), player -> openMenu(Material.COBBLESTONE, 0.5, true));
-        setItem(5, new ItemStack(Material.OAK_BOAT), player -> openMenu(Material.DIRT, 0.5, true));
-        setItem(6, new ItemStack(Material.DIRT), player -> openMenu(Material.OAK_BOAT, 250, false));
-        setItem(7, new ItemStack(Material.APPLE), player -> openMenu(Material.APPLE, 50, false));
-        setItem(8, new ItemStack(Material.WRITABLE_BOOK), player -> openMenu(Material.WRITABLE_BOOK, 50, false));
+        setItem(0, Material.WOODEN_AXE, player -> openMenu(Material.WOODEN_AXE, 100, false));
+        setItem(1, Material.WOODEN_PICKAXE, player -> openMenu(Material.WOODEN_PICKAXE, 100, false));
+        setItem(2, Material.WOODEN_HOE, player -> openMenu(Material.WOODEN_HOE, 100, false));
+        setItem(3, Material.WOODEN_SHOVEL, player -> openMenu(Material.WOODEN_SHOVEL, 100, false));
+        setItem(4, Material.COBBLESTONE, player -> openMenu(Material.COBBLESTONE, 0.5, true));
+        setItem(5, Material.OAK_BOAT, player -> openMenu(Material.DIRT, 0.5, true));
+        setItem(6, Material.DIRT, player -> openMenu(Material.OAK_BOAT, 250, false));
+        setItem(7, Material.APPLE, player -> openMenu(Material.APPLE, 50, false));
+        setItem(8, Material.WRITABLE_BOOK, player -> openMenu(Material.WRITABLE_BOOK, 50, false));
     }
 
     private void openMenu(Material material, double price, boolean sell) {
         inv = Bukkit.createInventory(this, 45);
-        ItemStack item = new ItemStack(material, 1);
+        ItemStack item = new ItemStack(material);
         clearActions();
         setItem(13, item);
         setItem(22, createItem(Material.BOOK, "Price: " + price + " dollars", null));

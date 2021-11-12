@@ -1,6 +1,7 @@
 io\github\FourteenBrush\MagmaBuildNetwork\config\ConfigManager$FileType.class
 io\github\FourteenBrush\MagmaBuildNetwork\database\MySQL.class
 io\github\FourteenBrush\MagmaBuildNetwork\gui\TradeGui.class
+io\github\FourteenBrush\MagmaBuildNetwork\listeners\ChatListener.class
 io\github\FourteenBrush\MagmaBuildNetwork\config\ConfigManager.class
 io\github\FourteenBrush\MagmaBuildNetwork\utils\PlayerUtils.class
 io\github\FourteenBrush\MagmaBuildNetwork\library\Combat$1.class
@@ -13,6 +14,7 @@ io\github\FourteenBrush\MagmaBuildNetwork\commands\CommandLock.class
 io\github\FourteenBrush\MagmaBuildNetwork\library\ActionBar.class
 io\github\FourteenBrush\MagmaBuildNetwork\library\Home.class
 io\github\FourteenBrush\MagmaBuildNetwork\updatechecker\UpdateChecker.class
+io\github\FourteenBrush\MagmaBuildNetwork\library\chat\ChannelManager.class
 io\github\FourteenBrush\MagmaBuildNetwork\config\InventorySerialisation.class
 io\github\FourteenBrush\MagmaBuildNetwork\commands\SimpleCommand.class
 io\github\FourteenBrush\MagmaBuildNetwork\gui\ItemBuilder.class
@@ -20,8 +22,11 @@ io\github\FourteenBrush\MagmaBuildNetwork\gui\ShopGui.class
 io\github\FourteenBrush\MagmaBuildNetwork\updatechecker\UpdateChecker$DownloadResult.class
 io\github\FourteenBrush\MagmaBuildNetwork\updatechecker\UpdateChecker$UpdateResult.class
 io\github\FourteenBrush\MagmaBuildNetwork\commands\AbstractCommand.class
+io\github\FourteenBrush\MagmaBuildNetwork\commands\CommandChatChannel.class
 io\github\FourteenBrush\MagmaBuildNetwork\commands\CommandHome.class
 io\github\FourteenBrush\MagmaBuildNetwork\gui\GuiCreator$GuiAction.class
+io\github\FourteenBrush\MagmaBuildNetwork\library\chat\framework\ChatPlayer.class
+io\github\FourteenBrush\MagmaBuildNetwork\library\chat\channels\Global.class
 io\github\FourteenBrush\MagmaBuildNetwork\commands\CommandTrade$1.class
 io\github\FourteenBrush\MagmaBuildNetwork\library\Combat.class
 io\github\FourteenBrush\MagmaBuildNetwork\commands\CommandDebug.class
@@ -39,7 +44,6 @@ io\github\FourteenBrush\MagmaBuildNetwork\utils\Instances.class
 io\github\FourteenBrush\MagmaBuildNetwork\gui\SafechestGui.class
 io\github\FourteenBrush\MagmaBuildNetwork\library\Effects$2.class
 io\github\FourteenBrush\MagmaBuildNetwork\commands\ConsoleCommand.class
-io\github\FourteenBrush\MagmaBuildNetwork\dependencies\LP.class
 io\github\FourteenBrush\MagmaBuildNetwork\gui\GuiCreator.class
 io\github\FourteenBrush\MagmaBuildNetwork\listeners\VaultListener.class
 io\github\FourteenBrush\MagmaBuildNetwork\database\Database$DatabaseType.class
@@ -53,11 +57,14 @@ io\github\FourteenBrush\MagmaBuildNetwork\commands\CommandTrade.class
 io\github\FourteenBrush\MagmaBuildNetwork\gui\PrefixGui.class
 io\github\FourteenBrush\MagmaBuildNetwork\commands\CommandMagmabuildnetwork.class
 io\github\FourteenBrush\MagmaBuildNetwork\utils\Permission.class
+io\github\FourteenBrush\MagmaBuildNetwork\library\chat\framework\Channel.class
 io\github\FourteenBrush\MagmaBuildNetwork\utils\Lang.class
 io\github\FourteenBrush\MagmaBuildNetwork\database\DatabaseFactory.class
 io\github\FourteenBrush\MagmaBuildNetwork\library\LibraryProvider.class
+io\github\FourteenBrush\MagmaBuildNetwork\library\chat\channels\Local.class
 io\github\FourteenBrush\MagmaBuildNetwork\listeners\PlayerListener$1.class
 io\github\FourteenBrush\MagmaBuildNetwork\gui\TrailsGui.class
 io\github\FourteenBrush\MagmaBuildNetwork\library\NoPush.class
 io\github\FourteenBrush\MagmaBuildNetwork\utils\Utils.class
 io\github\FourteenBrush\MagmaBuildNetwork\commands\managers\CommandManager.class
+io\github\FourteenBrush\MagmaBuildNetwork\library\chat\MessageManager.class

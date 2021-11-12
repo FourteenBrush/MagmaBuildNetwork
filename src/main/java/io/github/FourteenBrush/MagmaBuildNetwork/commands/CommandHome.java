@@ -23,15 +23,17 @@ import java.util.concurrent.TimeUnit;
 public class CommandHome extends AbstractCommand {
 
     private static final String[] HELP_MESSAGE = Utils.colorize(
-            "&f--- &9Home command &f---",
-            "&9/home &7set - &fSets a new home",
-            "&9/home &7remove - &fremoves the provided home",
-            "&9/home &7list - &fshows a list of all your homes",
-            "&9/home &7teleport - &fteleports you to your home",
-            "&9/home &7help - &fshows this message");
-    private static final FileConfiguration HOMES_FILE = plugin.getConfigManager().getHomes();
-    private final CooldownManager cm;
+            "&e------------ &7[&eHome Command&7] &e------------",
+            "&7Below is a list of all home commands:",
+            "  &6/home create <name> &7- &6Creates a new home",
+            "  &6/home remove <name> &7- &6Removes the home with that name",
+            "  &6/home list &7- &6Shows a list of all your homes",
+            "  &6/home teleport <name> &7- &6Teleports you to the home with that name",
+            "  &6/home help &7- &6Shows this message"
+    );
+    private final FileConfiguration homesFile = plugin.getConfigManager().getHomes();
     private final Map<UUID, Integer> uses;
+    private final CooldownManager cm;
     private int homesLimit;
 
     public CommandHome() {
@@ -55,7 +57,7 @@ public class CommandHome extends AbstractCommand {
                 case "delete":
                     return removeHome(args[1]);
             }
-        } else if (args[0].equalsIgnoreCase("help")) {
+        } else if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
             PlayerUtils.message(executor, HELP_MESSAGE);
         } else if (args[0].equalsIgnoreCase("list")) {
             return getHomes();
@@ -69,8 +71,8 @@ public class CommandHome extends AbstractCommand {
         } else if (hasLimitReached()) {
             PlayerUtils.message(executor, Lang.HOME_LIMIT_REACHED.get());
         } else {
-            HOMES_FILE.set("homes." + executor.getUniqueId() + "." + name + ".playerName", executor.getName());
-            HOMES_FILE.set("homes." + executor.getUniqueId() + "." + name + ".location", location);
+            homesFile.set("homes." + executor.getUniqueId() + "." + name + ".playerName", executor.getName());
+            homesFile.set("homes." + executor.getUniqueId() + "." + name + ".location", location);
             plugin.getConfigManager().saveConfig(ConfigManager.FileType.HOMES);
             PlayerUtils.message(executor, Lang.HOME_CREATED_SUCCESS.get(name));
         }
@@ -79,7 +81,7 @@ public class CommandHome extends AbstractCommand {
 
     private boolean removeHome(String name) {
         if (hasHome(name)) {
-            HOMES_FILE.set("homes." + executor.getUniqueId() + "." + name, null);
+            homesFile.set("homes." + executor.getUniqueId() + "." + name, null);
             plugin.getConfigManager().saveConfig(ConfigManager.FileType.HOMES);
             PlayerUtils.message(executor, Lang.HOME_REMOVED_SUCCESS.get(name));
         } else messageNoHomesFound();
@@ -89,10 +91,10 @@ public class CommandHome extends AbstractCommand {
     private boolean getHomes() {
         if (hasHome()) {
             String path = "homes." + executor.getUniqueId();
-            Set<String> homes = new HashSet<>(HOMES_FILE.getConfigurationSection(path).getKeys(false));
+            Set<String> homes = new HashSet<>(homesFile.getConfigurationSection(path).getKeys(false));
             PlayerUtils.message(executor, "&f--- &9Homes &f---");
             homes.forEach(home -> {
-                Location loc = (Location) HOMES_FILE.get(path + "." + home + ".location");
+                Location loc = (Location) homesFile.get(path + "." + home + ".location");
                 PlayerUtils.message(executor, "&f" + home, String.format(" x: %s, y: %s, z: %s", (int) loc.getX(), (int) loc.getY(), (int) loc.getZ()));
             });
         } else PlayerUtils.message(executor, new ComponentBuilder()
@@ -108,7 +110,7 @@ public class CommandHome extends AbstractCommand {
     }
 
     private Set<String> getHomesList() {
-        return HOMES_FILE.getConfigurationSection("homes." + executor.getUniqueId()).getKeys(false);
+        return homesFile.getConfigurationSection("homes." + executor.getUniqueId()).getKeys(false);
     }
 
     private boolean teleport(Player player, String name) {
@@ -134,20 +136,20 @@ public class CommandHome extends AbstractCommand {
     }
 
     private boolean hasHome(String name) {
-        return Utils.isValidConfigurationSection(HOMES_FILE, "homes." + executor.getUniqueId() + "." + name);
+        return Utils.isValidConfigurationSection(homesFile, "homes." + executor.getUniqueId() + "." + name);
     }
 
     private boolean hasHome() {
-        return Utils.isValidConfigurationSection(HOMES_FILE, "homes." + executor.getUniqueId());
+        return Utils.isValidConfigurationSection(homesFile, "homes." + executor.getUniqueId());
     }
 
     private boolean hasLimitReached() {
-        return hasHome() && HOMES_FILE.getConfigurationSection("homes." + executor.getUniqueId()).getKeys(false).size() >= homesLimit;
+        return hasHome() && homesFile.getConfigurationSection("homes." + executor.getUniqueId()).getKeys(false).size() >= homesLimit;
     }
 
     @Nullable
     private Location getLocation(String name) {
-        if (hasHome(name)) return (Location) HOMES_FILE.get("homes." + executor.getUniqueId() + "." + name + ".location");
+        if (hasHome(name)) return (Location) homesFile.get("homes." + executor.getUniqueId() + "." + name + ".location");
         else messageNoHomesFound();
         return null;
     }

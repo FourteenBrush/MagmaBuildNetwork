@@ -16,6 +16,17 @@ mysql:
   user: "root"
   password: "password"
 
+default-chat-format: "{CHANNEL_PREFIX} {PREFIX} {NAME} {SUFFIX} &7>&f {MESSAGE}"
+private-message-format: "{SENDER_PREFIX}{SENDER} &7>&f {RECEIVER_PREFIX}{RECEIVER}: {MESSAGE}"
+rate-limit: 1000
+
+channels:
+  global:
+    prefix: "[G]"
+  local:
+    prefix: "[L]"
+    range: 50
+
 trade:
   # Max distance in blocks between two players to make them able to trade
   # Set to -1 to disable

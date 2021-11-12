@@ -4,12 +4,12 @@ import org.bukkit.entity.Player;
 
 public enum Permission {
 
-    BASIC("magmabuildnetwork.basic"),
-    TRAILS("magmabuildnetwork.trails"),
-    SAFECHEST("magmabuildnetwork.safechest"),
-    NOTIFY_UPDATE("magmabuildnetwork.notifyupdate"), // todo
-    MAINTENANCE_BYPASS("magmabuildnetwork.maintenance-bypass"),
-    ADMIN("magmabuildnetwork.admin");
+    BASIC("MagmaBuildNetwork.basic"),
+    TRAILS("MagmaBuildNetwork.trails"),
+    SAFECHEST("MagmaBuildNetwork.safechest"),
+    MAINTENANCE_BYPASS("MagmaBuildNetwork.maintenance-bypass"),
+    MODERATOR("MagmaBuildNetwork.moderator"),
+    ADMIN("MagmaBuildNetwork.admin");
 
     private final String permission;
 

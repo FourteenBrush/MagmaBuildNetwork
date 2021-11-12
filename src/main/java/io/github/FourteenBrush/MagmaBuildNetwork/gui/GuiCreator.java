@@ -1,7 +1,6 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.gui;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.PlayerUtils;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -34,6 +33,10 @@ public abstract class GuiCreator extends ItemBuilder implements InventoryHolder 
         inv = Bukkit.createInventory(this, rows * 9, Utils.colorize(invName));
         actions = new HashMap<>();
         INVENTORIES_BY_UUID.put(uuid, this);
+    }
+
+    public void setItem(int slot, Material material, GuiAction action) {
+        setItem(slot, new ItemStack(material), action);
     }
 
     public void setItem(int slot, ItemStack stack){

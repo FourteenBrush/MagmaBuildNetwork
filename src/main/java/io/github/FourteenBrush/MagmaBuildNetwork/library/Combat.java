@@ -11,23 +11,23 @@ import java.util.UUID;
 
 public class Combat extends LibraryProvider implements Listener {
 
-    private static final Map<UUID, BukkitTask> pvp = new HashMap<>();
+    private static final Map<UUID, BukkitTask> PVP_LIST = new HashMap<>();
 
     public static void remove(UUID uuid) {
-        if (pvp.containsKey(uuid)) {
-            if (pvp.get(uuid).isSync())
-                (pvp.get(uuid)).cancel();
-            pvp.remove(uuid);
+        if (PVP_LIST.containsKey(uuid)) {
+            if (PVP_LIST.get(uuid).isSync())
+                (PVP_LIST.get(uuid)).cancel();
+            PVP_LIST.remove(uuid);
         }
     }
 
     private static void pvp(Player player) {
         UUID uuid = player.getUniqueId();
-        if (pvp.containsKey(uuid) && pvp.get(uuid).isSync())
-            pvp.get(uuid).cancel();
-        pvp.put(uuid, (new BukkitRunnable() {
+        if (PVP_LIST.containsKey(uuid) && PVP_LIST.get(uuid).isSync())
+            PVP_LIST.get(uuid).cancel();
+        PVP_LIST.put(uuid, (new BukkitRunnable() {
             public void run() {
-                pvp.remove(uuid);
+                PVP_LIST.remove(uuid);
             }
         }).runTaskLater(plugin, 600L));
     }
@@ -38,6 +38,6 @@ public class Combat extends LibraryProvider implements Listener {
     }
 
     public static Map<UUID, BukkitTask> getPvpList() {
-        return pvp;
+        return PVP_LIST;
     }
 }

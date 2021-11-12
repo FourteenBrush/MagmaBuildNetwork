@@ -1,5 +1,6 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.commands;
 
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.Lang;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Permission;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.PlayerUtils;
 import org.bukkit.Bukkit;
@@ -29,7 +30,12 @@ public class CommandFly extends AbstractCommand {
 
     public void fly(Player player, boolean fly, boolean message) {
         if (fly) flyingPlayers.add(player.getUniqueId());
+        else flyingPlayers.remove(player.getUniqueId());
         player.setAllowFlight(fly || player.getGameMode() == GameMode.CREATIVE);
-        if (message) PlayerUtils.message(executor, fly ? "&aSet fly mode enabled" : "&aSet fly mode &cdisabled");
+        if (message) PlayerUtils.message(executor, fly ? Lang.FLY_ENABLED.get(player.getName()) : Lang.FLY_DISABLED.get(player.getName()));
+    }
+
+    public static Set<UUID> getFlyingPlayers() {
+        return flyingPlayers;
     }
 }

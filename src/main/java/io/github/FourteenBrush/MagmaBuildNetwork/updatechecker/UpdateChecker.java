@@ -14,8 +14,8 @@ public class UpdateChecker {
     private final Main plugin;
     private final int resourceId;
 
-    public UpdateChecker(int resourceId) {
-        plugin = Main.getPlugin(Main.class);
+    public UpdateChecker(Main plugin, int resourceId) {
+        this.plugin = plugin;
         this.resourceId = resourceId;
     }
 

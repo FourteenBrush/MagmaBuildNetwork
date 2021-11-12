@@ -11,8 +11,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.Map;
+import java.util.Arrays;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -21,8 +20,8 @@ public class CommandManager {
     private final Main plugin;
     private final FileConfiguration dataFile;
 
-    public CommandManager() {
-        plugin = Main.getPlugin(Main.class);
+    public CommandManager(Main plugin) {
+        this.plugin = plugin;
         dataFile = plugin.getConfigManager().getData();
         plugin.getCommand("ban").setExecutor(new CommandBan());
         plugin.getCommand("debug").setExecutor(new CommandDebug());
@@ -34,13 +33,14 @@ public class CommandManager {
         plugin.getCommand("trade").setExecutor(Instances.COMMAND_TRADE);
         plugin.getCommand("vanish").setExecutor(Instances.COMMAND_VANISH);
         plugin.getCommand("maintenance").setExecutor(new CommandMaintenance());
+        plugin.getCommand("chatchannel").setExecutor(new CommandChatChannel());
     }
 
     public void startup() {
         // load safe chests
         if (Utils.isValidConfigurationSection(dataFile, "safe-chests")) {
             dataFile.getConfigurationSection("safe-chests").getKeys(false).forEach(key -> {
-                ItemStack[] content = InventorySerialisation.itemStackArrayFromBase64("safe-chests" + key);
+                ItemStack[] content = InventorySerialisation.itemStackArrayFromBase64(dataFile.getString("safe-chests." + key));
                 SafechestGui.getMenus().put(UUID.fromString(key), content);
             });
         }
@@ -49,11 +49,14 @@ public class CommandManager {
     }
 
     public void shutdown() {
-        // add safe chests
-        // dataFile.set("safe-chests", SafechestGui.getMenus().values().stream().map(InventorySerialisation::itemStackArrayToBase64).collect(Collectors.toList()));
-        SafechestGui.getMenus().forEach((key, value) -> dataFile.set("safe-chests." + key, InventorySerialisation.itemStackArrayToBase64(value)));
         // add vanished players
         dataFile.set("vanished-players", CommandVanish.getVanishedPlayers().stream().map(UUID::toString).collect(Collectors.toList()));
+        // add safe chests
+        SafechestGui.getMenus().forEach((key, value) -> {
+            String data = InventorySerialisation.itemStackArrayToBase64(value);
+            dataFile.set("safe-chests." + key, data);
+            Utils.logDebug("saved safechest " + key + ":" + Arrays.toString(value) + "data is " + data);
+        });
         // save file
         plugin.getConfigManager().saveConfig(ConfigManager.FileType.DATA);
     }

@@ -12,11 +12,13 @@ import java.util.*;
 public class CommandLock extends AbstractCommand {
 
     private static final String[] HELP_MESSAGE = Utils.colorize(
-            "&f--- &9Lock command &f---",
-            "&9/lock &7set - &fsets a lock on the block you right-click on",
-            "&9/lock &7remove - &fremoves the lock from the block you right-click on",
-            "&9/lock &7cancel - &fcancels the lock creation",
-            "&9/lock &7help - &fshows this message");
+      "&e------------ &7[&eLock Command&7] &e------------",
+            "&7Below is a list of all home commands:",
+            "  &6/lock set &7- &6Sets a lock on the right-clicked block",
+            "  &6/lock remove &7- &6Removes the lock from the block you right-click on",
+            "  &6/lock cancel &7- &6Cancels a pending lock",
+            "  &6/lock help &7- &6Shows this message"
+    );
     private static final Set<UUID> bypassingLock = new HashSet<>();
     private static final Map<UUID, Integer> peopleWantingLock = new HashMap<>();
 

@@ -14,9 +14,11 @@ import java.util.*;
 public class CommandMagmabuildnetwork extends AbstractCommand implements ConsoleCommand {
 
     private static final String[] HELP_MESSAGE = Utils.colorize(
-            "&f---- &9MagmaBuildNetwork &f---",
-            "&9/mbn &7help <command> - &fDisplay info about a command.",
-            "&9/mbn &7reload - &fReloads the plugin");
+            "&e------------ &7[Main Command&7] &e------------",
+            "&7Below is a list of all main commands:",
+            "  &6/magmabuildnetwork reload &7- &6Reloads the plugin",
+            "  &6/magmabuildnetwork help [command] &7- &6Shows a help page for the specified command, or this message"
+    );
     private static final Set<UUID> bypassingPlayers = new HashSet<>();
 
     public CommandMagmabuildnetwork() {

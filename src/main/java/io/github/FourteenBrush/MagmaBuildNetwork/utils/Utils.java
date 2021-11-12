@@ -15,12 +15,8 @@ public class Utils {
 
     private static final Main PLUGIN = Main.getPlugin(Main.class);
 
-    public static boolean isPluginEnabled(String plugin) {
-        return Bukkit.getServer().getPluginManager().isPluginEnabled(plugin);
-    }
-
     public static String colorize(String args) {
-        return ChatColor.translateAlternateColorCodes('&', ChatColor.GRAY + args);
+        return ChatColor.translateAlternateColorCodes('&', args);
     }
 
     public static String[] colorize(String... args) {
@@ -61,7 +57,7 @@ public class Utils {
         }
         th.printStackTrace();
         log(LogLevel.ERROR, "&cDisabling myself...");
-        PLUGIN.getServer().getPluginManager().disablePlugin(PLUGIN);
+        Bukkit.getPluginManager().disablePlugin(PLUGIN);
     }
 
     private static void log(LogLevel level, String message) {

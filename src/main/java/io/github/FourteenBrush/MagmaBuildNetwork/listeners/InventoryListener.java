@@ -4,7 +4,6 @@ import io.github.FourteenBrush.MagmaBuildNetwork.gui.GuiCreator;
 import io.github.FourteenBrush.MagmaBuildNetwork.gui.SafechestGui;
 import io.github.FourteenBrush.MagmaBuildNetwork.gui.TradeGui;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Instances;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.PlayerUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

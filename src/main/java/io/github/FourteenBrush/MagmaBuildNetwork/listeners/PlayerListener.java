@@ -1,6 +1,7 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.listeners;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandFly;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandSpawn;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandVanish;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.SimpleCommand;
@@ -9,6 +10,7 @@ import io.github.FourteenBrush.MagmaBuildNetwork.library.Combat;
 import io.github.FourteenBrush.MagmaBuildNetwork.library.ActionBar;
 import io.github.FourteenBrush.MagmaBuildNetwork.library.Effects;
 import io.github.FourteenBrush.MagmaBuildNetwork.library.NoPush;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.Permission;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.PlayerUtils;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import org.bukkit.*;
@@ -28,7 +30,7 @@ import java.util.stream.Collectors;
 
 public class PlayerListener implements Listener {
 
-    private final Main plugin = Main.getPlugin(Main.class);
+    private final Main plugin;
     private static final Set<Material> WEAPONS = EnumSet.of(
             Material.WOODEN_SWORD,
             Material.STONE_SWORD,
@@ -38,27 +40,25 @@ public class PlayerListener implements Listener {
             Material.NETHERITE_SWORD
     );
 
-    // todo
-    @EventHandler
-    public void onLogin(PlayerLoginEvent event) {
-        if (event.getResult() == PlayerLoginEvent.Result.KICK_BANNED) {
-            // event.setKickMessage(MessagesUtils.messageBanned(CommandBan.getBanReason()));
-        }
+    public PlayerListener(Main plugin) {
+        this.plugin = plugin;
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         NoPush.setCantPush(player);
-        plugin.getCommandManager().checkVanishedPlayer();
         if (plugin.getCommandManager().checkVanishedPlayer()) {
-            Bukkit.getOnlinePlayers().forEach(p -> {
-                if (!CommandVanish.getVanishedPlayers().contains(p.getUniqueId()))
-                    p.hidePlayer(plugin, player);
+            Bukkit.getOnlinePlayers().forEach(pl -> {
+                if (!CommandVanish.getVanishedPlayers().contains(pl.getUniqueId()))
+                    pl.hidePlayer(plugin, player);
+                if (Permission.MODERATOR.has(pl))
+                    PlayerUtils.message(pl, "&e" + player.getName() + " has joined vanished.");
             });
+            PlayerUtils.message(player, "&eYou have joined vanished.");
             event.setJoinMessage(null);
         } else event.setJoinMessage(Utils.colorize("&7[&a&l+&7] &b" + player.getName() + " &7joined the server."));
-        Bukkit.getScheduler().runTaskLater(plugin, () -> PlayerUtils.message(player, "&aWelcome to the server &b " + player.getName()), 100L);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> PlayerUtils.message(player, "&aWelcome to the server &b " + player.getName()), 50L);
         new ActionBar(player).runTaskTimerAsynchronously(plugin, 1L, 6L);
         if (!player.hasPlayedBefore())
             giveRespawnItems(player);
@@ -70,13 +70,13 @@ public class PlayerListener implements Listener {
         UUID uuid = player.getUniqueId();
         GuiCreator.getOpenInventories().remove(uuid);
         Combat.remove(uuid);
-        event.setQuitMessage(CommandVanish.getVanishedPlayers().contains(uuid) ? null : Utils.colorize("&7[&c&l-&7] &b" + player.getName() + " &7left the server."));
-        Effects d = new Effects(player);
-        if (Effects.getTrails().containsKey(uuid))
-            d.endTask();
-        if (CommandVanish.getVanishedPlayers().contains(uuid)) {
+        if (CommandVanish.getVanishedPlayers().remove(uuid)) {
+            event.setQuitMessage(null);
             plugin.getConfigManager().getData().set("vanished-players", CommandVanish.getVanishedPlayers().stream().map(UUID::toString).collect(Collectors.toList()));
             player.removePotionEffect(PotionEffectType.NIGHT_VISION);
+        } else event.setQuitMessage(Utils.colorize("&7[&c&l-&7] &b" + player.getName() + " &7left the server."));
+        if (Effects.getTrails().containsKey(uuid)) {
+            new Effects(player).endTask();
         }
     }
 
@@ -150,7 +150,7 @@ public class PlayerListener implements Listener {
         Player player = (Player) event.getEntity();
         if (event.getDamager() instanceof Player) {
             if (!WEAPONS.contains(((Player) event.getDamager()).getInventory().getItemInMainHand().getType())) {
-                event.setDamage(0.0);
+                event.setDamage(0);
             } else {
                 Combat.pvp(player, (Player) event.getDamager());
             }
@@ -160,30 +160,24 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler
-    public void onEntitySpawn(EntitySpawnEvent event) {
-        if (event.getEntity() instanceof LivingEntity)
-            ((LivingEntity) event.getEntity()).setCollidable(false); // todo remove?
-    }
-
-    @EventHandler
     public void onGamemodeChange(PlayerGameModeChangeEvent event) {
         Player player = event.getPlayer();
-        if (event.getNewGameMode() == GameMode.SURVIVAL
-            && CommandVanish.getVanishedPlayers().contains(player.getUniqueId())) {
+        if (CommandFly.getFlyingPlayers().contains(player.getUniqueId())
+            && event.getNewGameMode() == GameMode.SURVIVAL) {
             player.setAllowFlight(true);
+            player.setFlying(true);
         }
     }
 
     @EventHandler
     public void onArrowPickup(PlayerPickupArrowEvent event) {
-        if (CommandVanish.getVanishedPlayers().contains(event.getPlayer().getUniqueId())) {
+        if (CommandVanish.getVanishedPlayers().contains(event.getPlayer().getUniqueId()))
             event.setCancelled(true);
-        }
     }
 
     private static void giveRespawnItems(Player player) {
         PlayerUtils.addAtOrDrop(player, 0, new ItemStack(Material.APPLE, 16));
-        PlayerUtils.addAtOrDrop(player, 1, new ItemStack(Material.WOODEN_AXE));
+        PlayerUtils.addAtOrDrop(player, 1, new ItemStack(Material.WOODEN_PICKAXE));
     }
 
     private Material getBoat(TreeSpecies ts) {

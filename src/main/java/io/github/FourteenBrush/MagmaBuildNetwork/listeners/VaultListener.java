@@ -1,7 +1,6 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.listeners;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.Main;
-import io.github.FourteenBrush.MagmaBuildNetwork.dependencies.LP;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.PlayerUtils;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import org.bukkit.entity.Monster;
@@ -15,7 +14,11 @@ import java.util.Random;
 
 public class VaultListener implements Listener {
 
-    private final Main plugin = Main.getPlugin(Main.class);
+    private final Main plugin;
+
+    public VaultListener(Main plugin) {
+        this.plugin = plugin;
+    }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {

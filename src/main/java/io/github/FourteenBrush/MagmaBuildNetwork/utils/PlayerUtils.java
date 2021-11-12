@@ -5,7 +5,6 @@ import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.Statistic;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -26,7 +25,8 @@ public class PlayerUtils {
     }
 
     public static void broadcast(String message, boolean broadcastConsole) {
-        if (broadcastConsole) Bukkit.getOnlinePlayers().forEach(player -> message(player, message));
+        if (broadcastConsole) Bukkit.broadcastMessage(Utils.colorize(message));
+        else Bukkit.getOnlinePlayers().forEach(player -> message(player, message));
     }
 
     public static void sendActionBar(Player player, String message) {
@@ -34,17 +34,8 @@ public class PlayerUtils {
     }
 
     public static boolean checkPlayerOnline(CommandSender messageTarget, @Nullable Player playerToCheck, boolean exactName) {
-        if (playerToCheck == null) {
-            message(messageTarget, Lang.PLAYER_NOT_ONLINE.get(" "));
-            return false;
-        }
-        return checkPlayerOnline(messageTarget, playerToCheck.getName(), exactName);
-    }
-
-    public static boolean checkPlayerOnline(CommandSender messageTarget, String playerToCheck, boolean exactName) {
-        if ((exactName && Bukkit.getPlayerExact(playerToCheck) == null)
-            || !exactName && Bukkit.getPlayer(playerToCheck) == null) {
-            message(messageTarget, Lang.PLAYER_NOT_ONLINE.get(playerToCheck));
+        if (playerToCheck == null || !Bukkit.getOnlinePlayers().contains(playerToCheck)) {
+            message(messageTarget, Lang.PLAYER_NOT_ONLINE.get(""));
             return false;
         }
         return true;
@@ -59,23 +50,5 @@ public class PlayerUtils {
         if (at == null || at.getType() == Material.AIR) slot = player.getInventory().firstEmpty();
         if (slot > -1) player.getInventory().setItem(slot, itemStack);
         else player.getWorld().dropItem(player.getLocation(), itemStack);
-    }
-
-    public static int getTotalMinedStones(Player player) {
-        int total = 0;
-        Material[] materials = {Material.STONE, Material.ANDESITE, Material.COBBLESTONE, Material.DIORITE, Material.GRANITE, Material.DIRT};
-        for (Material m : materials) {
-            total += player.getStatistic(Statistic.MINE_BLOCK, m);
-        }
-        return total;
-    }
-
-    public static int getTotalChoppedLogs(Player player) {
-        int total = 0;
-        Material[] materials = {Material.OAK_LOG, Material.SPRUCE_LOG, Material.DARK_OAK_LOG, Material.JUNGLE_LOG, Material.ACACIA_LOG, Material.BIRCH_LOG};
-        for (Material m : materials) {
-            total += player.getStatistic(Statistic.MINE_BLOCK, m);
-        }
-        return total;
     }
 }
