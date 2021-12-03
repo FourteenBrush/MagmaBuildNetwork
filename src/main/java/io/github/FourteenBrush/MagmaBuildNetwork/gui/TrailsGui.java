@@ -1,10 +1,8 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.gui;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.library.Effects;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 public class TrailsGui extends GuiCreator{
 

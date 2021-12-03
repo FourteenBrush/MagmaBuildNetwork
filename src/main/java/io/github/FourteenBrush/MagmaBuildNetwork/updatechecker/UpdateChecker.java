@@ -7,14 +7,14 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.concurrent.CompletableFuture;
 
-import io.github.FourteenBrush.MagmaBuildNetwork.Main;
+import io.github.FourteenBrush.MagmaBuildNetwork.MBNPlugin;
 
 public class UpdateChecker {
 
-    private final Main plugin;
+    private final MBNPlugin plugin;
     private final int resourceId;
 
-    public UpdateChecker(Main plugin, int resourceId) {
+    public UpdateChecker(MBNPlugin plugin, int resourceId) {
         this.plugin = plugin;
         this.resourceId = resourceId;
     }

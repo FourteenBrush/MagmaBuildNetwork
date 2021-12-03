@@ -1,18 +1,19 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.listeners;
 
-import io.github.FourteenBrush.MagmaBuildNetwork.Main;
+import io.github.FourteenBrush.MagmaBuildNetwork.MBNPlugin;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandFly;
-import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandSpawn;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.spawn.CommandSpawn;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandVanish;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.SimpleCommand;
+import io.github.FourteenBrush.MagmaBuildNetwork.config.ConfigManager;
 import io.github.FourteenBrush.MagmaBuildNetwork.gui.GuiCreator;
-import io.github.FourteenBrush.MagmaBuildNetwork.library.Combat;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.spawn.Combat;
 import io.github.FourteenBrush.MagmaBuildNetwork.library.ActionBar;
 import io.github.FourteenBrush.MagmaBuildNetwork.library.Effects;
 import io.github.FourteenBrush.MagmaBuildNetwork.library.NoPush;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.Lang;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Permission;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.PlayerUtils;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -20,17 +21,19 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.player.*;
+import org.bukkit.event.server.TabCompleteEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class PlayerListener implements Listener {
 
-    private final Main plugin;
+    private final MBNPlugin plugin;
     private static final Set<Material> WEAPONS = EnumSet.of(
             Material.WOODEN_SWORD,
             Material.STONE_SWORD,
@@ -40,41 +43,46 @@ public class PlayerListener implements Listener {
             Material.NETHERITE_SWORD
     );
 
-    public PlayerListener(Main plugin) {
+    public PlayerListener(MBNPlugin plugin) {
         this.plugin = plugin;
     }
 
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
+    public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         NoPush.setCantPush(player);
         if (plugin.getCommandManager().checkVanishedPlayer()) {
             Bukkit.getOnlinePlayers().forEach(pl -> {
                 if (!CommandVanish.getVanishedPlayers().contains(pl.getUniqueId()))
                     pl.hidePlayer(plugin, player);
-                if (Permission.MODERATOR.has(pl))
+                if (pl != player && Permission.MODERATOR.has(pl))
                     PlayerUtils.message(pl, "&e" + player.getName() + " has joined vanished.");
             });
             PlayerUtils.message(player, "&eYou have joined vanished.");
             event.setJoinMessage(null);
-        } else event.setJoinMessage(Utils.colorize("&7[&a&l+&7] &b" + player.getName() + " &7joined the server."));
-        Bukkit.getScheduler().runTaskLater(plugin, () -> PlayerUtils.message(player, "&aWelcome to the server &b " + player.getName()), 50L);
-        new ActionBar(player).runTaskTimerAsynchronously(plugin, 1L, 6L);
+        } else event.setJoinMessage(Lang.JOIN_MESSAGE.get(player.getName()));
+        Bukkit.getScheduler().runTaskLater(plugin, () -> PlayerUtils.message(player, "&aWelcome to the server &b " + player.getName()), 10L);
+        new ActionBar(player).runTaskTimerAsynchronously(plugin, 1L, 3L);
         if (!player.hasPlayedBefore())
             giveRespawnItems(player);
     }
 
     @EventHandler
-    public void onPlayerQuit(PlayerQuitEvent event) {
+    public void onQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
+        plugin.removeUserFromCache(uuid);
         GuiCreator.getOpenInventories().remove(uuid);
-        Combat.remove(uuid);
+        BukkitRunnable r = ActionBar.getActionbars().remove(player.getUniqueId());
+        if (r != null)
+            r.cancel();
         if (CommandVanish.getVanishedPlayers().remove(uuid)) {
+            CommandVanish.getInstance().vanish(player, false);
             event.setQuitMessage(null);
             plugin.getConfigManager().getData().set("vanished-players", CommandVanish.getVanishedPlayers().stream().map(UUID::toString).collect(Collectors.toList()));
+            plugin.getConfigManager().saveConfig(ConfigManager.FileType.LANG);
             player.removePotionEffect(PotionEffectType.NIGHT_VISION);
-        } else event.setQuitMessage(Utils.colorize("&7[&c&l-&7] &b" + player.getName() + " &7left the server."));
+        } else event.setQuitMessage(Lang.LEAVE_MESSAGE.get(player.getName()));
         if (Effects.getTrails().containsKey(uuid)) {
             new Effects(player).endTask();
         }
@@ -83,10 +91,9 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
-        UUID uuid = player.getUniqueId();
-        if (SimpleCommand.isPlayerFrozen(uuid) && (event.getTo().getBlockX() != event.getFrom().getBlockX() || event.getTo().getBlockY() != event.getFrom().getBlockY() || event.getTo().getBlockZ() != event.getFrom().getBlockZ())) {
+        if (SimpleCommand.isPlayerFrozen(player.getUniqueId())) {
             event.setCancelled(true);
-        } else if (Effects.getTrails().containsKey(uuid) && Effects.getTrails().get(uuid) == Effects.Trails.WALKTRAIL) {
+        } else if (Effects.getTrails().containsKey(player.getUniqueId()) && Effects.getTrails().get(player.getUniqueId()) == Effects.Trails.WALKTRAIL) {
             Effects effects = new Effects(player);
             effects.startWalkTrail();
         }
@@ -109,10 +116,16 @@ public class PlayerListener implements Listener {
         }
     }
 
+    @EventHandler
+    public void onTabComplete(TabCompleteEvent event) {
+        if (!(event.getSender() instanceof Player))
+            event.setCancelled(true);
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onEntityInteract(PlayerInteractAtEntityEvent event) {
         if (event.getRightClicked() instanceof Horse)
-            event.setCancelled(false); // override worldguard
+            event.setCancelled(false);
     }
 
     @EventHandler
@@ -138,8 +151,8 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerRespawn(PlayerRespawnEvent event) {
         if (plugin.getConfig().getBoolean("teleport-to-spawn-on.respawn")) {
-            event.setRespawnLocation(CommandSpawn.getLocation());
             event.getPlayer().setBedSpawnLocation(CommandSpawn.getLocation());
+            event.setRespawnLocation(CommandSpawn.getLocation());
         }
         giveRespawnItems(event.getPlayer());
     }
@@ -176,8 +189,8 @@ public class PlayerListener implements Listener {
     }
 
     private static void giveRespawnItems(Player player) {
-        PlayerUtils.addAtOrDrop(player, 0, new ItemStack(Material.APPLE, 16));
-        PlayerUtils.addAtOrDrop(player, 1, new ItemStack(Material.WOODEN_PICKAXE));
+        PlayerUtils.addOrDropFor(player, 0, new ItemStack(Material.APPLE, 16));
+        PlayerUtils.addOrDropFor(player, 1, new ItemStack(Material.WOODEN_PICKAXE));
     }
 
     private Material getBoat(TreeSpecies ts) {

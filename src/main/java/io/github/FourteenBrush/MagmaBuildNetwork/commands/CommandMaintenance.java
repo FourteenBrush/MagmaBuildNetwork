@@ -1,5 +1,6 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.commands;
 
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.managers.CommandHandler;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Lang;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Permission;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.PlayerUtils;
@@ -11,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class CommandMaintenance extends AbstractCommand implements ConsoleCommand {
+public class CommandMaintenance extends CommandHandler implements IConsoleCommand {
 
     private boolean maintenanceEnabled;
 
@@ -24,17 +25,17 @@ public class CommandMaintenance extends AbstractCommand implements ConsoleComman
         if (args.length == 1) {
             if (args[0].equalsIgnoreCase("enable")) {
                 if (maintenanceEnabled) {
-                    PlayerUtils.message(sender, Lang.MAINTENANCE_ALREADY_ENABLED.get());
+                    sender.sendMessage(Lang.MAINTENANCE_ALREADY_ENABLED.get());
                 } else {
                     maintenance(true);
-                    PlayerUtils.message(sender, Lang.MAINTENANCE_ENABLED.get());
+                    sender.sendMessage(Lang.MAINTENANCE_ENABLED.get());
                 }
             } else if (args[0].equalsIgnoreCase("disable")) {
                 if (!maintenanceEnabled) {
-                    PlayerUtils.message(sender, Lang.MAINTENANCE_ALREADY_DISABLED.get());
+                    sender.sendMessage(Lang.MAINTENANCE_ALREADY_DISABLED.get());
                 } else {
                     maintenance(false);
-                    PlayerUtils.message(sender, Lang.MAINTENANCE_DISABLED.get());
+                    sender.sendMessage(Lang.MAINTENANCE_DISABLED.get());
                 }
             }
         }
@@ -59,7 +60,6 @@ public class CommandMaintenance extends AbstractCommand implements ConsoleComman
                    if (countdown == Integer.parseInt(ChatColor.stripColor(str))) {
                        Bukkit.getOnlinePlayers().forEach(player ->
                                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BANJO, 2L, 2L));
-                       PlayerUtils.broadcast("&6The server will enter maintenance mode in " + str + " seconds!", true);
                    }
                 }
             }

@@ -1,9 +1,9 @@
 name: MagmaBuildNetwork
 version: 1.0
 author: FourteenBrush
-main: io.github.FourteenBrush.MagmaBuildNetwork.Main
+main: io.github.FourteenBrush.MagmaBuildNetwork.MBNPlugin
 api-version: 1.13
-softdepend: [LuckPerms, PlaceHolderAPI, Vault, WorldGuard, EssentialsX]
+softdepend: [LuckPerms, PlaceHolderAPI, Vault, Essentials]
 
 commands:
   magmabuildnetwork:
@@ -18,9 +18,6 @@ commands:
     permission: magmabuildnetwork.admin
   heal:
     description: Heals a player
-    permission: magmabuildnetwork.admin
-  ignite:
-    description: Sets a player on fire
     permission: magmabuildnetwork.admin
   vanish:
     description: Vanish command
@@ -61,6 +58,21 @@ commands:
   home:
     description: Sets a home
     permission: magmabuildnetwork.basic
+  tell:
+    description: Sends a private message to a player
+    permission: magmabuildnetwork.moderator
+    aliases: [msg, pm, tell]
+  reply:
+    description: Replies to a conversation
+    permission: magmabuildnetwork.moderator
+    aliases: [r, re]
+  chatchannel:
+    description: Chatchannel options
+    permission: magmabuildnetwork.basic
+    aliases: [channel, ch]
+  chat:
+    description: Chat options
+    permission: magmabuildnetwork.moderator
   safechest:
     description: Opens your safechest
     permission: magmabuildnetwork.safechest

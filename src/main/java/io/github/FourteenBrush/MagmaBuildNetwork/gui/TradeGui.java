@@ -1,6 +1,6 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.gui;
 
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Instances;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandTrade;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -23,7 +23,7 @@ public class TradeGui extends GuiCreator {
             setItem(39, createItem(Material.LIME_DYE, "&fStatus: &aReady", null));
         });
         setItem(38, createItem(Material.BARRIER, "&cClick here to exit the trade", null), player -> {
-            Instances.COMMAND_TRADE.cancelTrade(player.getName());
+            CommandTrade.getInstance().cancelTrade(player.getName());
         });
         setItem(39, createItem(Material.LIGHT_GRAY_DYE, "&fStatus: &cnot ready", null));
         setItem(41, createItem(Material.RED_DYE, "&cYour opponent is not ready", null));

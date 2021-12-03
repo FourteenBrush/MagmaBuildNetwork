@@ -1,5 +1,6 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.commands;
 
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.managers.CommandHandler;
 import io.github.FourteenBrush.MagmaBuildNetwork.gui.TradeGui;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Lang;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Permission;
@@ -19,9 +20,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class CommandTrade extends AbstractCommand {
+public class CommandTrade extends CommandHandler {
 
-    private static final String[] HELP_MESSAGE = Utils.colorize(
+    private static final CommandTrade INSTANCE = new CommandTrade();
+    private final String[] helpMessage = Utils.colorize(
             "&e------------&7[&eTrade Command&7] &e------------",
             "&7Below is a list of all trade commands:",
             "  &6/trade request <player> &7- &6Sends a trade request to a player",
@@ -32,7 +34,6 @@ public class CommandTrade extends AbstractCommand {
     );
     private final Map<Player, Player> traders; // stored with executor as key
     private final List<Integer> placeableSlots;
-    private TradeGui executorGui, targetGui; // todo
     private Player target;
     private boolean cancelled;
 
@@ -44,33 +45,32 @@ public class CommandTrade extends AbstractCommand {
 
     @Override
     public boolean execute(@NotNull String[] args) {
-        if (args.length > 1 && !args[1].isEmpty()) {
-            target = Bukkit.getPlayerExact(args[1]);
-            if (!PlayerUtils.checkPlayerOnline(executor, target, true)) return true;
-        }
         if (args.length == 2) {
+            target = Bukkit.getPlayerExact(args[1]);
+            if (!PlayerUtils.checkPlayerOnline(executor, target)) return true;
             switch (args[0].toLowerCase()) {
-                case "request":
-                    return request();
-                case "cancel":
-                    return cancelRequest();
-                case "accept":
-                    return accept();
-                case "decline":
-                    return decline();
+                case "request": return request();
+                case "cancel": return cancelRequest();
+                case "accept": return accept();
+                case "decline": return decline();
+                default: executor.sendMessage(helpMessage);
             }
-        } else if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
-            PlayerUtils.message(executor, HELP_MESSAGE);
+        } else {
+            executor.sendMessage(helpMessage);
         }
         return true;
     }
 
+    public static CommandTrade getInstance() {
+        return INSTANCE;
+    }
+
     private boolean request() {
         if (executor == target) {
-            PlayerUtils.message(executor, Lang.TRADE_WITH_YOURSELF_DISALLOWED.get());
+            executor.sendMessage(Lang.TRADE_WITH_YOURSELF_DISALLOWED.get());
         } else if (distanceCheck()) {
             traders.put(executor, target);
-            PlayerUtils.message(executor, Lang.TRADE_REQUEST_SENT.get(target.getName()));
+            executor.sendMessage(Lang.TRADE_REQUEST_SENT.get(target.getName()));
             PlayerUtils.message(target, new ComponentBuilder()
                     .append(Utils.colorize("&6" + executor.getName() + "&e sent you a trade request!\n"))
                     .append(Utils.colorize("&2&l[accept] "))
@@ -86,12 +86,12 @@ public class CommandTrade extends AbstractCommand {
 
     private boolean cancelRequest() {
         if (executor == target) {
-            PlayerUtils.message(executor, Lang.TRADE_WITH_YOURSELF_DISALLOWED.get());
+            executor.sendMessage(Lang.TRADE_WITH_YOURSELF_DISALLOWED.get());
         } else if (traders.remove(executor, target)) {
-            PlayerUtils.message(executor, Lang.TRADE_REQUEST_CANCELLED.get(target.getName()));
-            PlayerUtils.message(target, Lang.TRADE_REQUEST_CANCELLED_BY.get(executor.getName()));
+            executor.sendMessage(Lang.TRADE_REQUEST_CANCELLED.get(target.getName()));
+            target.sendMessage(Lang.TRADE_REQUEST_CANCELLED_BY.get(executor.getName()));
         } else {
-            PlayerUtils.message(executor, Lang.TRADE_NO_OUTGOING_REQUEST.get());
+            executor.sendMessage(Lang.TRADE_NO_OUTGOING_REQUEST.get());
         }
         return true;
     }
@@ -99,19 +99,19 @@ public class CommandTrade extends AbstractCommand {
     private boolean distanceCheck() {
         if (!plugin.getConfig().getBoolean("trade.allow-creative")
                 && (executor.getGameMode() == GameMode.CREATIVE || target.getGameMode() == GameMode.CREATIVE)) {
-            PlayerUtils.message(executor, Lang.TRADE_NO_CREATIVE.get());
+            executor.sendMessage(Lang.TRADE_NO_CREATIVE.get());
             return false;
         }
         if (!plugin.getConfig().getBoolean("trade.allow-from-different-worlds")
                 && !executor.getWorld().getName().equals(target.getWorld().getName())) {
-            PlayerUtils.message(executor, Lang.TRADE_NO_DIFFERENT_WORLDS.get());
+            executor.sendMessage(Lang.TRADE_NO_DIFFERENT_WORLDS.get());
             return false;
         }
         int maxDistance = plugin.getConfig().getInt("trade.max-distance");
         if (maxDistance != -1) {
             double realDistance = executor.getLocation().distance(target.getLocation());
             if (realDistance > maxDistance) {
-                PlayerUtils.message(executor, Lang.TRADE_DISTANCE_TOO_BIG.get(target.getName(), String.valueOf(maxDistance)));
+                executor.sendMessage(Lang.TRADE_DISTANCE_TOO_BIG.get(target.getName(), Integer.toString(maxDistance)));
                 return false;
             }
         }
@@ -120,14 +120,14 @@ public class CommandTrade extends AbstractCommand {
 
     private boolean accept() {
         if (executor == target) {
-            PlayerUtils.message(executor, Lang.TRADE_WITH_YOURSELF_DISALLOWED.get());
-        } else if (!(traders.get(executor) == target)) {
-            PlayerUtils.message(executor, Lang.TRADE_NO_REQUEST.get());
+            executor.sendMessage(Lang.TRADE_WITH_YOURSELF_DISALLOWED.get());
+        } else if (traders.get(executor) != target) {
+            executor.sendMessage(Lang.TRADE_NO_REQUEST.get());
         } else {
-            PlayerUtils.message(executor, Lang.TRADE_ACCEPTED.get(target.getName()));
-            PlayerUtils.message(target, Lang.TRADE_ACCEPTED_BY.get(executor.getName()));
-            executorGui = new TradeGui();
-            targetGui = new TradeGui();
+            executor.sendMessage(Lang.TRADE_ACCEPTED.get(target.getName()));
+            target.sendMessage(Lang.TRADE_ACCEPTED_BY.get(executor.getName()));
+            TradeGui executorGui = new TradeGui();
+            TradeGui targetGui = new TradeGui();
             executorGui.open(executor);
             targetGui.open(target);
         }
@@ -136,12 +136,12 @@ public class CommandTrade extends AbstractCommand {
 
     private boolean decline() {
         if (executor == target) {
-            PlayerUtils.message(executor, Lang.TRADE_WITH_YOURSELF_DISALLOWED.get());
+            executor.sendMessage(Lang.TRADE_WITH_YOURSELF_DISALLOWED.get());
         } else if (traders.remove(executor, target)) {
-            PlayerUtils.message(executor, Lang.TRADE_DECLINED.get(target.getName()));
-            PlayerUtils.message(target, Lang.TRADE_DECLINED_BY.get(executor.getName()));
+            executor.sendMessage(Lang.TRADE_DECLINED.get(target.getName()));
+            target.sendMessage(Lang.TRADE_DECLINED_BY.get(executor.getName()));
         } else {
-            PlayerUtils.message(executor, Lang.TRADE_NO_REQUEST.get());
+            executor.sendMessage(Lang.TRADE_NO_REQUEST.get());
         }
         return true;
     }
@@ -178,11 +178,12 @@ public class CommandTrade extends AbstractCommand {
         return placeableSlots;
     }
 
+
     @Override
-    protected List<String> tabComplete(@NotNull String... args) {
+    public List<String> tabComplete(@NotNull String[] args) {
         if (args.length == 1) {
             return StringUtil.copyPartialMatches(args[0], Arrays.asList("request", "cancel", "accept", "decline", "help"), new ArrayList<>());
         }
-        return super.tabComplete();
+        return super.tabComplete(args);
     }
 }

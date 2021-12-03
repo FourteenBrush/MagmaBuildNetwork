@@ -1,39 +1,29 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.commands.managers;
 
-import io.github.FourteenBrush.MagmaBuildNetwork.Main;
+import io.github.FourteenBrush.MagmaBuildNetwork.MBNPlugin;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.*;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.spawn.CommandSpawn;
 import io.github.FourteenBrush.MagmaBuildNetwork.config.ConfigManager;
 import io.github.FourteenBrush.MagmaBuildNetwork.config.InventorySerialisation;
 import io.github.FourteenBrush.MagmaBuildNetwork.gui.SafechestGui;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Instances;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class CommandManager {
 
-    private final Main plugin;
+    private final MBNPlugin plugin;
     private final FileConfiguration dataFile;
 
-    public CommandManager(Main plugin) {
+    public CommandManager(MBNPlugin plugin) {
         this.plugin = plugin;
         dataFile = plugin.getConfigManager().getData();
-        plugin.getCommand("ban").setExecutor(new CommandBan());
-        plugin.getCommand("debug").setExecutor(new CommandDebug());
-        plugin.getCommand("fly").setExecutor(Instances.COMMAND_FLY);
-        plugin.getCommand("home").setExecutor(new CommandHome());
-        plugin.getCommand("lock").setExecutor(new CommandLock());
-        plugin.getCommand("magmabuildnetwork").setExecutor(new CommandMagmabuildnetwork());
-        plugin.getCommand("spawn").setExecutor(new CommandSpawn());
-        plugin.getCommand("trade").setExecutor(Instances.COMMAND_TRADE);
-        plugin.getCommand("vanish").setExecutor(Instances.COMMAND_VANISH);
-        plugin.getCommand("maintenance").setExecutor(new CommandMaintenance());
-        plugin.getCommand("chatchannel").setExecutor(new CommandChatChannel());
     }
 
     public void startup() {
@@ -55,18 +45,19 @@ public class CommandManager {
         SafechestGui.getMenus().forEach((key, value) -> {
             String data = InventorySerialisation.itemStackArrayToBase64(value);
             dataFile.set("safe-chests." + key, data);
-            Utils.logDebug("saved safechest " + key + ":" + Arrays.toString(value) + "data is " + data);
         });
         // save file
         plugin.getConfigManager().saveConfig(ConfigManager.FileType.DATA);
     }
 
     public boolean checkVanishedPlayer() {
-        if (Utils.isValidConfigurationSection(dataFile, "vanished-players")) {
-            dataFile.getConfigurationSection("vanished-players").getKeys(false).forEach(key ->
-                    Instances.COMMAND_VANISH.vanish(Bukkit.getPlayer(UUID.fromString(key)), true));
-            return true;
-        }
-        return false;
+        List<String> list = dataFile.getStringList("vanished-players");
+        if (list.isEmpty()) return false;
+        list.forEach(string -> {
+            Player player = Bukkit.getPlayer(UUID.fromString(string));
+            if (player != null)
+                CommandVanish.getInstance().vanish(player, true);
+        });
+        return true;
     }
 }

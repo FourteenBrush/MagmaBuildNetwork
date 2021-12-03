@@ -14,31 +14,29 @@ public class PrefixGui extends GuiCreator {
     private final Set<String> groups;
     private final Map<String, String> prefixes; //group, prefix
 
-    public PrefixGui() {
+    public PrefixGui(Player player) {
         super("Prefix", 6);
         groups = new HashSet<>();
         prefixes = new HashMap<>();
         List<String> prefix = getPlayerGroups(player);
+        if (prefix.isEmpty()) {
+            PlayerUtils.message(player, "&cNo prefixes found!");
+            return;
+        }
         prefix.forEach(group -> {
-            if (prefix.isEmpty()) {
-                PlayerUtils.message(player, "no groups found!");
-                return;
-            }
             int slot = inv.firstEmpty();
             String str = loadPrefixes().get(prefix.get(slot));
-            setItem(slot, createItem(Material.OAK_SIGN, Utils.colorize(str), null), player -> {
-                plugin.getApi().getUserManager().getUser(player.getUniqueId()).setPrimaryGroup(prefix.get(slot));
-                plugin.getApi().getUserManager().savePlayerData(player.getUniqueId(), player.getName());
+            setItem(slot, createItem(Material.OAK_SIGN, Utils.colorize(str), null), p -> {
+                plugin.getApi().getUserManager().getUser(p.getUniqueId()).setPrimaryGroup(prefix.get(slot));
+                plugin.getApi().getUserManager().savePlayerData(p.getUniqueId(), p.getName());
                 player.closeInventory();
-                plugin.getChat().setPlayerPrefix(player, str);
-                PlayerUtils.message(player, "&aChanged prefix!");
+                plugin.getChat().setPlayerPrefix(p, str);
+                PlayerUtils.message(p, "&6Changed prefix!");
             });
         });
     }
 
     private Map<String, String> loadPrefixes() {
-        groups.clear();
-        prefixes.clear();
         groupManager.getLoadedGroups().forEach(group -> groups.add(group.getName()));
         groups.forEach(group -> {
             String prefix = groupManager.getGroup(group).getCachedData().getMetaData().getPrefix();
@@ -52,7 +50,7 @@ public class PrefixGui extends GuiCreator {
     private List<String> getPlayerGroups(Player player) {
         List<String> groups = new ArrayList<>();
         groupManager.getLoadedGroups().forEach(group -> { // check if group nonnull
-            if (player.hasPermission("group." + group))
+            if (player.hasPermission("group." + group.getName()))
                 groups.add(group.getName());
         });
         return groups;

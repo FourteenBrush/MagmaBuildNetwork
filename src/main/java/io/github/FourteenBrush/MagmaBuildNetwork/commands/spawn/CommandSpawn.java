@@ -1,7 +1,8 @@
-package io.github.FourteenBrush.MagmaBuildNetwork.commands;
+package io.github.FourteenBrush.MagmaBuildNetwork.commands.spawn;
 
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandMagmabuildnetwork;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.managers.CommandHandler;
 import io.github.FourteenBrush.MagmaBuildNetwork.config.ConfigManager;
-import io.github.FourteenBrush.MagmaBuildNetwork.library.Combat;
 import io.github.FourteenBrush.MagmaBuildNetwork.library.CooldownManager;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Lang;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Permission;
@@ -16,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-public class CommandSpawn extends AbstractCommand {
+public class CommandSpawn extends CommandHandler {
 
     private static Location location;
     private final Map<UUID, Integer> uses;
@@ -31,11 +32,11 @@ public class CommandSpawn extends AbstractCommand {
     @Override
     public boolean execute(@NotNull String[] args) {
         UUID uuid = executor.getUniqueId();
-        if (args.length < 1) {
+        if (args.length == 0) {
             if (!CommandMagmabuildnetwork.isBypassing(uuid) && uses.merge(uuid, 1, Integer::sum) > 3) {
                 long timeLeft = System.currentTimeMillis() - cm.getCooldown(uuid);
                 if (TimeUnit.MILLISECONDS.toDays(timeLeft) < 1) {
-                    PlayerUtils.message(executor, "&cPlease wait&e " + Utils.millisToReadable(TimeUnit.DAYS.toMillis(1) - timeLeft) + " &cbefore resuing this command!");
+                    executor.sendMessage(Lang.COMMAND_COOLDOWN.get(Utils.millisToReadable(TimeUnit.DAYS.toMillis(1) - timeLeft)));
                     return true;
                 }
             }
@@ -48,12 +49,13 @@ public class CommandSpawn extends AbstractCommand {
                 Location loc = executor.getLocation();
                 setLocation(loc);
                 executor.getWorld().setSpawnLocation(loc);
-                PlayerUtils.message(executor, "&aSpawn successfully set!");
+                executor.sendMessage(Lang.SPAWN_SET.get());
             }
         } else {
             Player target = Bukkit.getPlayer(args[0]);
-            if (!PlayerUtils.checkPlayerOnline(executor, target, false)) return true;
+            if (!PlayerUtils.checkPlayerOnline(executor, target)) return true;
             spawn(executor, target);
+            executor.sendMessage(Lang.SPAWN_TELEPORTED.get());
         }
         return true;
     }
@@ -80,8 +82,8 @@ public class CommandSpawn extends AbstractCommand {
     }
 
     public static void spawn(Player executor, Player target) {
-        if (Combat.getPvpList().containsKey(target.getUniqueId())) {
-            PlayerUtils.message(executor, Lang.SPAWN_DISABLED_IN_COMBAT.get());
+        if (Combat.getPvpList().getIfPresent(target.getUniqueId()) != null) {
+            executor.sendMessage(Lang.SPAWN_DISABLED_IN_COMBAT.get());
         } else {
             teleport(executor, target);
         }
@@ -92,17 +94,17 @@ public class CommandSpawn extends AbstractCommand {
         if (!location.getChunk().isLoaded())
             location.getChunk().load();
         target.teleport(location);
-        if (!executor.getName().equals(target.getName())) {
-            PlayerUtils.message(executor, Lang.SPAWN_TELEPORTED_OTHER_PLAYER_SUCCESS.get(target.getName()));
-            PlayerUtils.message(target, Lang.SPAWN_TELEPORTED_BY_OTHER_PLAYER.get(executor.getName()));
+        if (executor != target) {
+            executor.sendMessage(Lang.SPAWN_TELEPORTED_OTHER_PLAYER.get(target.getName()));
+            target.sendMessage(Lang.SPAWN_TELEPORTED_BY_OTHER_PLAYER.get(executor.getName()));
         }
     }
 
     @Override
-    protected List<String> tabComplete(@NotNull String[] args) {
-        if (args.length == 1 && Permission.ADMIN.has(executor)) {
+    public List<String> tabComplete(@NotNull String[] args) {
+        if (args.length == 1 && Permission.MODERATOR.has(executor)) {
             return StringUtil.copyPartialMatches(args[0], Collections.singletonList("set"), new ArrayList<>());
         }
-        return super.tabComplete();
+        return super.tabComplete(args);
     }
 }

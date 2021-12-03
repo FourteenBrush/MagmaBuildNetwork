@@ -1,7 +1,9 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.library.chat.channels;
 
+import io.github.FourteenBrush.MagmaBuildNetwork.MBNPlugin;
 import io.github.FourteenBrush.MagmaBuildNetwork.library.chat.framework.Channel;
-import io.github.FourteenBrush.MagmaBuildNetwork.library.chat.framework.ChatPlayer;
+import io.github.FourteenBrush.MagmaBuildNetwork.library.chat.framework.User;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
 
@@ -10,28 +12,28 @@ import java.util.Set;
 
 public class Local extends Channel {
 
-    protected Local() {
-        super("local", "l", PLUGIN.getConfig().getString("channels.local.prefix"), new Permission("MagmaBuildNetwork.channels.global"));
+    public Local(MBNPlugin plugin) {
+        super(plugin, "local", "l", plugin.getConfig().getString("channels.local.prefix"), new Permission("magmabuildnetwork.channels.join.local"));
     }
 
     @Override
-    protected String format(ChatPlayer from, String message, String format) {
+    protected String format(User from, String message, String format) {
         return applyDefaultFormat(from, message, format);
     }
 
     @Override
-    public Set<ChatPlayer> getRecipients(ChatPlayer chatPlayer) {
-        if (chatPlayer.getOfflinePlayer().isOnline()) {
-            Player player = chatPlayer.getPlayer();
-            Set<ChatPlayer> nearby = new HashSet<>();
-            double range = PLUGIN.getConfig().getInt("Channels.Local.Range");
-            player.getNearbyEntities(range, range, range).forEach(entity -> {
+    public Set<User> getRecipients(User user) {
+        Set<User> nearby = new HashSet<>();
+        if (user.getPlayer() != null) {
+            Player player = user.getPlayer();
+            double range = plugin.getConfig().getDouble("channels.local.range");
+            Bukkit.getScheduler().runTask(plugin, () ->
+                    player.getNearbyEntities(range, range, range).forEach(entity -> {
                 if (entity instanceof Player)
-                    nearby.add(PLUGIN.getChatPlayer(entity.getUniqueId()));
-            });
-            nearby.add(chatPlayer);
-            return nearby;
+                    nearby.add(plugin.getUser(entity.getUniqueId()));
+            }));
+            nearby.add(user);
         }
-        return null;
+        return nearby;
     }
 }

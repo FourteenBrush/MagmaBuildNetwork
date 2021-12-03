@@ -3,15 +3,15 @@ package io.github.FourteenBrush.MagmaBuildNetwork.library.chat;
 import io.github.FourteenBrush.MagmaBuildNetwork.library.chat.framework.Channel;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ChannelManager {
 
-    private List<Channel> channels;
+    private final Set<Channel> channels;
 
     public ChannelManager() {
-        channels = new ArrayList<>();
+        channels = new HashSet<>();
     }
 
     public void addChannel(Channel channel) {
@@ -22,12 +22,8 @@ public class ChannelManager {
         channels.remove(channel);
     }
 
-    public List<Channel> getChannels() {
+    public Set<Channel> getChannels() {
         return channels;
-    }
-
-    public boolean doesChannelExist(String name) {
-        return getChannel(name) != null;
     }
 
     @Nullable

@@ -1,5 +1,6 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.commands;
 
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.managers.CommandHandler;
 import io.github.FourteenBrush.MagmaBuildNetwork.gui.TradeGui;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Permission;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.PlayerUtils;
@@ -10,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class CommandDebug extends AbstractCommand {
+public class CommandDebug extends CommandHandler {
 
     public CommandDebug() {
         super("debug", Permission.ADMIN, true);
@@ -31,10 +32,10 @@ public class CommandDebug extends AbstractCommand {
     }
 
     @Override
-    protected List<String> tabComplete(@NotNull String[] args) {
+    public List<String> tabComplete(@NotNull String[] args) {
         if (args.length == 1) {
             return StringUtil.copyPartialMatches(args[0], Arrays.asList("tradegui", "displayname"), new ArrayList<>());
         }
-        return super.tabComplete();
+        return super.tabComplete(args);
     }
 }

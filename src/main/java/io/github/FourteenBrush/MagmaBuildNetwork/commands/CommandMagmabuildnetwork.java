@@ -1,23 +1,26 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.commands;
 
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.managers.CommandHandler;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.managers.CommandManager;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.spawn.CommandSpawn;
 import io.github.FourteenBrush.MagmaBuildNetwork.config.ConfigManager;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Lang;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Permission;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.PlayerUtils;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class CommandMagmabuildnetwork extends AbstractCommand implements ConsoleCommand {
+public class CommandMagmabuildnetwork extends CommandHandler implements IConsoleCommand {
 
-    private static final String[] HELP_MESSAGE = Utils.colorize(
-            "&e------------ &7[Main Command&7] &e------------",
+    private final String[] helpMessage = Utils.colorize(
+            "&e------------ &7[MagmaBuildNetwork v" + plugin.getDescription().getVersion() + "&7] &e------------",
             "&7Below is a list of all main commands:",
             "  &6/magmabuildnetwork reload &7- &6Reloads the plugin",
-            "  &6/magmabuildnetwork help [command] &7- &6Shows a help page for the specified command, or this message"
+            "  &6/magmabuildnetwork help &7- &6Shows this message"
     );
     private static final Set<UUID> bypassingPlayers = new HashSet<>();
 
@@ -27,29 +30,29 @@ public class CommandMagmabuildnetwork extends AbstractCommand implements Console
 
     @Override
     public boolean execute(@NotNull String[] args) {
-        if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
-            PlayerUtils.message(sender, HELP_MESSAGE);
-        } else if (args.length == 1) {
+        if (args.length == 1) {
             if (args[0].equalsIgnoreCase("reload")) {
                 long start = System.currentTimeMillis();
                 CommandManager commandManager = plugin.getCommandManager();
                 ConfigManager configManager = plugin.getConfigManager();
                 commandManager.shutdown();
-                plugin.reloadConfig();
                 configManager.startup();
+                plugin.reloadConfig();
                 CommandSpawn.setup();
                 commandManager.startup();
-                PlayerUtils.message(sender, "&aSuccessfully reloaded " + plugin.getName() + "! (&6" + (System.currentTimeMillis() - start) + " &ams)");
+                sender.sendMessage(ChatColor.GOLD + "Successfully reloaded MagmaBuildNetwork! (" + (System.currentTimeMillis() - start) + " ms)");
             } else if (args[0].equalsIgnoreCase("bypass")) {
-                if (isConsoleSender) {
-                    PlayerUtils.message(sender, Lang.NO_CONSOLE.get());
+                if (!(sender instanceof Player)) {
+                    sender.sendMessage(Lang.NO_CONSOLE.get());
                 } else if (bypassingPlayers.remove(executor.getUniqueId())) {
-                    PlayerUtils.message(executor, "&6Not longer bypassing cooldowns!");
+                    executor.sendMessage(Lang.COOLDOWNS_NOT_LONGER_BYPASSING.get());
                 } else {
                     bypassingPlayers.add(executor.getUniqueId());
-                    PlayerUtils.message(executor, "&aNow bypassing cooldowns!");
+                    executor.sendMessage(Lang.COOLDOWNS_BYPASSING.get());
                 }
             }
+        } else {
+            sender.sendMessage(helpMessage);
         }
         return true;
     }
@@ -58,11 +61,12 @@ public class CommandMagmabuildnetwork extends AbstractCommand implements Console
         return bypassingPlayers.contains(uuid);
     }
 
+
     @Override
-    protected List<String> tabComplete(@NotNull String[] args) {
+    public List<String> tabComplete(@NotNull String[] args) {
         if (args.length == 1) {
             return StringUtil.copyPartialMatches(args[0], Arrays.asList("help", "reload", "bypass"), new ArrayList<>());
         }
-        return super.tabComplete();
+        return super.tabComplete(args);
     }
 }

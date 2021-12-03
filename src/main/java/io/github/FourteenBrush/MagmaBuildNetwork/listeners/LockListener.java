@@ -1,6 +1,6 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.listeners;
 
-import io.github.FourteenBrush.MagmaBuildNetwork.Main;
+import io.github.FourteenBrush.MagmaBuildNetwork.MBNPlugin;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandLock;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.PlayerUtils;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
@@ -9,6 +9,7 @@ import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.*;
+import org.bukkit.block.data.Openable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -19,7 +20,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.DoubleChestInventory;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.material.Openable;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.Nullable;
@@ -29,14 +29,14 @@ import java.util.UUID;
 
 public class LockListener implements Listener {
 
-    private final Main plugin;
+    private final MBNPlugin plugin;
     private UUID blockOwner;
 
-    public LockListener(Main plugin) {
+    public LockListener(MBNPlugin plugin) {
         this.plugin = plugin;
     }
 
-    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+    @EventHandler(ignoreCancelled = true)
     public void onInteract(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         Block block = event.getClickedBlock();
@@ -54,7 +54,7 @@ public class LockListener implements Listener {
                 PlayerUtils.message(player, "&cYou cannot remove the lock because you cannot open this!");
             } else {
                 container.remove(keyOwner);
-                PlayerUtils.message(player,"&aLock removed");
+                PlayerUtils.message(player,"&6Lock removed");
             }
             event.setCancelled(true);
         // placing lock
@@ -67,13 +67,13 @@ public class LockListener implements Listener {
                 if (loc2 != null) container.set(new NamespacedKey(plugin, loc2.getX() + "_" + loc2.getY() + "_" + loc2.getZ())
                     , PersistentDataType.STRING, uuid.toString());
                 container.set(keyOwner, PersistentDataType.STRING, uuid.toString());
-                PlayerUtils.message(player, "&aLocked!");
+                PlayerUtils.message(player, "&6Locked!");
             }
             event.setCancelled(true);
         // normal interact
         } else if (cannotOpen(blockOwner, uuid)) {
             if (CommandLock.getPlayersBypassingLock().contains(uuid)) {
-                PlayerUtils.message(player, "&aThis block is locked by " + Bukkit.getOfflinePlayer(blockOwner).getName());
+                PlayerUtils.message(player, "&6This block is locked by " + Bukkit.getOfflinePlayer(blockOwner).getName());
             } else {
                 event.setCancelled(true);
                 PlayerUtils.message(player, "&cYou cannot open this!");
@@ -94,7 +94,7 @@ public class LockListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler
     public void onChunkUnload(ChunkUnloadEvent event) {
         validateLock(event.getChunk());
     }

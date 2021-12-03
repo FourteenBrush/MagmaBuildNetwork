@@ -16,13 +16,15 @@ mysql:
   user: "root"
   password: "password"
 
-default-chat-format: "{CHANNEL_PREFIX} {PREFIX} {NAME} {SUFFIX} &7>&f {MESSAGE}"
-private-message-format: "{SENDER_PREFIX}{SENDER} &7>&f {RECEIVER_PREFIX}{RECEIVER}: {MESSAGE}"
-rate-limit: 1000
+# Use this format to send messages to the chat
+default-chat-format: "&7{CHANNEL_PREFIX} &7{PREFIX} {NAME} {SUFFIX} &7>> {MESSAGE}"
+private-message-format: "&7{SENDER_PREFIX} {SENDER} &7>> {RECEIVER_PREFIX} {RECEIVER}:&7 {MESSAGE}"
+# How often in milliseconds can a player send a message
+rate-limit: 800
 
 channels:
   global:
-    prefix: "[G]"
+    prefix: "[&aGLOBAL]"
   local:
     prefix: "[L]"
     range: 50

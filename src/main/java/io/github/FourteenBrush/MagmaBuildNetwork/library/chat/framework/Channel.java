@@ -1,8 +1,9 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.library.chat.framework;
 
-import io.github.FourteenBrush.MagmaBuildNetwork.Main;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.PlayerUtils;
+import io.github.FourteenBrush.MagmaBuildNetwork.MBNPlugin;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
+import me.clip.placeholderapi.PlaceholderAPI;
+import org.bukkit.Bukkit;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 
@@ -18,61 +19,41 @@ public abstract class Channel {
     private final Permission joinPermission; // The permission required to join the channel
     private final Permission autoJoinPermission;
     private final Permission setMainPermission; // The permission required to have this channel set as your main channel on every join
-    protected Set<ChatPlayer> players;
-    protected static final Main PLUGIN = Main.getPlugin(Main.class);
+    protected Set<User> recipients;
+    protected final MBNPlugin plugin;
 
-    protected Channel(String name, String shortName, String prefix, Permission permission) {
+    protected Channel(MBNPlugin plugin, String name, String shortName, String prefix, Permission joinPermission) {
+        this.plugin = plugin;
         this.name = name;
-        this.prefix = prefix;
+        this.prefix = Utils.colorize(prefix);
         this.shortName = shortName;
-        this.joinPermission = permission;
-        permission.setDefault(PermissionDefault.FALSE);
+        this.joinPermission = joinPermission;
+        this.joinPermission.setDefault(PermissionDefault.FALSE);
         format = getDefaultFormat();
-        autoJoinPermission = new Permission("MagmaBuildNetwork.channels.autojoin" + name, PermissionDefault.FALSE);
-        setMainPermission = new Permission("MagmaBuildNetwork.channels.setmain." + name, PermissionDefault.FALSE);
-        players = new HashSet<>();
+        autoJoinPermission = new Permission("magmabuildnetwork.channels.autojoin." + name, PermissionDefault.FALSE);
+        setMainPermission = new Permission("magmabuildnetwork.channels.setmain." + name, PermissionDefault.FALSE);
+        recipients = new HashSet<>();
     }
 
-    protected Channel(String name, String shortName, String prefix, Permission permission, String format) {
-        this(name, shortName, prefix, permission);
+    protected Channel(MBNPlugin plugin, String name, String shortName, String prefix, Permission permission, String format) {
+        this(plugin, name, shortName, prefix, permission);
         this.format = format;
-    }
-
-    private String getDefaultFormat() {
-        return PLUGIN.getConfig().getString("default-chat-format");
-    }
-
-    public String getFormat() {
-        return format == null ? getDefaultFormat() : format;
-    }
-
-    protected void addPlayer(ChatPlayer chatPlayer) {
-        forceAddPlayer(chatPlayer);
-    }
-
-    protected void forceAddPlayer(ChatPlayer chatPlayer) {
-        players.add(chatPlayer);
-    }
-
-    protected void removePlayer(ChatPlayer chatPlayer) {
-        players.remove(chatPlayer);
-    }
-
-    @SuppressWarnings("unused") // Will be overridden
-    protected Set<ChatPlayer> getRecipients(ChatPlayer chatPlayer) {
-        return players;
     }
 
     public String getName() {
         return name;
     }
 
+    public String getPrefix() {
+        return prefix;
+    }
+
     public String getShortName() {
         return shortName;
     }
 
-    private String getPrefix() {
-        return prefix;
+    public String getFormat() {
+        return format == null ? getDefaultFormat() : format;
     }
 
     public Permission getJoinPermission() {
@@ -87,22 +68,41 @@ public abstract class Channel {
         return setMainPermission;
     }
 
-    public void sendMessage(ChatPlayer from, String message, String format) {
-        message = format(from, message, format);
-        for (ChatPlayer c : getRecipients(from)) {
+    private String getDefaultFormat() {
+        return Utils.colorize(plugin.getConfig().getString("default-chat-format"));
+    }
+
+    protected void addPlayer(User user) {
+        recipients.add(user);
+    }
+
+    protected void removePlayer(User user) {
+        recipients.remove(user);
+    }
+    // Will be overridden
+    protected Set<User> getRecipients(User user) {
+        return recipients;
+    }
+
+    public void sendMessage(User from, String message, String format) {
+        message = format(from, message, format);;
+        for (User c : getRecipients(from)) {
             c.sendMessage(message);
         }
         Utils.logInfo(message);
     }
 
-    protected String applyDefaultFormat(ChatPlayer from, String message, String format) {
-        format = format.replace("{CHANNEL_PREFIX}", prefix);
-        format = format.replace("{PREFIX}", PLUGIN.getChat().getPlayerPrefix(from.getPlayer()));
-        format = format.replace("{NAME}", from.getPlayer().getDisplayName());
-        format = format.replace("{SUFFIX}", PLUGIN.getChat().getPlayerSuffix(from.getPlayer()));
-        format = format.replace("{MESSAGE}", message);
-        return format;
+    protected String applyDefaultFormat(User from, String message, String format) {
+        format = format.replace("{CHANNEL_PREFIX}", prefix)
+                .replace("{PREFIX}", plugin.getChat().getPlayerPrefix(from.getPlayer()))
+                .replace("{NAME}", from.getPlayer().getDisplayName())
+                .replace("{SUFFIX}", plugin.getChat().getPlayerSuffix(from.getPlayer()))
+                .replace("{MESSAGE}", message);
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            format = PlaceholderAPI.setPlaceholders(from.getPlayer(), format);
+        }
+        return Utils.colorize(format.replaceAll(" {2}", " "));
     }
 
-    protected abstract String format(ChatPlayer from, String message, String format);
+    protected abstract String format(User from, String message, String format);
 }

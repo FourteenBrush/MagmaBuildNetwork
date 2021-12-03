@@ -5,7 +5,6 @@ import io.github.FourteenBrush.MagmaBuildNetwork.gui.*;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Lang;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Permission;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.PlayerUtils;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.command.Command;
@@ -31,7 +30,7 @@ public class SimpleCommand implements CommandExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, String[] args) {
         if (!(sender instanceof Player)) {
-            PlayerUtils.message(sender, Lang.NO_CONSOLE.get());
+            sender.sendMessage(Lang.NO_CONSOLE.get());
             return true;
         }
         executor = (Player) sender;
@@ -66,33 +65,33 @@ public class SimpleCommand implements CommandExecutor {
 
     private boolean ignite(String[] args) {
         Player target = args.length == 1 ? Bukkit.getPlayer(args[0]) : executor;
-        if (target != executor && !PlayerUtils.checkPlayerOnline(executor, target, false)) return true;
+        if (target != executor && !PlayerUtils.checkPlayerOnline(executor, target)) return true;
         target.setFireTicks(500);
-        PlayerUtils.message(executor, "&aIgnited&6 " + target.getName());
+        PlayerUtils.message(executor, "&6Ignited " + target.getName());
         return true;
     }
 
     private boolean heal(String[] args) {
         Player target = args.length == 1 ? Bukkit.getPlayer(args[0]) : executor;
-        if (target != executor && !PlayerUtils.checkPlayerOnline(executor, target, false)) return true;
+        if (target != executor && !PlayerUtils.checkPlayerOnline(executor, target)) return true;
         target.setHealth(target.getAttribute(Attribute.GENERIC_MAX_HEALTH).getDefaultValue());
         target.setFoodLevel(20);
         target.setSaturation(10);
         target.setExhaustion(0);
         target.setFireTicks(0);
-        PlayerUtils.message(target, "&aHealed &6" + target.getName());
+        PlayerUtils.message(target, "&6Healed " + target.getName());
         return true;
     }
 
     private boolean freeze(String[] args) {
         Player target = args.length == 1 ? Bukkit.getPlayer(args[0]) : executor;
-        if (target != executor && !PlayerUtils.checkPlayerOnline(executor, target, false)) return true;
+        if (target != executor && !PlayerUtils.checkPlayerOnline(executor, target)) return true;
         if (!frozenPlayers.remove(target.getUniqueId())) {
             frozenPlayers.add(target.getUniqueId());
-            PlayerUtils.message(executor, "&aPlayer&6 " + target.getName() + " &afrozen");
+            PlayerUtils.message(executor, "&6Player " + target.getName() + " frozen");
             return true;
         }
-        PlayerUtils.message(executor, "&aPlayer&6 " + target.getName() + " &aunfrozen");
+        PlayerUtils.message(executor, "&6Player " + target.getName() + " unfrozen");
         return true;
     }
 
@@ -103,7 +102,7 @@ public class SimpleCommand implements CommandExecutor {
 
     private boolean prefix() {
         if (Bukkit.getPluginManager().isPluginEnabled("LuckPerms")) {
-            new PrefixGui().open(executor);
+            new PrefixGui(executor).open(executor);
         }
         return true;
     }

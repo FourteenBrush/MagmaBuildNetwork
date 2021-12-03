@@ -1,6 +1,6 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.utils;
 
-import io.github.FourteenBrush.MagmaBuildNetwork.Main;
+import io.github.FourteenBrush.MagmaBuildNetwork.MBNPlugin;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -12,8 +12,6 @@ import java.util.regex.Pattern;
 public class Utils {
 
     private Utils() {}
-
-    private static final Main PLUGIN = Main.getPlugin(Main.class);
 
     public static String colorize(String args) {
         return ChatColor.translateAlternateColorCodes('&', args);
@@ -56,12 +54,12 @@ public class Utils {
             log(LogLevel.ERROR, message);
         }
         th.printStackTrace();
-        log(LogLevel.ERROR, "&cDisabling myself...");
-        Bukkit.getPluginManager().disablePlugin(PLUGIN);
+        log(LogLevel.WARNING, "&cDisabling myself...");
+        Bukkit.getPluginManager().disablePlugin(MBNPlugin.getInstance());
     }
 
     private static void log(LogLevel level, String message) {
-        Bukkit.getConsoleSender().sendMessage(colorize("&7[&c" + PLUGIN.getName() + "&7] " + "[" + level.name() + "] " + level.getColor() + message));
+        Bukkit.getConsoleSender().sendMessage(colorize("&7[&cMagmaBuildNetwork&7] " + "[" + level.name() + "] " + level.getColor() + message));
     }
 
     public static boolean checkNotEnoughArgs(CommandSender sender, int arguments, int expectedArguments) {
@@ -74,8 +72,8 @@ public class Utils {
 
     public static String getFinalArgs(String[] args, int start) {
         StringBuilder builder = new StringBuilder();
-        for (int i = start; i < args.length; i++) {
-            builder.append(args[i]).append(" ");
+        for (; start < args.length; start++) {
+            builder.append(args[start]).append(" ");
         }
         return builder.toString().trim();
     }
@@ -88,7 +86,7 @@ public class Utils {
     public static boolean isValidConfigurationSection(FileConfiguration configuration, String path) {
         return configuration.isConfigurationSection(path) && !configuration.getConfigurationSection(path).getKeys(false).isEmpty();
     }
-
+    
     public static String millisToReadable(long millis) {
         final long days = TimeUnit.MILLISECONDS.toDays(millis);
         millis -= TimeUnit.DAYS.toMillis(days);

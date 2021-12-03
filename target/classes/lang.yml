@@ -1,42 +1,83 @@
-no-permission: "&cI'm sorry but you do not have permission!"
-no-console: "&cI'm sorry but the console cannot execute this!"
-player-not-online: "&cPlayer &6{0} &cis currently not online!"
+no-permission: '&cI''m sorry but you don''t have permission!'
+no-console: '&cI''m sorry but the console can''t execute this!'
+specify-a-player: '&cPlease specify a player!'
+join-message: '&7[&a&l+&7] &b{0} &7joined the server.'
+leave-message: '&7[&c&l-&7] &b{0} &7left the server.'
+player-not-online: '&cI''m sorry but that player is currently not online!'
 maintenance:
-  already-enabled: "&cServer maintenance is already enabled! To turn in off use &6/maintenance disable&c."
-  already-disabled: "&cServer maintenance is already disabled!"
-  enabled: "&aServer maintenance mode has been enabled, \nkicked all players that don't have permission to stay!"
-  disabled: "&aServer maintenance mode has been &cdisabled&a, all players are able to join back."
+  already-enabled: '&cServer maintenance is already enabled!'
+  already-disabled: '&cServer maintenance is already disabled!'
+  enabled: '&6Server maintenance has been enabled, kicked all players that don''t have permission to stay.'
+  disabled: '&6Server maintenance has been disabled.'
 spawn:
-  teleported-by-other-player: "&aYou have been teleported to spawn by &6{0}&a."
-  teleport-player-success: "&aSuccessfully teleported &6{0}&a to spawn."
-  disabled-in-combat: "&cYou cannot go to spawn while you are in combat!"
+  teleported: '&6You teleported to spawn.'
+  teleported-by-other-player: '&6You have been teleported to spawn by {0}.'
+  set: '&6Spawn successfully set at your location.'
+  teleport-player: '&6Successfully teleported {0} to spawn.'
+  disabled-in-combat: '&cYou cannot go to spawn while in combat!'
 home:
-  already-exists: "&cYou already have a home with that name, please choose another!"
-  limit-reached: "&cYou have reached the maximum amount of homes, please delete one first!"
-  created-success: "&aSuccessfully set your new home ( &6{0}&a )."
-  removed-success: "&aSuccessfully removed &6{0} &afrom your homes."
+  already-exists: '&cYou already have a home with that name, please choose another!'
+  limit-reached: '&cYou have reached the maximum amount of homes, please delete one first!'
+  created-success: '&6Successfully set your new home ( {0} ).'
+  removed-success: '&6Successfully removed {0} from your homes.'
+  teleported: '&6Teleported to {0}.'
 vanish:
-  enabled: "&aYou have been vanished."
-  disabled: "&aYou became visible again."
-  other-player: "&aSuccessfully vanished &6{0}&a."
-  announce: "&e{0} has vanished. Poof."
+  enabled: '&6You have been vanished.'
+  disabled: '&6You became visible again.'
+  other-player: '&6Successfully vanished {0}.'
+  announce: '&e{0} has vanished. Poof.'
+  back-visible-announce: '&e{0} has become visible.'
+  already-vanished-for-quit: '&cYou are already vanished!'
+  no-vanished-players: '&cThere are no vanished players online!'
 fly:
-  enabled: "&eSet fly mode &aenabled&e for &6{0}&e."
-  disabled: "&eSet fly mode &cdisabled&e for &6{0}&e."
+  enabled: '&6Set fly mode &aenabled&6 for {0}.'
+  disabled: '&6Set fly mode &cdisabled&6 for {0}.'
 trade:
-  with-yourself-disallowed: "&cYou cannot trade with yourself!"
-  no-creative: "&cYou are not allowed to trade in creative!"
-  no-different-worlds: "&cYou are not allowed to trade in a different world than the person you're trading with!"
-  distance-too-big: "&cYou are too far from &6{0}&a to trade. Please stand within {1} blocks from each other!"
-  request-sent: "&aSent a trade request to &6{0}&a."
-  request-cancelled-by: "&6{0}&a cancelled his trade request."
-  request-cancelled: "&aCancelled trade request with &6{0}&a."
-  no-request: "&aYou don't have a trade request from that player!"
-  no-outgoing-request: "&cYou don't have sent a trade request!"
-  accepted-by: "&6{0}&a accepted your trade request."
-  accepted: "&aAccepted the trade request of &6{0}&6."
-  declined-by: "&6{0}&a declined your trade request."
-  declined: "&aDeclined the trade request of &6{0}&a."
+  with-yourself-disallowed: '&cYou cannot trade with yourself!'
+  no-creative: '&cYou are not allowed to trade in creative!'
+  no-different-worlds: '&cYou are not allowed to trade in a different world than the person you''re trading with!'
+  distance-too-big: '&cYou are too far from {0} to trade. Please stand within {1} blocks from each other!'
+  request-sent: '&6Sent a trade request to {0}.'
+  request-cancelled-by: '&6{0} cancelled his trade request.'
+  request-cancelled: '&6Cancelled trade request with {0}.'
+  no-request: '&cYou don''t have a trade request from that player!'
+  no-outgoing-request: '&cYou don''t have sent a trade request!'
+  accepted-by: '&6{0} accepted your trade request.'
+  accepted: '&6Accepted the trade request of {0}.'
+  declined-by: '&6{0} declined your trade request.'
+  declined: '&6Declined the trade request of &6{0}&6.'
 chat:
-  rate-limited: "&cYou are sending messages to fast, Please slow down!"
-  not-in-channel: "&cYou cannot chat as you aren't in a channel, use \"/ch (channel name)\" to join one"
+  rate-limited: '&cYou are sending messages to fast, Please slow down!'
+  not-in-channel: '&cYou are not in the channel {0}!'
+  no-channel-joined: '&cYou cannot talk as you are not in a channel, join one with &l&6/channel join <name>&r&c!'
+  channel-does-not-exists: '&cThe channel with that name doesn''t exist!'
+  banned-from-channel: '&cIt seems like you are banned from this channel!'
+  channel-join-not-permitted: '&cYou don''t have permission to join {0}&c!'
+  channel-setmain-not-permitted: '&cYou don''t have permission to set this channel as your main channel!'
+  channel-set-as-main: '&6Set {0} as your main channel.'
+  joined: '&6Joined the channel {0}.'
+  channel-left: '&6Left the channel {0}.'
+  channel-set: '&6You are now chatting in {0}.'
+  already-in-channel: '&cYou are already in that channel!'
+  kicked-player: '&6Kicked player {0} from {1}!'
+  kicked-from: '&6You have been kicked from {0}!'
+  banned-player: '&6Banned {0} from {1}.'
+  unbanned-player: '&6Unbanned player {0} from {1}.'
+  banned-from: '&6You have been banned from {0}!'
+  channels-you-can-join: '&6This is a list of channels you are able to join:'
+  channels-you-are-in: '&6This is a list of channels you are in:'
+  unbanned-from: '&6You have been unbanned from {0}!'
+  no-channels-found: '&cThat player is not in any channels!'
+  no-conversation: '&cYou don''t have anyone to reply to, start a conversation first'
+lock:
+  place-lock: '&6Right click a block to lock it!\nOr type /lock cancel to cancel!'
+  remove-lock: '&6Right click a block to remove the lock!\nOr type /lock cancel to cancel!'
+  cancelled: '&6Cancelled!'
+  nothing-to-cancel: '&cNothing to cancel!'
+  bypassing: '&6Now bypassing locks!'
+  not-longer-bypassing: '&6Not longer bypassing locks.'
+cooldowns:
+  bypassing: '&6You are now bypassing cooldowns.'
+  not-longer-bypassing: '&6You are not longer bypassing cooldowns.'
+command:
+  cooldown: '&cPlease wait &e{0}&c before reusing this command!'

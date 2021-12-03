@@ -1,8 +1,9 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.library.chat;
 
-import io.github.FourteenBrush.MagmaBuildNetwork.Main;
+import io.github.FourteenBrush.MagmaBuildNetwork.MBNPlugin;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.PlayerUtils;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
+import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -12,17 +13,16 @@ import java.util.UUID;
 
 public class MessageManager {
 
-    private final Main plugin;
+    private final MBNPlugin plugin;
     private final Map<UUID, UUID> conversations;
 
-    public MessageManager(Main plugin) {
+    public MessageManager(MBNPlugin plugin) {
         this.plugin = plugin;
         conversations = new HashMap<>();
     }
 
     public void sendMessage(UUID sender, UUID receiver, String message) {
-        String format = plugin.getConfig().getString("private-message-format");
-        message = applyFormat(sender, receiver, format, message);
+        message = applyFormat(sender, receiver, plugin.getConfig().getString("private-message-format"), message);
         sendMessageToUUID(sender, message);
         sendMessageToUUID(receiver, message);
         conversations.put(sender, receiver);
@@ -32,7 +32,7 @@ public class MessageManager {
     public boolean sendReply(UUID sender, String message) {
         if (!conversations.containsKey(sender)) return false;
         UUID value = conversations.get(sender);
-        if (!value.equals(plugin.getConsoleUUID()) && !Bukkit.getOfflinePlayer(value).isOnline()) {
+        if (!value.equals(plugin.getConsoleUUID()) && Bukkit.getPlayer(value) == null) {
             conversations.remove(sender);
             return false;
         }
@@ -43,8 +43,7 @@ public class MessageManager {
     private void sendMessageToUUID(UUID receiver, String message) {
         if (receiver.equals(plugin.getConsoleUUID())) {
             Utils.logInfo(message);
-        } else
-            PlayerUtils.message(Bukkit.getPlayer(receiver), message);
+        } else PlayerUtils.message(Bukkit.getPlayer(receiver), message);
     }
 
     private String applyFormat(UUID sender, UUID receiver, String format, String message) {
@@ -70,7 +69,9 @@ public class MessageManager {
                     .replace("{RECEIVER}", "Console")
                     .replace("{RECEIVER_SUFFIX}", "");
         }
-        format = format.replace("{MESSAGE}", message);
-        return format;
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI") && !sender.equals(plugin.getConsoleUUID())) {
+            format = PlaceholderAPI.setPlaceholders(Bukkit.getPlayer(sender), format);
+        }
+        return Utils.colorize(format.replace("{MESSAGE}", message).replaceAll(" {2}", " "));
     }
 }

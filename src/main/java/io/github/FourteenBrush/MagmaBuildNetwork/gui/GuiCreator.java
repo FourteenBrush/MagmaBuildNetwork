@@ -1,6 +1,6 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.gui;
 
-import io.github.FourteenBrush.MagmaBuildNetwork.Main;
+import io.github.FourteenBrush.MagmaBuildNetwork.MBNPlugin;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -14,28 +14,29 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public abstract class GuiCreator extends ItemBuilder implements InventoryHolder {
 
     private static final Map<UUID, UUID> OPEN_INVENTORIES = new HashMap<>(); // player id and gui id
     private static final Map<UUID, GuiCreator> INVENTORIES_BY_UUID = new HashMap<>();
 
-    private final Map<Integer, GuiAction> actions;
+    private final Map<Integer, Consumer<Player>> actions;
     private final UUID uuid;
 
-    protected final Main plugin;
+    protected final MBNPlugin plugin;
     protected Inventory inv;
     protected Player player;
 
     public GuiCreator(String invName, int rows) {
-        plugin = Main.getPlugin(Main.class);
+        plugin = MBNPlugin.getInstance();
         uuid = UUID.randomUUID();
         inv = Bukkit.createInventory(this, rows * 9, Utils.colorize(invName));
         actions = new HashMap<>();
         INVENTORIES_BY_UUID.put(uuid, this);
     }
 
-    public void setItem(int slot, Material material, GuiAction action) {
+    public void setItem(int slot, Material material, Consumer<Player> action) {
         setItem(slot, new ItemStack(material), action);
     }
 
@@ -43,7 +44,7 @@ public abstract class GuiCreator extends ItemBuilder implements InventoryHolder 
         setItem(slot, stack, null);
     }
 
-    public void setItem(int slot, ItemStack stack, GuiAction action) {
+    public void setItem(int slot, ItemStack stack, Consumer<Player> action) {
         inv.setItem(slot, stack);
         if (action != null) {
             actions.put(slot, action);
@@ -91,11 +92,7 @@ public abstract class GuiCreator extends ItemBuilder implements InventoryHolder 
         return OPEN_INVENTORIES;
     }
 
-    public Map<Integer, GuiAction> getActions() {
+    public Map<Integer, Consumer<Player>> getActions() {
         return actions;
-    }
-
-    public interface GuiAction {
-        void click(Player player);
     }
 }
