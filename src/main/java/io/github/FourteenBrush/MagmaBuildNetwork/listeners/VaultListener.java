@@ -3,9 +3,7 @@ package io.github.FourteenBrush.MagmaBuildNetwork.listeners;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import io.github.FourteenBrush.MagmaBuildNetwork.MBNPlugin;
-import io.github.FourteenBrush.MagmaBuildNetwork.library.chat.framework.Channel;
-import io.github.FourteenBrush.MagmaBuildNetwork.library.chat.framework.User;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Lang;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Lang;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.PlayerUtils;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
@@ -22,11 +20,11 @@ import java.util.concurrent.TimeUnit;
 public class VaultListener implements Listener {
 
     private final MBNPlugin plugin;
-    private final Cache<User, String> lastMessage;
+    private final Cache<User, String> userCache;
 
     public VaultListener(MBNPlugin plugin) {
         this.plugin = plugin;
-        lastMessage = CacheBuilder.newBuilder().expireAfterWrite(plugin.getConfig().getInt("rate-limit"), TimeUnit.MILLISECONDS).build();
+        userCache = CacheBuilder.newBuilder().expireAfterWrite(plugin.getConfig().getInt("rate-limit"), TimeUnit.MILLISECONDS).build();
     }
 
     @EventHandler
@@ -36,10 +34,10 @@ public class VaultListener implements Listener {
         if (file.exists()) {
             plugin.getChannelManager().getChannels().forEach(channel -> {
                 if (player.hasPermission(channel.getAutoJoinPermission()))
-                    plugin.getUser(player.getUniqueId()).addChannel(channel);
+                    plugin.getPlayerManager().getUser(player.getUniqueId()).addChannel(channel);
             });
         }
-        User user = plugin.getUser(player.getUniqueId());
+        User user = plugin.getPlayerManager().getUser(player.getUniqueId());
         plugin.getChannelManager().getChannels().forEach(channel -> {
             if (player.hasPermission(channel.getSetMainPermission())) {
                 if (!user.getChannels().contains(channel))
@@ -52,12 +50,13 @@ public class VaultListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onChat(AsyncPlayerChatEvent event) {
         event.setCancelled(true);
-        User user = plugin.getUser(event.getPlayer().getUniqueId());
-        if (lastMessage.getIfPresent(user) != null) {
+        User user = plugin.getPlayerManager().getUser(event.getPlayer().getUniqueId());
+        userCache.getIfPresent(user);
+        if (userCache.getIfPresent(user) != null) {
             event.getPlayer().sendMessage(Lang.RATE_LIMITED.get());
             return;
         }
-        lastMessage.put(user, "");
+        userCache.put(user, "");
         Channel channel = user.getMainChannel();
         if (channel == null) {
             event.getPlayer().sendMessage(Lang.CHANNEL_NO_CHANNEL_JOINED.get());

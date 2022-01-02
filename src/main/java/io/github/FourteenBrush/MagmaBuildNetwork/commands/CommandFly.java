@@ -1,8 +1,8 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.commands;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.managers.CommandHandler;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Lang;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Permission;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Lang;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Permission;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.PlayerUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -26,7 +26,7 @@ public class CommandFly extends CommandHandler {
     public boolean execute(@NotNull String[] args) {
         Player target = args.length == 1 ? Bukkit.getPlayer(args[0]) : executor;
         if (!PlayerUtils.checkPlayerOnline(executor, target)) return true;
-        fly(target, !flyingPlayers.remove(target.getUniqueId()) || !target.isFlying(), true);
+        fly(target, !(flyingPlayers.remove(target.getUniqueId()) && target.isFlying()), true);
         return true;
     }
 

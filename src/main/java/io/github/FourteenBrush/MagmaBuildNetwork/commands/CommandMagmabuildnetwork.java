@@ -2,10 +2,9 @@ package io.github.FourteenBrush.MagmaBuildNetwork.commands;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.managers.CommandHandler;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.managers.CommandManager;
-import io.github.FourteenBrush.MagmaBuildNetwork.commands.spawn.CommandSpawn;
 import io.github.FourteenBrush.MagmaBuildNetwork.config.ConfigManager;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Lang;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Permission;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Lang;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Permission;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -38,7 +37,7 @@ public class CommandMagmabuildnetwork extends CommandHandler implements IConsole
                 commandManager.shutdown();
                 configManager.startup();
                 plugin.reloadConfig();
-                CommandSpawn.setup();
+                CommandSpawn.getInstance().setup();
                 commandManager.startup();
                 sender.sendMessage(ChatColor.GOLD + "Successfully reloaded MagmaBuildNetwork! (" + (System.currentTimeMillis() - start) + " ms)");
             } else if (args[0].equalsIgnoreCase("bypass")) {

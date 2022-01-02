@@ -2,8 +2,8 @@ package io.github.FourteenBrush.MagmaBuildNetwork.commands;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.managers.CommandHandler;
 import io.github.FourteenBrush.MagmaBuildNetwork.gui.TradeGui;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Lang;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Permission;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Lang;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Permission;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.PlayerUtils;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -68,7 +68,7 @@ public class CommandTrade extends CommandHandler {
     private boolean request() {
         if (executor == target) {
             executor.sendMessage(Lang.TRADE_WITH_YOURSELF_DISALLOWED.get());
-        } else if (distanceCheck()) {
+        } else if (distanceCheckSucceeded()) {
             traders.put(executor, target);
             executor.sendMessage(Lang.TRADE_REQUEST_SENT.get(target.getName()));
             PlayerUtils.message(target, new ComponentBuilder()
@@ -96,7 +96,7 @@ public class CommandTrade extends CommandHandler {
         return true;
     }
 
-    private boolean distanceCheck() {
+    private boolean distanceCheckSucceeded() {
         if (!plugin.getConfig().getBoolean("trade.allow-creative")
                 && (executor.getGameMode() == GameMode.CREATIVE || target.getGameMode() == GameMode.CREATIVE)) {
             executor.sendMessage(Lang.TRADE_NO_CREATIVE.get());
@@ -108,7 +108,7 @@ public class CommandTrade extends CommandHandler {
             return false;
         }
         int maxDistance = plugin.getConfig().getInt("trade.max-distance");
-        if (maxDistance != -1) {
+        if (maxDistance >= 0) {
             double realDistance = executor.getLocation().distance(target.getLocation());
             if (realDistance > maxDistance) {
                 executor.sendMessage(Lang.TRADE_DISTANCE_TOO_BIG.get(target.getName(), Integer.toString(maxDistance)));

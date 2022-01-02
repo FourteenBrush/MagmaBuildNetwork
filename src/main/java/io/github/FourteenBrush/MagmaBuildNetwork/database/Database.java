@@ -1,59 +1,71 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.database;
 
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
+import com.zaxxer.hikari.HikariDataSource;
+import io.github.FourteenBrush.MagmaBuildNetwork.MBNPlugin;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Logger;
+import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.FileConfiguration;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
-public abstract class Database {
+public class Database {
 
-    private Connection connection;
-    private final DatabaseType databaseType;
+    private final MBNPlugin plugin;
+    private final HikariDataSource datasource;
 
-    public Database(String driver, DatabaseType databaseType) {
-        this.databaseType = databaseType;
-        try {
-            Object obj = Class.forName(driver).newInstance();
-            if (!(obj instanceof Driver)) {
-                Utils.logWarning("Database driver is not an instance of the Driver class");
-            } else {
-                DriverManager.registerDriver((Driver) obj);
-            }
-        } catch (Exception e) {
-            Utils.logWarning("Database driver not found! " + driver);
+    public Database(MBNPlugin plugin) {
+        this.plugin = plugin;
+        datasource = new HikariDataSource();
+        datasource.setMaximumPoolSize(8);
+        // datasource.setJdbcUrl("com.mysql.jdbc.jdbc2.optional.MysqlDataSource");
+        FileConfiguration configuration = plugin.getConfig();
+        String name = configuration.getString("mysql.name");
+        datasource.addDataSourceProperty("databaseName", name);
+        datasource.setDataSourceClassName("com.mysql.jdbc.jdbc2.optional.MysqlDataSource");
+        datasource.addDataSourceProperty("port", 3306);
+        datasource.setUsername(configuration.getString("mysql.username"));
+        datasource.setPassword(configuration.getString("mysql.password"));
+        String url = "jdbc:mysql://" + configuration.getString("mysql.host") + ":" +
+                configuration.getString("mysql.port") + "/" + name + "?useSSL=false";
+        datasource.addDataSourceProperty("url", url);
+        insertQueryAsync("CREATE DATABASE IF NOT EXISTS " + name);
+    }
+
+    public void insertQuerySync(String sql) {
+        try (Connection conn = datasource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.execute();
+        } catch (SQLException e) {
+            Logger.ERROR.log("Failed to execute db query: ");
+            e.printStackTrace();
         }
     }
 
-    public DatabaseType getDatabaseType() {
-        return databaseType;
+    public void insertQueryAsync(String sql) {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try (Connection conn = getConnection();
+                 PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.execute();
+            } catch (SQLException e) {
+                Logger.ERROR.log("Failed to execute db query: ");
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public void closeConnection() {
+        if (!datasource.isClosed()) {
+            datasource.close();
+            Logger.INFO.log("Closed datasource!");
+        } else {
+            Logger.WARNING.log("Attempted to close a datasource which was already closed!");
+        }
     }
 
     public Connection getConnection() throws SQLException {
-        if (connection == null || connection.isClosed())
-            reactivateConnection();
-        return connection;
-    }
-
-    public boolean testConnection() {
-        try {
-            getConnection();
-            return true;
-        } catch (SQLException e) {
-            return false;
-        }
-    }
-
-    public void setConnection(Connection connection) {
-        this.connection = connection;
-    }
-
-    public void closeConnection() throws SQLException {
-        if (connection != null && !connection.isClosed())
-            connection.close();
-    }
-
-    public abstract void reactivateConnection() throws SQLException;
-
-    public enum DatabaseType {
-        MYSQL, SQLITE
+        return datasource.getConnection();
     }
 }

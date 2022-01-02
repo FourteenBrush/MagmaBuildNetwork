@@ -2,8 +2,8 @@ package io.github.FourteenBrush.MagmaBuildNetwork.listeners;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.MBNPlugin;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandLock;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Logger;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.PlayerUtils;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -119,7 +119,7 @@ public class LockListener implements Listener {
             if (!canLock(chunk.getBlock(Integer.parseInt(data[0]) & 0b1111,
                     Integer.parseInt(data[1]) & 0b1111, Integer.parseInt(data[2]) & 0b1111))) {
                 container.remove(key);
-                Utils.logInfo("Invalid lock removed! " + Arrays.toString(data));
+                Logger.INFO.log("Invalid lock removed! " + Arrays.toString(data));
             }
         }
     }

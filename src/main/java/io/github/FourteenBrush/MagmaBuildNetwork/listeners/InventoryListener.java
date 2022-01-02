@@ -24,14 +24,13 @@ public class InventoryListener implements Listener {
         if (event.getClick() == ClickType.DROP) return;
         Player player = (Player) event.getWhoClicked();
         UUID inventoryUUID = GuiCreator.getOpenInventories().get(player.getUniqueId());
-        if (inventoryUUID != null) {
-            if (shouldCancel(event))
-                event.setCancelled(true);
-            Consumer<Player> action = GuiCreator.getInventoriesByUuid().get(inventoryUUID)
-                    .getActions().get(event.getRawSlot());
-            if (action != null) {
-                action.accept(player);
-            }
+        if (inventoryUUID == null) return;
+        if (shouldCancel(event))
+            event.setCancelled(true);
+        Consumer<InventoryClickEvent> action = GuiCreator.getInventoriesByUuid().get(inventoryUUID)
+                .getActions().get(event.getRawSlot());
+        if (action != null) {
+            action.accept(event);
         }
     }
 

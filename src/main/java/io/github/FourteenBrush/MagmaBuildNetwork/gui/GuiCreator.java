@@ -5,6 +5,7 @@ import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -21,7 +22,7 @@ public abstract class GuiCreator extends ItemBuilder implements InventoryHolder 
     private static final Map<UUID, UUID> OPEN_INVENTORIES = new HashMap<>(); // player id and gui id
     private static final Map<UUID, GuiCreator> INVENTORIES_BY_UUID = new HashMap<>();
 
-    private final Map<Integer, Consumer<Player>> actions;
+    private final Map<Integer, Consumer<InventoryClickEvent>> actions;
     private final UUID uuid;
 
     protected final MBNPlugin plugin;
@@ -36,19 +37,22 @@ public abstract class GuiCreator extends ItemBuilder implements InventoryHolder 
         INVENTORIES_BY_UUID.put(uuid, this);
     }
 
-    public void setItem(int slot, Material material, Consumer<Player> action) {
-        setItem(slot, new ItemStack(material), action);
-    }
-
-    public void setItem(int slot, ItemStack stack){
+    protected void setItem(int slot, ItemStack stack){
         setItem(slot, stack, null);
     }
 
-    public void setItem(int slot, ItemStack stack, Consumer<Player> action) {
+    protected void setItem(int slot, Material material, Consumer<InventoryClickEvent> onClick) {
+        setItem(slot, new ItemStack(material), onClick);
+    }
+
+    protected void setItem(int slot, ItemStack stack, Consumer<InventoryClickEvent> onClick) {
         inv.setItem(slot, stack);
-        if (action != null) {
-            actions.put(slot, action);
-        }
+        if (onClick != null)
+            actions.put(slot, onClick);
+    }
+
+    protected ItemStack createItem(Material material, String displayName) {
+        return createItem(material, displayName, null);
     }
 
     protected ItemStack createItem(Material material, String displayName, List<String> lore) {
@@ -58,8 +62,8 @@ public abstract class GuiCreator extends ItemBuilder implements InventoryHolder 
                 .build();
     }
 
-    protected ItemStack createItem(Material material, int amount, String displayName, List<String> lore) {
-        ItemStack itemStack = createItem(material, displayName, lore);
+    protected ItemStack createItem(Material material, int amount, String displayName) {
+        ItemStack itemStack = createItem(material, displayName, null);
         itemStack.setAmount(amount);
         return itemStack;
     }
@@ -92,7 +96,7 @@ public abstract class GuiCreator extends ItemBuilder implements InventoryHolder 
         return OPEN_INVENTORIES;
     }
 
-    public Map<Integer, Consumer<Player>> getActions() {
+    public Map<Integer, Consumer<InventoryClickEvent>> getActions() {
         return actions;
     }
 }

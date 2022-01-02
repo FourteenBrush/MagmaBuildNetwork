@@ -19,13 +19,11 @@ public class TradeGui extends GuiCreator {
                 "Click here to change your status", "to ready. When both players have done this",
                 "the trade will be accepted"
         )), player -> {
-            setItem(37, createItem(Material.LIME_WOOL, "&2Ready!", null));
-            setItem(39, createItem(Material.LIME_DYE, "&fStatus: &aReady", null));
+            setItem(37, createItem(Material.LIME_WOOL, "&2Ready!"));
+            setItem(39, createItem(Material.LIME_DYE, "&fStatus: &aReady"));
         });
-        setItem(38, createItem(Material.BARRIER, "&cClick here to exit the trade", null), player -> {
-            CommandTrade.getInstance().cancelTrade(player.getName());
-        });
-        setItem(39, createItem(Material.LIGHT_GRAY_DYE, "&fStatus: &cnot ready", null));
-        setItem(41, createItem(Material.RED_DYE, "&cYour opponent is not ready", null));
+        setItem(38, createItem(Material.BARRIER, "&cClick here to exit the trade"), event -> CommandTrade.getInstance().cancelTrade(player.getName()));
+        setItem(39, createItem(Material.LIGHT_GRAY_DYE, "&fStatus: &cnot ready"));
+        setItem(41, createItem(Material.RED_DYE, "&cYour opponent is not ready"));
     }
 }

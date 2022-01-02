@@ -1,11 +1,11 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.commands;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.managers.CommandHandler;
-import io.github.FourteenBrush.MagmaBuildNetwork.database.DatabaseFactory;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Lang;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Permission;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.PlayerUtils;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
+import io.github.FourteenBrush.MagmaBuildNetwork.database.Database;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.*;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Lang;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Logger;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Permission;
 import org.bukkit.BanList;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -32,8 +32,8 @@ public class CommandBan extends CommandHandler implements IConsoleCommand {
             if (!PlayerUtils.checkPlayerOnline(sender, target)) return true;
             String banReason = Utils.colorize(args.length > 1 ? Utils.getFinalArgs(args, 1) : "&c&lBanned from the server");
             boolean silent = args[args.length - 1].equalsIgnoreCase("-s");
-            try (Connection conn = DatabaseFactory.getDatabase().getConnection();
-                PreparedStatement ps = conn.prepareStatement("INSERT INTO tblbans(uuid, reason, banned_by) VALUES(?, ?, ?);")) {
+            try (Connection conn = plugin.getDatabase().getConnection();
+                 PreparedStatement ps = conn.prepareStatement("INSERT INTO tblbans(uuid, reason, banned_by) VALUES(?, ?, ?);")) {
                 ps.setString(1, target.getUniqueId().toString());
                 ps.setString(2, banReason);
                 ps.setString(3, sender.getName());
@@ -45,7 +45,7 @@ public class CommandBan extends CommandHandler implements IConsoleCommand {
             plugin.getServer().getBanList(BanList.Type.NAME).addBan(target.getName(), banReason, null, null);
             target.kickPlayer(banReason);
             PlayerUtils.message(sender, String.format("&6Banned %s | %s", target.getName(), banReason));
-            Utils.logWarning("Player " + target.getName() + " got banned by " + sender.getName());
+            Logger.WARNING.log("Player " + target.getName() + " got banned by " + sender.getName());
             if (!silent)
                 Bukkit.broadcastMessage(String.format("&cPlayer &6%s&c got banned by &6%s&c | &6%s", target.getName(), sender.getName(), banReason));
         }

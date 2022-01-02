@@ -2,7 +2,7 @@ package io.github.FourteenBrush.MagmaBuildNetwork.commands;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.managers.CommandHandler;
 import io.github.FourteenBrush.MagmaBuildNetwork.gui.TradeGui;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Permission;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Permission;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.PlayerUtils;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;

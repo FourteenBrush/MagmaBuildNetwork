@@ -2,8 +2,8 @@ package io.github.FourteenBrush.MagmaBuildNetwork.commands;
 
 import com.google.common.collect.ImmutableMap;
 import io.github.FourteenBrush.MagmaBuildNetwork.gui.*;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Lang;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Permission;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Lang;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Permission;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.PlayerUtils;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
@@ -22,7 +22,6 @@ public class SimpleCommand implements CommandExecutor {
     private final Map<String, Permission> commands = ImmutableMap.of(
             "safechest", Permission.SAFECHEST,
             "stats", Permission.BASIC,
-            "trails", Permission.TRAILS,
             "shop", Permission.BASIC,
             "prefix", Permission.ADMIN // todo change this to Permission.Basic after it works correctly
     );
@@ -48,8 +47,6 @@ public class SimpleCommand implements CommandExecutor {
                 return freeze(args);
             case "stats":
                 return stats();
-            case "trails":
-                return trails();
             case "shop":
                 return shop();
             case "prefix":
@@ -104,11 +101,6 @@ public class SimpleCommand implements CommandExecutor {
         if (Bukkit.getPluginManager().isPluginEnabled("LuckPerms")) {
             new PrefixGui(executor).open(executor);
         }
-        return true;
-    }
-
-    private boolean trails() {
-        new TrailsGui(executor).open(executor);
         return true;
     }
 

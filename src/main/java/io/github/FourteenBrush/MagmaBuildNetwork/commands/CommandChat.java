@@ -1,9 +1,9 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.commands;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.managers.CommandHandler;
-import io.github.FourteenBrush.MagmaBuildNetwork.library.chat.framework.User;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Lang;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Permission;
+import io.github.FourteenBrush.MagmaBuildNetwork.player.User;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Lang;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Permission;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.PlayerUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -26,16 +26,16 @@ public class CommandChat extends CommandHandler implements IConsoleCommand {
         if (args.length == 2 && args[0].equalsIgnoreCase("player")) {
             OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(args[1]);
             if (!offlinePlayer.hasPlayedBefore()) {
-                PlayerUtils.message(sender, "&cThat player is currently not online!");
+                sender.sendMessage(Lang.PLAYER_NOT_ONLINE.get());
                 return true;
             }
-            User user = plugin.getUser(offlinePlayer.getUniqueId());
+            User user = plugin.getPlayerManager().getUser(offlinePlayer.getUniqueId());
             if (user.getChannels().isEmpty()) {
                 sender.sendMessage(Lang.NO_CHANNELS_FOUND.get());
             } else {
                 StringBuilder builder = new StringBuilder();
                 user.getChannels().forEach(channel -> builder.append(channel.getName()).append(", "));
-                PlayerUtils.message(sender, builder.toString());
+                PlayerUtils.message(sender, "&6" + builder);
             }
         }
         return true;
