@@ -1,14 +1,16 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.commands;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.managers.CommandHandler;
-import io.github.FourteenBrush.MagmaBuildNetwork.config.ConfigManager;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.*;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Keys;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Lang;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Permission;
 import org.bukkit.Bukkit;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.StringUtil;
@@ -25,7 +27,7 @@ public class CommandVanish extends CommandHandler implements IConsoleCommand {
     public CommandVanish() {
         super("vanish", Permission.MODERATOR, true);
         bar = Bukkit.createBossBar("Vanished", BarColor.BLUE, BarStyle.SOLID);
-        bar.setProgress(1.0);
+        bar.setProgress(1);
     }
 
     @Override
@@ -60,7 +62,7 @@ public class CommandVanish extends CommandHandler implements IConsoleCommand {
             Bukkit.getOnlinePlayers().forEach(pl -> {
                 if (!vanishedPlayers.contains(pl.getUniqueId()))
                     pl.hidePlayer(plugin, player);
-                if (pl != executor && Permission.MODERATOR.has(pl))
+                if (pl != player && Permission.MODERATOR.has(pl))
                     pl.sendMessage(Lang.VANISH_ANNOUNCE.get(player.getName()));
             });
             if (plugin.getConfig().getBoolean("nightvision-in-vanish"))
@@ -68,21 +70,16 @@ public class CommandVanish extends CommandHandler implements IConsoleCommand {
         } else {
             Bukkit.getOnlinePlayers().forEach(pl -> {
                 pl.showPlayer(plugin, player);
-                if (pl != executor && Permission.MODERATOR.has(pl))
+                if (pl != player && Permission.MODERATOR.has(pl))
                     pl.sendMessage(Lang.VANISH_BACK_VISIBLE_ANNOUNCE.get(player.getName()));
             });
             player.removePotionEffect(PotionEffectType.NIGHT_VISION);
-            FileConfiguration dataFile = plugin.getConfigManager().getData();
-            List<String> list = dataFile.getStringList("vanished-players");
-            if (!list.isEmpty()) {
-                dataFile.getStringList("vanished-players").remove(player.getUniqueId().toString());
-                plugin.getConfigManager().saveConfig(ConfigManager.FileType.DATA);
-            }
-
         }
         player.setInvulnerable(vanish);
-        CommandFly.getInstance().fly(executor, vanish, false);
+        player.setSleepingIgnored(vanish);
+        CommandFly.getInstance().fly(player, vanish, false);
         setBossBar(player, !vanish);
+        player.getPersistentDataContainer().set(Keys.VANISHED, PersistentDataType.BYTE, (byte)(vanish ? 1 : 0));
         player.sendMessage(vanish ? Lang.VANISH_ENABLED.get() : Lang.VANISH_DISABLED.get());
     }
 

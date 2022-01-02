@@ -1,13 +1,13 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.commands;
 
 import com.google.common.collect.Lists;
+import io.github.FourteenBrush.MagmaBuildNetwork.chat.framework.ChatChannel;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.managers.CommandHandler;
-import io.github.FourteenBrush.MagmaBuildNetwork.library.chat.framework.Channel;
-import io.github.FourteenBrush.MagmaBuildNetwork.library.chat.framework.User;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Lang;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Permission;
+import io.github.FourteenBrush.MagmaBuildNetwork.player.User;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.PlayerUtils;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Lang;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Permission;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
@@ -16,7 +16,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class CommandChatChannel extends CommandHandler implements IConsoleCommand {
@@ -26,7 +25,7 @@ public class CommandChatChannel extends CommandHandler implements IConsoleComman
             "&7Below is a list of all chatchannel commands:",
             "  &6/chatchannel join <name> &7- &6Joins the chatchannel with that name",
             "  &6/chatchannel leave <name> &7- &6Leaves the chatchannel with that name",
-            "  &6/chatchannel setmain <name> &7- &6Sets the chatchannel with that name as main channel",
+            "  &6/chatchannel setcurrent <name> &7- &6Sets the chatchannel with that name as your current channel",
             "  &6/chatchannel moderate <name> <action> <player> &7- &6Performs moderator actions on this chatchannel"
     );
 
@@ -39,10 +38,10 @@ public class CommandChatChannel extends CommandHandler implements IConsoleComman
         if (args.length == 2) {
             if (denyConsole()) return true;
             switch (args[0].toLowerCase()) {
-                case "join": return joinChannel(args[1], plugin.getUser(executor.getUniqueId()));
-                case "leave": return leaveChannel(args[1], plugin.getUser(executor.getUniqueId()));
-                case "setmain": return setMain(args[1], plugin.getUser(executor.getUniqueId()));
-                case "mute": return muteChannel(args[1], plugin.getUser(executor.getUniqueId()));
+                case "join": return joinChannel(args[1], plugin.getUserManager().getUser(executor.getUniqueId()));
+                case "leave": return leaveChannel(args[1], plugin.getUserManager().getUser(executor.getUniqueId()));
+                case "setcurrent": return setCurrent(args[1], plugin.getUserManager().getUser(executor.getUniqueId()));
+                case "mute": return muteChannel(args[1], plugin.getUserManager().getUser(executor.getUniqueId()));
                 default: sender.sendMessage(helpMessage);
             }
         } else if (args.length == 1 && args[0].equalsIgnoreCase("list")) {
@@ -55,40 +54,35 @@ public class CommandChatChannel extends CommandHandler implements IConsoleComman
     }
 
     private boolean joinChannel(String name, User user) {
-        Channel channel = plugin.getChannelManager().getChannel(name);
+        ChatChannel channel = plugin.getChannelManager().getChannel(name);
         if (channel == null) {
             executor.sendMessage(Lang.CHANNEL_DOES_NOT_EXISTS.get());
-        } else if (user.isInChannel(channel)) {
+        } else if (!channel.isAllowedToJoin(user)) {
+            executor.sendMessage(Lang.CHANNEL_JOIN_NOT_PERMITTED.get(channel.getPrefix()));
+        } else if (!user.getChatProfile().addChannel(channel)) {
             executor.sendMessage(Lang.CHANNEL_ALREADY_IN.get());
-        } else if (user.isBannedFromChannel(channel)) {
-            executor.sendMessage(Lang.BANNED_FROM_CHANNEL.get());
-        } else if (!executor.hasPermission(channel.getJoinPermission())) {
-            executor.sendMessage(Lang.CHANNEL_JOIN_NOT_PERMITTED.get(channel.getName()));
-        } else {
-            user.addChannel(channel);
-            if (user.getChannels().size() == 1)
-                user.setMainChannel(channel);
-            executor.sendMessage(Lang.CHANNEL_JOINED.get(channel.getName()));
+        } else if (user.getChatProfile().getCurrentChannel() != channel) {
+            user.getChatProfile().setCurrentChannel(channel);
+            channel.join(user);
         }
         return true;
     }
 
 
     private boolean leaveChannel(String name, User user) {
-        Channel channel = plugin.getChannelManager().getChannel(name);
+        ChatChannel channel = plugin.getChannelManager().getChannel(name);
         if (channel == null) {
             executor.sendMessage(Lang.CHANNEL_DOES_NOT_EXISTS.get());
-        } else if (user.isInChannel(channel)) {
-            user.removeChannel(channel);
-            executor.sendMessage(Lang.CHANNEL_LEFT.get(channel.getName()));
+        } else if (user.getChatProfile().removeChannel(channel)) {
+            channel.leave(user);
         } else {
             executor.sendMessage(Lang.CHANNEL_NOT_JOINED.get(channel.getName()));
         }
         return true;
     }
 
-    private boolean setMain(String name, User user) {
-        Channel channel = plugin.getChannelManager().getChannel(name);
+    private boolean setCurrent(String name, User user) {
+        ChatChannel channel = plugin.getChannelManager().getChannel(name);
         if (channel == null) {
             executor.sendMessage(Lang.CHANNEL_DOES_NOT_EXISTS.get());
         } else if (user.isBannedFromChannel(channel)) {
@@ -102,11 +96,12 @@ public class CommandChatChannel extends CommandHandler implements IConsoleComman
             user.addChannel(channel);
             user.setMainChannel(channel);
             executor.sendMessage(Lang.CHANNEL_JOINED.get(channel.getName()));
+            executor.sendMessage(Lang.CHANNEL_SET_AS_MAIN.get(channel.getName()));
         }
         return true;
     }
 
-    private boolean muteChannel(String arg, User user) {
+    private boolean muteChannel(String name, User user) {
         // todo
         return true;
     }
@@ -119,7 +114,7 @@ public class CommandChatChannel extends CommandHandler implements IConsoleComman
             return true;
         }
         @Deprecated
-        User user = plugin.getUser(Bukkit.getOfflinePlayer(args[2]).getUniqueId());
+        User user = plugin.getUserManager().getUser(Bukkit.getOfflinePlayer(args[2]).getUniqueId());
         switch (args[2]) { // The moderation action
             case "kick":
                 if (!user.isInChannel(channel)) return true;
@@ -159,7 +154,7 @@ public class CommandChatChannel extends CommandHandler implements IConsoleComman
             });
             PlayerUtils.message(executor, "&6 " + builder);
         }
-        User user = plugin.getUser(executor.getUniqueId());
+        User user = plugin.getUserManager().getUser(executor.getUniqueId());
         executor.sendMessage(Lang.CHANNELS_YOU_ARE_IN.get());
         if (user.getChannels().isEmpty()) {
             PlayerUtils.message(executor, "&6 -");
@@ -177,7 +172,7 @@ public class CommandChatChannel extends CommandHandler implements IConsoleComman
 
     @Override
     public List<String> tabComplete(@NotNull String[] args) {
-        List<String> list = Lists.newArrayList("join", "leave", "setmain", "list");
+        List<String> list = Lists.newArrayList("join", "leave", "setcurrent", "list");
         if (Permission.ADMIN.has(executor)) list.add("moderate");
         if (Permission.MODERATOR.has(executor)) list.add("mute");
         if (args.length == 1) {
@@ -193,8 +188,8 @@ public class CommandChatChannel extends CommandHandler implements IConsoleComman
             }
         } else if (args.length == 2) { // Channel leave global -> tab complete the channels
             if (args[0].equalsIgnoreCase("leave")) {
-                return StringUtil.copyPartialMatches(args[1], plugin.getUser(executor.getUniqueId())
-                        .getChannels().stream().map(Channel::getName).collect(Collectors.toList()), new ArrayList<>());
+                return StringUtil.copyPartialMatches(args[1], plugin.getUserManager().getUser(executor.getUniqueId())
+                        .getChannels().stream().map(ChatChannel::getName).collect(Collectors.toList()), new ArrayList<>());
             } else if (!args[0].equalsIgnoreCase("list")) { // Everything other than list, list will return nothing
                 return StringUtil.copyPartialMatches(args[1], plugin.getChannelManager().getChannels()
                         .stream().filter(channel -> executor.hasPermission(channel.getJoinPermission())).map(

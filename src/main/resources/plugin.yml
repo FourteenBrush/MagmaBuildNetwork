@@ -40,9 +40,6 @@ commands:
   trade:
     description: Sends a trade request to a player
     permission: magmabuildnetwork.basic
-  trails:
-    description: Shows all available trails
-    permission: magmabuildnetwork.trails
   ally:
     description: Shows up ally menu
     permission: magmabuildnetwork.basic

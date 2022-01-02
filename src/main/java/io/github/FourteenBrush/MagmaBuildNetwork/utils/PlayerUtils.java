@@ -1,5 +1,6 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.utils;
 
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Lang;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;

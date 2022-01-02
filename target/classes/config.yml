@@ -10,10 +10,10 @@
 use-mysql: false
 # MySQL credentials if use-mysql is set to true
 mysql:
-  ip: 127.0.0.1
+  name: "minecraft"
+  host: "localhost"
   port: 3306
-  database: "minecraft"
-  user: "root"
+  username: "mc"
   password: "password"
 
 # Use this format to send messages to the chat
@@ -52,23 +52,4 @@ teleport-to-spawn-on:
 disable-spawn-command-in-pvp: true
 # The spawn location is set in the data.yml file
 
-# Do not edit this!
-maintenance:
-  enabled: false
-  # Countdown in seconds
-  countdown: 40
-  announce:
-    - '&640'
-    - '&630'
-    - '&620'
-    - '&610'
-    - '&69'
-    - '&68'
-    - '&67'
-    - '&66'
-    - '&c5'
-    - '&c4'
-    - '&c3'
-    - '&c2'
-    - '&c1'
-  kick-message: "The server is in maintenance, please join back later!"
+server-mode: maintenance

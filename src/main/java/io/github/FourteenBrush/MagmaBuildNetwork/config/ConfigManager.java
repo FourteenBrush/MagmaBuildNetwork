@@ -1,7 +1,7 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.config;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.MBNPlugin;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Logger;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -20,7 +20,7 @@ public class ConfigManager {
 
     public void startup() {
         if (!plugin.getDataFolder().exists() && !plugin.getDataFolder().mkdirs()) {
-            Utils.logError("Could not create files");
+            Logger.ERROR.log("Could not create files!");
         } else {
             plugin.saveDefaultConfig();
 
@@ -37,10 +37,22 @@ public class ConfigManager {
                 if (!homesFile.exists()) homesFile.createNewFile();
                 homes = YamlConfiguration.loadConfiguration(homesFile);
             } catch (IOException e) {
-                Utils.logError("Something went wrong creating config files: ");
+                Logger.ERROR.log("Something went wrong when creating config files: ");
                 e.printStackTrace();
             }
         }
+    }
+
+    public boolean createNewFileSucceeded(File file) {
+        if (!file.exists()) {
+            file.mkdirs();
+            try {
+                return file.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
     }
 
     public void saveConfig(FileType file) {
@@ -57,7 +69,7 @@ public class ConfigManager {
                     break;
             }
         } catch (IOException e) {
-            Utils.logError("Could not save data to file " + file.name().toLowerCase() + ".yml");
+            Logger.ERROR.log("Could not save data to file " + file.name().toLowerCase());
             e.printStackTrace();
         }
     }

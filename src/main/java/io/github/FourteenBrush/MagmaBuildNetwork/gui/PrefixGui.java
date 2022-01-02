@@ -26,12 +26,12 @@ public class PrefixGui extends GuiCreator {
         prefix.forEach(group -> {
             int slot = inv.firstEmpty();
             String str = loadPrefixes().get(prefix.get(slot));
-            setItem(slot, createItem(Material.OAK_SIGN, Utils.colorize(str), null), p -> {
-                plugin.getApi().getUserManager().getUser(p.getUniqueId()).setPrimaryGroup(prefix.get(slot));
-                plugin.getApi().getUserManager().savePlayerData(p.getUniqueId(), p.getName());
+            setItem(slot, createItem(Material.OAK_SIGN, Utils.colorize(str)), event -> {
+                plugin.getApi().getUserManager().getUser(player.getUniqueId()).setPrimaryGroup(prefix.get(slot));
+                plugin.getApi().getUserManager().savePlayerData(player.getUniqueId(), player.getName());
                 player.closeInventory();
-                plugin.getChat().setPlayerPrefix(p, str);
-                PlayerUtils.message(p, "&6Changed prefix!");
+                plugin.getChat().setPlayerPrefix(player, str);
+                PlayerUtils.message(player, "&6Changed prefix!");
             });
         });
     }

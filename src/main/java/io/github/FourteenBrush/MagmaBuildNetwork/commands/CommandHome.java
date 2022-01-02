@@ -2,9 +2,9 @@ package io.github.FourteenBrush.MagmaBuildNetwork.commands;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.managers.CommandHandler;
 import io.github.FourteenBrush.MagmaBuildNetwork.config.ConfigManager;
-import io.github.FourteenBrush.MagmaBuildNetwork.library.CooldownManager;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Lang;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Permission;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.CooldownManager;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Lang;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Permission;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.PlayerUtils;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -98,7 +98,7 @@ public class CommandHome extends CommandHandler {
                 .append(Utils.colorize("&cYou have no homes, click"))
                 .append(Utils.colorize(" &6here "))
                 .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to create a home")))
-                .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/home create NAME_HERE"))
+                .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/home create NAME"))
                 .append(Utils.colorize("&cto create a home at your current position"))
                 .event((HoverEvent) null)
                 .event((ClickEvent) null)
@@ -120,15 +120,15 @@ public class CommandHome extends CommandHandler {
             }
         }
         Location loc = getLocation(name);
-        if (loc != null) {
-            if (!loc.getChunk().isLoaded())
-                loc.getChunk().load();
-            executor.teleport(loc);
-            // makes sure bypassed uses don't count as an use
-            if (!CommandMagmabuildnetwork.isBypassing(uuid))
-                cm.setCooldown(uuid, System.currentTimeMillis());
-            executor.sendMessage(Lang.HOME_TELEPORTED.get(name));
+        if (loc == null) return true;
+        if (!loc.getChunk().isLoaded()) {
+            loc.getChunk().load();
         }
+        executor.teleport(loc);
+        // makes sure bypassed uses don't count as an use
+        if (!CommandMagmabuildnetwork.isBypassing(uuid))
+            cm.setCooldown(uuid, System.currentTimeMillis());
+        executor.sendMessage(Lang.HOME_TELEPORTED.get(name));
         return true;
     }
 

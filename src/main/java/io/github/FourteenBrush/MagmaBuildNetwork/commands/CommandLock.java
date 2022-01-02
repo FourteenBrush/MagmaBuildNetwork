@@ -2,8 +2,8 @@ package io.github.FourteenBrush.MagmaBuildNetwork.commands;
 
 import com.google.common.collect.Lists;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.managers.CommandHandler;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Lang;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Permission;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Lang;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Permission;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -64,13 +64,12 @@ public class CommandLock extends CommandHandler {
     }
 
     private boolean bypassLock() {
-        if (Permission.ADMIN.has(executor, true)) {
-            if (bypassingLock.remove(executor.getUniqueId())) {
-                executor.sendMessage(Lang.LOCK_NOT_LONGER_BYPASSING.get());
-            } else {
-                bypassingLock.add(executor.getUniqueId());
-                executor.sendMessage(Lang.LOCK_BYPASSING.get());
-            }
+        if (!Permission.MODERATOR.has(executor, true)) return true;
+        if (bypassingLock.remove(executor.getUniqueId())) {
+            executor.sendMessage(Lang.LOCK_NOT_LONGER_BYPASSING.get());
+        } else {
+            bypassingLock.add(executor.getUniqueId());
+            executor.sendMessage(Lang.LOCK_BYPASSING.get());
         }
         return true;
     }

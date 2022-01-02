@@ -2,34 +2,35 @@ package io.github.FourteenBrush.MagmaBuildNetwork.listeners;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.MBNPlugin;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandFly;
-import io.github.FourteenBrush.MagmaBuildNetwork.commands.spawn.CommandSpawn;
+import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandSpawn;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandVanish;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.SimpleCommand;
-import io.github.FourteenBrush.MagmaBuildNetwork.config.ConfigManager;
 import io.github.FourteenBrush.MagmaBuildNetwork.gui.GuiCreator;
-import io.github.FourteenBrush.MagmaBuildNetwork.commands.spawn.Combat;
-import io.github.FourteenBrush.MagmaBuildNetwork.library.ActionBar;
-import io.github.FourteenBrush.MagmaBuildNetwork.library.Effects;
-import io.github.FourteenBrush.MagmaBuildNetwork.library.NoPush;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Lang;
-import io.github.FourteenBrush.MagmaBuildNetwork.utils.Permission;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.PlayerUtils;
-import org.bukkit.*;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Keys;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Lang;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.ServerMode;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Material;
+import org.bukkit.TreeSpecies;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.*;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.*;
-import org.bukkit.event.server.TabCompleteEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.EnumSet;
+import java.util.Set;
+import java.util.UUID;
 
 public class PlayerListener implements Listener {
 
@@ -48,54 +49,42 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler
-    public void onJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        NoPush.setCantPush(player);
-        if (plugin.getCommandManager().checkVanishedPlayer()) {
-            Bukkit.getOnlinePlayers().forEach(pl -> {
-                if (!CommandVanish.getVanishedPlayers().contains(pl.getUniqueId()))
-                    pl.hidePlayer(plugin, player);
-                if (pl != player && Permission.MODERATOR.has(pl))
-                    PlayerUtils.message(pl, "&e" + player.getName() + " has joined vanished.");
-            });
-            PlayerUtils.message(player, "&eYou have joined vanished.");
-            event.setJoinMessage(null);
-        } else event.setJoinMessage(Lang.JOIN_MESSAGE.get(player.getName()));
-        Bukkit.getScheduler().runTaskLater(plugin, () -> PlayerUtils.message(player, "&aWelcome to the server &b " + player.getName()), 10L);
-        new ActionBar(player).runTaskTimerAsynchronously(plugin, 1L, 3L);
-        if (!player.hasPlayedBefore())
-            giveRespawnItems(player);
-    }
-
-    @EventHandler
-    public void onQuit(PlayerQuitEvent event) {
-        Player player = event.getPlayer();
-        UUID uuid = player.getUniqueId();
-        plugin.removeUserFromCache(uuid);
-        GuiCreator.getOpenInventories().remove(uuid);
-        BukkitRunnable r = ActionBar.getActionbars().remove(player.getUniqueId());
-        if (r != null)
-            r.cancel();
-        if (CommandVanish.getVanishedPlayers().remove(uuid)) {
-            CommandVanish.getInstance().vanish(player, false);
-            event.setQuitMessage(null);
-            plugin.getConfigManager().getData().set("vanished-players", CommandVanish.getVanishedPlayers().stream().map(UUID::toString).collect(Collectors.toList()));
-            plugin.getConfigManager().saveConfig(ConfigManager.FileType.LANG);
-            player.removePotionEffect(PotionEffectType.NIGHT_VISION);
-        } else event.setQuitMessage(Lang.LEAVE_MESSAGE.get(player.getName()));
-        if (Effects.getTrails().containsKey(uuid)) {
-            new Effects(player).endTask();
+    public void onLogin(PlayerLoginEvent event) {
+        ServerMode serverMode = ServerMode.of(plugin.getConfig().getString("server-mode"));
+        if (serverMode != null && !event.getPlayer().hasPermission(serverMode.getPermission())) {
+            event.disallow(PlayerLoginEvent.Result.KICK_OTHER, serverMode.getMessage());
         }
     }
 
     @EventHandler
-    public void onPlayerMove(PlayerMoveEvent event) {
+    public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        if (SimpleCommand.isPlayerFrozen(player.getUniqueId())) {
+        Bukkit.getScheduler().runTaskLater(plugin, () -> PlayerUtils.message(player, "&aWelcome to the server &b " + player.getName()), 10L);
+        if (!player.hasPlayedBefore()) {
+            giveRespawnItems(player);
+            plugin.getUserManager().createUser(player.getUniqueId(), true);
+        } else if (player.getPersistentDataContainer().getOrDefault(Keys.VANISHED, PersistentDataType.BYTE, (byte)0) == 1) {
+            CommandVanish.getInstance().vanish(player, true);
+            event.setJoinMessage(null);
+        } else event.setJoinMessage(Lang.JOIN_MESSAGE.get(player.getName()));
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        UUID uuid = event.getPlayer().getUniqueId();
+        plugin.getUserManager().getUser(uuid, true).logoutSafely();
+        plugin.getUserManager().removeFromCache(uuid);
+        GuiCreator.getOpenInventories().remove(uuid);
+        if (CommandVanish.getVanishedPlayers().remove(uuid)) {
+            event.setQuitMessage(null);
+            event.getPlayer().removePotionEffect(PotionEffectType.NIGHT_VISION);
+        } else event.setQuitMessage(Lang.LEAVE_MESSAGE.get(event.getPlayer().getName()));
+    }
+
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        if (SimpleCommand.isPlayerFrozen(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
-        } else if (Effects.getTrails().containsKey(player.getUniqueId()) && Effects.getTrails().get(player.getUniqueId()) == Effects.Trails.WALKTRAIL) {
-            Effects effects = new Effects(player);
-            effects.startWalkTrail();
         }
     }
 
@@ -114,12 +103,6 @@ public class PlayerListener implements Listener {
             ItemStack drop = new ItemStack(getBoat(((Boat) vehicle).getWoodType()));
             event.getExited().getLocation().getWorld().dropItem(event.getExited().getLocation(), drop);
         }
-    }
-
-    @EventHandler
-    public void onTabComplete(TabCompleteEvent event) {
-        if (!(event.getSender() instanceof Player))
-            event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -151,24 +134,27 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerRespawn(PlayerRespawnEvent event) {
         if (plugin.getConfig().getBoolean("teleport-to-spawn-on.respawn")) {
-            event.getPlayer().setBedSpawnLocation(CommandSpawn.getLocation());
-            event.setRespawnLocation(CommandSpawn.getLocation());
+            event.getPlayer().setBedSpawnLocation(CommandSpawn.getInstance().getLocation());
+            event.setRespawnLocation(CommandSpawn.getInstance().getLocation());
         }
         giveRespawnItems(event.getPlayer());
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onDamageByEntity(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof Player)) return;
-        Player player = (Player) event.getEntity();
-        if (event.getDamager() instanceof Player) {
-            if (!WEAPONS.contains(((Player) event.getDamager()).getInventory().getItemInMainHand().getType())) {
-                event.setDamage(0);
-            } else {
-                Combat.pvp(player, (Player) event.getDamager());
+        if (event.getDamager() instanceof Projectile) {
+            Projectile projectile = (Projectile) event.getDamager();
+            if (projectile.getShooter() instanceof Player && projectile.getShooter() != event.getEntity()) {
+                CommandSpawn.getInstance().pvp(((Player) projectile.getShooter()).getUniqueId());
             }
-        } else if (event.getDamager() instanceof Arrow && ((Arrow) event.getDamager()).getShooter() instanceof Player) {
-            Combat.pvp(player, (Player) ((Arrow) event.getDamager()).getShooter());
+        } else if (event.getDamager() instanceof Player) {
+            Player damager = (Player) event.getDamager();
+            if (WEAPONS.contains(damager.getInventory().getItemInMainHand().getType())) {
+                CommandSpawn.getInstance().pvp(damager.getUniqueId());
+            } else {
+                event.setDamage(0);
+            }
         }
     }
 
@@ -188,7 +174,7 @@ public class PlayerListener implements Listener {
             event.setCancelled(true);
     }
 
-    private static void giveRespawnItems(Player player) {
+    private void giveRespawnItems(Player player) {
         PlayerUtils.addOrDropFor(player, 0, new ItemStack(Material.APPLE, 16));
         PlayerUtils.addOrDropFor(player, 1, new ItemStack(Material.WOODEN_PICKAXE));
     }
