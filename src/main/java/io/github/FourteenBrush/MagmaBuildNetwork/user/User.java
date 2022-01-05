@@ -1,8 +1,8 @@
-package io.github.FourteenBrush.MagmaBuildNetwork.player;
+package io.github.FourteenBrush.MagmaBuildNetwork.user;
 
-import io.github.FourteenBrush.MagmaBuildNetwork.player.profiles.ChatProfile;
-import io.github.FourteenBrush.MagmaBuildNetwork.player.profiles.MembershipProfile;
-import io.github.FourteenBrush.MagmaBuildNetwork.player.profiles.StatisticsProfile;
+import io.github.FourteenBrush.MagmaBuildNetwork.user.profiles.ChatProfile;
+import io.github.FourteenBrush.MagmaBuildNetwork.user.profiles.MembershipProfile;
+import io.github.FourteenBrush.MagmaBuildNetwork.user.profiles.StatisticsProfile;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.PlayerUtils;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import net.md_5.bungee.api.ChatMessageType;
@@ -102,7 +102,7 @@ public class User {
 
     /**
      * This method should be called when logging out the user
-     * This method only be called on the time the user is leaving the server
+     * This method should only be called on the time the user is leaving the server or the plugin is disabling
      */
     public void logoutSafely() {
         actionbar.cancel();

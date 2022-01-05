@@ -10,7 +10,7 @@ import io.github.FourteenBrush.MagmaBuildNetwork.listeners.InventoryListener;
 import io.github.FourteenBrush.MagmaBuildNetwork.listeners.LockListener;
 import io.github.FourteenBrush.MagmaBuildNetwork.listeners.PlayerListener;
 import io.github.FourteenBrush.MagmaBuildNetwork.listeners.VaultListener;
-import io.github.FourteenBrush.MagmaBuildNetwork.player.UserManager;
+import io.github.FourteenBrush.MagmaBuildNetwork.user.UserManager;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Logger;
 import net.luckperms.api.LuckPerms;
 import net.milkbowl.vault.chat.Chat;
@@ -37,8 +37,8 @@ public class MBNPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        instance = this;
         long start = System.currentTimeMillis();
+        instance = this;
         Logger.INFO.log("Initializing...");
         configManager = new ConfigManager(this);
         userManager = new UserManager(this);

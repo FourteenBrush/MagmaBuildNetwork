@@ -1,6 +1,6 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.chat.framework;
 
-import io.github.FourteenBrush.MagmaBuildNetwork.player.User;
+import io.github.FourteenBrush.MagmaBuildNetwork.user.User;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.PlayerUtils;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.Utils;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Lang;

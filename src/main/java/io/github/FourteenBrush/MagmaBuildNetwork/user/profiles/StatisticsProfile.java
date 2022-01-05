@@ -1,4 +1,4 @@
-package io.github.FourteenBrush.MagmaBuildNetwork.player.profiles;
+package io.github.FourteenBrush.MagmaBuildNetwork.user.profiles;
 
 import org.apache.commons.lang.Validate;
 

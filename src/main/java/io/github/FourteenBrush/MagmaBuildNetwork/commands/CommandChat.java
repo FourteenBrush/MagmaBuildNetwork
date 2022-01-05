@@ -1,7 +1,7 @@
 package io.github.FourteenBrush.MagmaBuildNetwork.commands;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.managers.CommandHandler;
-import io.github.FourteenBrush.MagmaBuildNetwork.player.User;
+import io.github.FourteenBrush.MagmaBuildNetwork.user.User;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.PlayerUtils;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Lang;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Permission;

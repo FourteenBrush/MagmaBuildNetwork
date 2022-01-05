@@ -6,6 +6,8 @@ import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandSpawn;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.CommandVanish;
 import io.github.FourteenBrush.MagmaBuildNetwork.commands.SimpleCommand;
 import io.github.FourteenBrush.MagmaBuildNetwork.gui.GuiCreator;
+import io.github.FourteenBrush.MagmaBuildNetwork.user.User;
+import io.github.FourteenBrush.MagmaBuildNetwork.user.UserManager;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.PlayerUtils;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Keys;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Lang;
@@ -35,7 +37,8 @@ import java.util.UUID;
 public class PlayerListener implements Listener {
 
     private final MBNPlugin plugin;
-    private static final Set<Material> WEAPONS = EnumSet.of(
+    private final UserManager userManager;
+    private final Set<Material> WEAPONS = EnumSet.of(
             Material.WOODEN_SWORD,
             Material.STONE_SWORD,
             Material.IRON_SWORD,
@@ -46,6 +49,7 @@ public class PlayerListener implements Listener {
 
     public PlayerListener(MBNPlugin plugin) {
         this.plugin = plugin;
+        userManager = plugin.getUserManager();
     }
 
     @EventHandler
@@ -62,7 +66,7 @@ public class PlayerListener implements Listener {
         Bukkit.getScheduler().runTaskLater(plugin, () -> PlayerUtils.message(player, "&aWelcome to the server &b " + player.getName()), 10L);
         if (!player.hasPlayedBefore()) {
             giveRespawnItems(player);
-            plugin.getUserManager().createUser(player.getUniqueId(), true);
+            userManager.createUser(player.getUniqueId());
         } else if (player.getPersistentDataContainer().getOrDefault(Keys.VANISHED, PersistentDataType.BYTE, (byte)0) == 1) {
             CommandVanish.getInstance().vanish(player, true);
             event.setJoinMessage(null);
@@ -72,8 +76,9 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         UUID uuid = event.getPlayer().getUniqueId();
-        plugin.getUserManager().getUser(uuid, true).logoutSafely();
-        plugin.getUserManager().removeFromCache(uuid);
+        User user = userManager.getUser(uuid);
+        user.logoutSafely();
+        userManager.removeFromCacheAndSave(user);
         GuiCreator.getOpenInventories().remove(uuid);
         if (CommandVanish.getVanishedPlayers().remove(uuid)) {
             event.setQuitMessage(null);
@@ -86,6 +91,11 @@ public class PlayerListener implements Listener {
         if (SimpleCommand.isPlayerFrozen(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
         }
+    }
+
+    @EventHandler
+    public void onChat(AsyncPlayerChatEvent event) {
+        // todo
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

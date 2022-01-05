@@ -1,10 +1,10 @@
-package io.github.FourteenBrush.MagmaBuildNetwork.player.profiles;
+package io.github.FourteenBrush.MagmaBuildNetwork.user.profiles;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import io.github.FourteenBrush.MagmaBuildNetwork.chat.framework.ChannelRank;
 import io.github.FourteenBrush.MagmaBuildNetwork.chat.framework.ChatChannel;
-import io.github.FourteenBrush.MagmaBuildNetwork.player.User;
+import io.github.FourteenBrush.MagmaBuildNetwork.user.User;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
