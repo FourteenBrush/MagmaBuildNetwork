@@ -44,15 +44,7 @@ public class Database {
     }
 
     public void insertQueryAsync(String sql) {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            try (Connection conn = getConnection();
-                 PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.execute();
-            } catch (SQLException e) {
-                Logger.ERROR.log("Failed to execute db query: ");
-                e.printStackTrace();
-            }
-        });
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> insertQuerySync(sql));
     }
 
 

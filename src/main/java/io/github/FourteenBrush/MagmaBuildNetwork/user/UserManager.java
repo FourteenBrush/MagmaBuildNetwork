@@ -2,6 +2,7 @@ package io.github.FourteenBrush.MagmaBuildNetwork.user;
 
 import io.github.FourteenBrush.MagmaBuildNetwork.MBNPlugin;
 import io.github.FourteenBrush.MagmaBuildNetwork.user.profiles.StatisticsProfile;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.DelegatingStorage;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Logger;
 import org.bukkit.Bukkit;
 
@@ -12,10 +13,36 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 
 public class UserManager {
+    private final MBNPlugin plugin;
+    private final DelegatingStorage<User, UUID> userStorage;
+    private final UserRepository userRepository;
+
+    public UserManager(MBNPlugin plugin) {
+        this.plugin = plugin;
+        Executor executor = new ForkJoinPool(Runtime.getRuntime().availableProcessors() * 2,
+                ForkJoinPool.defaultForkJoinWorkerThreadFactory,
+                (t, e) -> e.printStackTrace(),
+                false);
+        this.userStorage = new DelegatingStorage<>(new MySqlUserStorage(plugin), executor);
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     private final MBNPlugin plugin;
     private final Map<UUID, User> userCache;
@@ -59,12 +86,6 @@ public class UserManager {
         User user = userCache.get(uuid);
         if (user != null) return user;
 
-    }
-
-    public User getUserAsync(UUID uuid) {
-        CompletableFuture.supplyAsync(() -> getUserFromDatabase(uuid), forkJoinPool).whenComplete((u, t) ->
-                userCache.put(uuid, u));
-        return userCache.get(uuid);
     }
 
     private User getUserFromDatabase(UUID uuid) {
@@ -143,12 +164,9 @@ public class UserManager {
         }
     }
 
-    // must be called on plugin disable
-    public void shutdown()  {
-        userCache.values().forEach(user -> {
-            user.logoutSafely();
-            saveUserToDatabase(user); // sync
-        });
+    // must be called on plugin disable, which executes a sync shutdown
+    public void shutdown() {
+        userCache.values().forEach(this::saveUserToDatabase);
     }
 
     public void putInCache(User user) {

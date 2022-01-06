@@ -10,7 +10,8 @@ import io.github.FourteenBrush.MagmaBuildNetwork.listeners.InventoryListener;
 import io.github.FourteenBrush.MagmaBuildNetwork.listeners.LockListener;
 import io.github.FourteenBrush.MagmaBuildNetwork.listeners.PlayerListener;
 import io.github.FourteenBrush.MagmaBuildNetwork.listeners.VaultListener;
-import io.github.FourteenBrush.MagmaBuildNetwork.user.UserManager;
+import io.github.FourteenBrush.MagmaBuildNetwork.user.*;
+import io.github.FourteenBrush.MagmaBuildNetwork.utils.DelegatingStorage;
 import io.github.FourteenBrush.MagmaBuildNetwork.utils.enums.Logger;
 import net.luckperms.api.LuckPerms;
 import net.milkbowl.vault.chat.Chat;
@@ -20,6 +21,9 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ForkJoinPool;
 
 public class MBNPlugin extends JavaPlugin {
 
@@ -35,6 +39,9 @@ public class MBNPlugin extends JavaPlugin {
     private MessageManager messageManager;
     private Database database;
 
+    private DelegatingStorage<User, UUID> userStorage;
+    private UserRepository userRepository;
+
     @Override
     public void onEnable() {
         long start = System.currentTimeMillis();
@@ -48,6 +55,16 @@ public class MBNPlugin extends JavaPlugin {
         commandManager.startup();
         consoleUUID = UUID.nameUUIDFromBytes("Console".getBytes());
         database = new Database(this);
+
+        userRepository = new UserRepository(new ConcurrentHashMap<>(), UserFactory::newUser);
+        Executor executor = new ForkJoinPool(Runtime.getRuntime().availableProcessors() * 2,
+                ForkJoinPool.defaultForkJoinWorkerThreadFactory,
+                (t, e) -> e.printStackTrace(),
+                false);
+
+        userStorage = new DelegatingStorage<>(new MySqlUserStorage(this), executor);
+        userStorage.startup();
+
         setupDependencies();
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(new PlayerListener(this), this);
